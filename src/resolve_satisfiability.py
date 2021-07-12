@@ -3,7 +3,7 @@
 # ====================================================
 # file name: resolve_satisfiability.py
 #
-# Script to resolve satisfiable of given formulas using Z3 SMT solver.
+# Script to resolve satisfiable of given formulae using Z3 SMT solver.
 # ====================================================
 # project: IP1 | Optimizing Automata Product Construction and Emptiness Test
 # "Optimalizace automatové konstrukce produktu a testu prázdnosti jazyka"
@@ -101,12 +101,12 @@ def main():
                 if not fa_a_handle_and_loop.final or not fa_b_handle_and_loop.final:
                     break
 
-                fa_a_formulas_dict = fa_a_handle_and_loop.count_formulas_for_lfa()
-                #print(fa_a_formulas_dict)  # DEBUG
-                fa_b_formulas_dict = fa_b_handle_and_loop.count_formulas_for_lfa()
-                #print(fa_b_formulas_dict)  # DEBUG
+                fa_a_formulae_dict = fa_a_handle_and_loop.count_formulae_for_lfa()
+                #print(fa_a_formulae_dict)  # DEBUG
+                fa_b_formulae_dict = fa_b_handle_and_loop.count_formulae_for_lfa()
+                #print(fa_b_formulae_dict)  # DEBUG
 
-                satisfiable = check_satisfiability(fa_a_formulas_dict, fa_b_formulas_dict)
+                satisfiable = check_satisfiability(fa_a_formulae_dict, fa_b_formulae_dict)
                 #print(satisfiable)
                 if satisfiable:
                     sat_cnt += 1
@@ -259,28 +259,28 @@ def enqueue_next_states(q_states, fa_orig, curr_state):
             for state in state_dict_elem.split(','):
                 q_states.append(state)
 
-def check_satisfiability(fa_a_formulas_dict, fa_b_formulas_dict):
+def check_satisfiability(fa_a_formulae_dict, fa_b_formulae_dict):
     """
     Check satisfiability for formulae using SMT solver Z3.
-    :param fa_a_formulas_dict: Dictionary with formulae for FA A.
-    :param fa_b_formulas_dict: Dictionary with formulae for FA B.
+    :param fa_a_formulae_dict: Dictionary with formulae for FA A.
+    :param fa_b_formulae_dict: Dictionary with formulae for FA B.
     :return: True if satisfiable; False if not satisfiable.
     """
 
-    def get_only_formulae(formulas_dict):
+    def get_only_formulae(formulae_dict):
         only_formulae = []
-        for accept_state in formulas_dict:
+        for accept_state in formulae_dict:
             try:
-                only_formulae.append([formulas_dict[accept_state][1], formulas_dict[accept_state][2]])
+                only_formulae.append([formulae_dict[accept_state][1], formulae_dict[accept_state][2]])
             except IndexError:
-                only_formulae.append([formulas_dict[accept_state][1]])
+                only_formulae.append([formulae_dict[accept_state][1]])
 
         return only_formulae
 
-    fa_a_only_formulae = get_only_formulae(fa_a_formulas_dict)
-    fa_b_only_formulae = get_only_formulae(fa_b_formulas_dict)
-    #print(fa_a_only_formulas)  # DEBUG
-    #print(fa_b_only_formulas)  # DEBUG
+    fa_a_only_formulae = get_only_formulae(fa_a_formulae_dict)
+    fa_b_only_formulae = get_only_formulae(fa_b_formulae_dict)
+    #print(fa_a_only_formulae)  # DEBUG
+    #print(fa_b_only_formulae)  # DEBUG
 
     smt = Solver()
     fa_a_var = Int('fa_a_var')
