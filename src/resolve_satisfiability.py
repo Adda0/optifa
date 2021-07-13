@@ -27,9 +27,9 @@ def main():
 
     fa_a_orig = symboliclib.parse(fa_a_name)
     fa_b_orig = symboliclib.parse(fa_b_name)
-    A_larger = True
 
-    # Print sizes of original automata.
+    # Decide which automaton is bigger.
+    A_larger = True
     if len(fa_a_orig.states) > len(fa_b_orig.states):
         print(len(fa_a_orig.states), end=' ')
         print(len(fa_b_orig.states), end=' ')
@@ -101,12 +101,7 @@ def main():
                 if not fa_a_handle_and_loop.final or not fa_b_handle_and_loop.final:
                     break
 
-                fa_a_formulae_dict = fa_a_handle_and_loop.count_formulae_for_lfa()
-                #print(fa_a_formulae_dict)  # DEBUG
-                fa_b_formulae_dict = fa_b_handle_and_loop.count_formulae_for_lfa()
-                #print(fa_b_formulae_dict)  # DEBUG
-
-                satisfiable = check_satisfiability(fa_a_formulae_dict, fa_b_formulae_dict)
+                satisfiable = check_satisfiability(fa_a_orig, fa_b_orig)
                 #print(satisfiable)
                 if satisfiable:
                     sat_cnt += 1
@@ -281,8 +276,9 @@ def check_satisfiability(fa_a, fa_b):
 
     smt = Solver()
     # Create lists of variables for conjunction of formulae.
-    y_t_a = [ Int('y_a_%s' % i) for i in range( len(fa_a.transitions) ) ]  # FA A: y_t.
-    u_q_a = [ Int('u_a_%s' % i) for i in range( len(fa_a.states) ) ]  # FA A: u_q.
+    fa_a_transitions_names = fa_a.get_transitions_names()
+    a_y_t = [ Int('a_y_%s' % transition) for transition in fa_a_transitions_names ]  # FA A: y_t.
+    a_u_q = [ Int('a_u_%s' % state_name) for state_name in fa_a.states ]  # FA A: u_q.
 
     smt.push()
     # Add clauses – conjunction of formulae.
@@ -290,14 +286,14 @@ def check_satisfiability(fa_a, fa_b):
     # Constraints for 'u_q'.
     for i, state in enumerate(fa_a.states):
         if state in fa_a.start:
-            smt.add(u_q_a[i] = 1)
-        else if state in fa_a.final:
-            smt.add(u_q_a[i] = -1)  #? TODO what about 'or u_q_a[i] = -0'?
+            smt.add(a_u_q[i] == 1)
+        elif state in fa_a.final:
+            smt.add(a_u_q[i] == -1)  #? TODO what about 'or a_u_q[i] = -0'?
         else:
-            smt.add(u_q_a[i] = 0)
+            smt.add(a_u_q[i] == 0)
 
     smt.add()  # FA A: First conjunct.
-    smt.add( And( [ y_t_a[i] >= 0 for i in range( len(fa_a.transitions) ) ] ))  # FA A: Second conjunct.
+    smt.add( And( [ a_y_t[i] >= 0 for i in range( len(fa_a.transitions) ) ] ))  # FA A: Second conjunct.
     smt.add()  # FA A: Third conjunct.
     smt.add()  # FA A: Forth conjunct.
 
