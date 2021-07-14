@@ -235,6 +235,11 @@ def check_satisfiability(fa_a, fa_b):
     :return: True if satisfiable; False if not satisfiable.
     """
 
+    #! FIXME what if initial state is also a final state?
+    # TMP FIX:
+    if next(iter(fa_a.start)) in fa_a.final:
+        return True
+
     smt = Solver()
 
     # Create lists of variables for conjunction of formulae.
