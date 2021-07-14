@@ -278,7 +278,7 @@ def check_satisfiability(fa_a, fa_b):
     # Create lists of variables for conjunction of formulae.
     fa_a_transitions_names = fa_a.get_transitions_names()
     a_y_t = [ Int('a_y_%s' % transition) for transition in fa_a_transitions_names ]  # FA A: y_t.
-    a_u_q = [ Int('a_u_%s' % state_name) for state_name in fa_a.states ]  # FA A: u_q.
+    a_u_q = [ Int('a_u_%s' % state) for state in fa_a.states ]  # FA A: u_q.
 
     smt.push()
     # Add clauses – conjunction of formulae.
@@ -292,13 +292,20 @@ def check_satisfiability(fa_a, fa_b):
         else:
             smt.add(a_u_q[i] == 0)
 
-    smt.add()  # FA A: First conjunct.
-    smt.add( And( [ a_y_t[i] >= 0 for i in range( len(fa_a.transitions) ) ] ))  # FA A: Second conjunct.
-    smt.add()  # FA A: Third conjunct.
-    smt.add()  # FA A: Forth conjunct.
+    # FA A: First conjunct.
+    for state in fa_a.states:
+        smt.add(Int('a_u_%s' % state) + Sum([Int('a_y_%s' % transition) for transition in fa_a.get_ingoing_transitions_names(state)]) - Sum([Int('a_y_%s' % transition) for transition in fa_a.get_outgoing_transitions_names(state)]) == 0)
 
+    # FA A: Second conjunct.
+    smt.add( And( [ a_y_t[i] >= 0 for i in range( len(fa_a.transitions) ) ] ))
 
+    # FA A: Third conjunct.
+    smt.add()
 
+    # FA A: Forth conjunct.
+    smt.add()
+
+    # Check for satisfiability.
     if smt.check() == sat:
         #print(smt.model())  # DEBUG
         return True
