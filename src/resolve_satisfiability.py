@@ -293,7 +293,7 @@ def check_satisfiability(fa_a, fa_b):
         if state in fa_a.start:
             smt.add(a_u_q[i] == 1)
         elif state in fa_a.final:
-            smt.add(a_u_q[i] == -1)  #? TODO what about 'or a_u_q[i] = -0'?
+            smt.add(Or( a_u_q[i] == -1, a_u_q[i] == 0))
         else:
             smt.add(a_u_q[i] == 0)
 
