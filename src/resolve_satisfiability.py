@@ -248,7 +248,10 @@ def check_satisfiability(fa_a, fa_b):
     # FA A variables.
     fa_a_transitions_names = fa_a.get_transitions_names()
     a_y_t = [ Int('a_y_%s' % transition) for transition in fa_a_transitions_names ]  # FA A: y_t.
+    fa_b_transitions_names = fa_b.get_transitions_names()
+    b_y_t = [ Int('b_y_%s' % transition) for transition in fa_b_transitions_names ]  # FA B: y_t.
     a_u_q = [ Int('a_u_%s' % state) for state in fa_a.states ]  # FA A: u_q.
+    b_u_q = [ Int('b_u_%s' % state) for state in fa_b.states ]  # FA B: u_q.
 
     # FA B variables.
 
@@ -264,16 +267,35 @@ def check_satisfiability(fa_a, fa_b):
         else:
             smt.add(a_u_q[i] == 0)
 
+    for i, state in enumerate(fa_b.states):
+        if state in fa_b.start:
+            smt.add(b_u_q[i] == 1)
+        elif state in fa_b.final:
+            smt.add(Or( b_u_q[i] == -1, b_u_q[i] == 0))
+        else:
+            smt.add(b_u_q[i] == 0)
+
     # FA A: First conjunct.
     for state in fa_a.states:
         smt.add(Int('a_u_%s' % state) + Sum([Int('a_y_%s' % transition) for transition in fa_a.get_ingoing_transitions_names(state)]) - Sum([Int('a_y_%s' % transition) for transition in fa_a.get_outgoing_transitions_names(state)]) == 0)
 
+    # FA B: First conjunct.
+    for state in fa_b.states:
+        smt.add(Int('b_u_%s' % state) + Sum([Int('b_y_%s' % transition) for transition in fa_b.get_ingoing_transitions_names(state)]) - Sum([Int('b_y_%s' % transition) for transition in fa_b.get_outgoing_transitions_names(state)]) == 0)
+
     # FA A: Second conjunct.
     smt.add( And( [ a_y_t[i] >= 0 for i in range( len(fa_a_transitions_names) ) ] ))
+
+    # FA B: Second conjunct.
+    smt.add( And( [ b_y_t[i] >= 0 for i in range( len(fa_b_transitions_names) ) ] ))
 
     # FA A: Third conjunct.
     for symbol in fa_a.alphabet:
         smt.add(Int('hash_%s' % symbol) == Sum([Int('a_y_%s' % transition) for transition in fa_a.get_transitions_names_with_symbol(symbol)]))
+
+    # FA B: Third conjunct.
+    for symbol in fa_b.alphabet:
+        smt.add(Int('hash_%s' % symbol) == Sum([Int('b_y_%s' % transition) for transition in fa_b.get_transitions_names_with_symbol(symbol)]))
 
     # FA A: Forth conjunct.
     for state in fa_a.states:
@@ -282,13 +304,25 @@ def check_satisfiability(fa_a, fa_b):
         else:
             smt.add(Or(And( And( And( [ Int('a_y_%s' % transition) >= 0 for transition in fa_a.get_ingoing_transitions_names(state) ] ) , Int('a_z_%s' % state) == 0 ) , And( [ Int('a_y_%s' % transition) == 0 for transition in fa_a.get_ingoing_transitions_names(state) ] ) ), Or( [ And( Int('a_y_%s' % transition) >= 0 , Int('a_z_%s' % transition.split('_')[0]) >= 0, Int('a_z_%s' % state) == Int('a_z_%s' % transition.split('_')[0]) + 1) for transition in fa_a.get_ingoing_transitions_names(state) ] )))
 
+    # FA B: Forth conjunct.
+    for state in fa_b.states:
+        if state in fa_b.start:
+            smt.add(Int('b_z_%s' % state) == 1)
+        else:
+            smt.add(Or(And( And( And( [ Int('b_y_%s' % transition) >= 0 for transition in fa_b.get_ingoing_transitions_names(state) ] ) , Int('b_z_%s' % state) == 0 ) , And( [ Int('b_y_%s' % transition) == 0 for transition in fa_b.get_ingoing_transitions_names(state) ] ) ), Or( [ And( Int('b_y_%s' % transition) >= 0 , Int('b_z_%s' % transition.split('_')[0]) >= 0, Int('b_z_%s' % state) == Int('b_z_%s' % transition.split('_')[0]) + 1) for transition in fa_b.get_ingoing_transitions_names(state) ] )))
+
     # Allow multiple final states.
     # FA A: At least one of the final state is reached.
     smt.add( Or( [ Int('a_u_%s' % state) == -1 for state in fa_a.final ] ) )
+    # FA B: At least one of the final state is reached.
+    smt.add( Or( [ Int('b_u_%s' % state) == -1 for state in fa_b.final ] ) )
 
     # Allow multiple inital states.
     # FA A: Choose only one inital state for a run.
     smt.add( Or( [ And( Int('a_u_%s' % state) == 1, Int('a_z_%s' % state) == 1, And( [ And( Int('a_u_%s' % other_state) == 0, Int('a_z_%s' % other_state) == 0 ) for other_state in fa_a.start if other_state != state ] ) ) for state in fa_a.start ] ) )
+
+    # FA B: Choose only one inital state for a run.
+    smt.add( Or( [ And( Int('b_u_%s' % state) == 1, Int('b_z_%s' % state) == 1, And( [ And( Int('b_u_%s' % other_state) == 0, Int('b_z_%s' % other_state) == 0 ) for other_state in fa_b.start if other_state != state ] ) ) for state in fa_b.start ] ) )
 
     # Check for satisfiability.
     if smt.check() == sat:
