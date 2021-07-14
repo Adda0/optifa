@@ -43,9 +43,6 @@ def main():
     for break_when_final in [True, False]:
         #print(len(fa_a_orig.states) * len(fa_b_orig.states), end=' ')
 
-        q_a_states = deque()
-        q_b_states = deque()
-
         processed_pair_states_cnt = 0
 
         q_checked_pairs = {}
@@ -56,19 +53,10 @@ def main():
             for b_initial_state in fa_b_orig.start:
                 q_pair_states.append([a_initial_state, b_initial_state, False])
 
-
-        # Generate signle handle and loop automata per original input automaton.
-        # Therefore, only single handle and loop automaton for all of the tested
-        # states in the original automaton is needed.
-        fa_a_handle_and_loop = LFA.get_new()
-        fa_b_handle_and_loop = LFA.get_new()
         intersect_ab = LFA.get_new()
 
-        fa_a_unified = deepcopy(fa_a_orig)
-        fa_b_unified = deepcopy(fa_b_orig)
-
-        fa_a_unified.unify_transition_symbols()
-        fa_b_unified.unify_transition_symbols()
+        fa_a_copy = deepcopy(fa_a_orig)
+        fa_b_copy = deepcopy(fa_b_orig)
 
         found = False
         skipped_cnt = 0
@@ -81,28 +69,17 @@ def main():
             curr_pair = q_pair_states.pop()  # DFS
 
             q_checked_pairs[curr_pair[0] + ',' + curr_pair[1]] = True
-            # DEBUG:
-            #if curr_pair[0]:
-            #    print('Skip: ' + str(curr_pair))
-            #else:
-            #    print(curr_pair)
 
-            fa_a_unified.start = {curr_pair[0]}
-            fa_b_unified.start = {curr_pair[1]}
+            fa_a_copy.start = {curr_pair[0]}
+            fa_b_copy.start = {curr_pair[1]}
 
             # If the current pair is a single pair created from the previous pair,
             # no need to check for satisfiability.
             #if True:  # Turn Skip feature off.
             if not curr_pair[2]:
                 processed_pair_states_cnt += 1
-                fa_a_unified.determinize_check(fa_a_handle_and_loop)
-                fa_b_unified.determinize_check(fa_b_handle_and_loop)
 
-                if not fa_a_handle_and_loop.final or not fa_b_handle_and_loop.final:
-                    break
-
-                satisfiable = check_satisfiability(fa_a_orig, fa_b_orig)
-                #print(satisfiable)
+                satisfiable = check_satisfiability(fa_a_copy, fa_b_copy)
                 if satisfiable:
                     sat_cnt += 1
             else:
@@ -116,8 +93,6 @@ def main():
                 if curr_pair[0] in fa_a_orig.final and curr_pair[1] in fa_b_orig.final:
                     # Automata have a non-empty intersection. We can end the testing here as we have found a solution.
                     # Output format: 'T <checked> <processed> <sat> <skipped> <false_cnt>
-                    #fa_a_handle_and_loop.print_automaton()
-                    #fa_b_handle_and_loop.print_automaton()
                     intersect_ab.final.add(curr_pair[0] + ',' + curr_pair[1])
                     """
                     print('')
@@ -127,8 +102,6 @@ def main():
                     print(sat_cnt, end=' ')
                     print(false_cnt, end=' ')
                     print(skipped_cnt, end = ' ')
-                    print(len(fa_a_handle_and_loop.states), end=' ')
-                    print(len(fa_b_handle_and_loop.states), end=' ')
                     print(len(intersect_ab.states),  end=' ')
                     print(len(intersect_ab.final), end=' ')
                     """
@@ -147,8 +120,6 @@ def main():
 
         if not found:
             """
-            #print(f"handle and loop a: {len(fa_a_handle_and_loop.states)}")
-            #print(f"handle and loop b: {len(fa_b_handle_and_loop.states)}")
             print('')
             # Output format: 'F <checked> <processed> <skipped> <false_cnt>'
             print('F', end = ' ')
@@ -157,8 +128,6 @@ def main():
             print(sat_cnt, end=' ')
             print(false_cnt, end=' ')
             print(skipped_cnt, end = ' ')
-            print(len(fa_a_handle_and_loop.states), end=' ')
-            print(len(fa_b_handle_and_loop.states), end=' ')
             print(len(intersect_ab.states),  end=' ')
             print(len(intersect_ab.final), end=' ')
             #print("FAILURE: Automata have an empty intersection.")
@@ -172,18 +141,10 @@ def main():
         print(sat_cnt, end=' ')
         print(false_cnt, end=' ')
         print(skipped_cnt, end = ' ')
-        if A_larger:
-            print(len(fa_a_handle_and_loop.states), end=' ')
-            print(len(fa_b_handle_and_loop.states), end=' ')
-        else:
-            print(len(fa_b_handle_and_loop.states), end=' ')
-            print(len(fa_a_handle_and_loop.states), end=' ')
         print(len(intersect_ab.states),  end=' ')
         print(len(intersect_ab.final), end=' ')
         #intersect_ab.print_automaton()
         #print(intersect_ab.final)
-        #fa_a_handle_and_loop.print_automaton()
-        #fa_b_handle_and_loop.print_automaton()
 
 
         #orig_a = symboliclib.parse(fa_a_name)
@@ -275,6 +236,7 @@ def check_satisfiability(fa_a, fa_b):
     """
 
     smt = Solver()
+
     # Create lists of variables for conjunction of formulae.
     hash_phi = [ Int('hash_%s' % symbol) for symbol in fa_a.alphabet ]  # Both FA A and FA B: hash_phi.
 
@@ -313,11 +275,11 @@ def check_satisfiability(fa_a, fa_b):
         if state in fa_a.start:
             smt.add(Int('a_z_%s' % state) == 1)
         else:
-            smt.add(Or(And( (Int('a_z_%s' % state) == 0) , And( [ Int('a_y_%s' % transition) == 0 for transition in fa_a.get_ingoing_transitions_names(state) ] ) ), Or( [ And( Int('a_z_%s' % transition.split('_')[0]) >= 0, Int('a_z_%s' % state) == Int('a_z_%s' % transition.split('_')[0]) + 1) for transition in fa_a.get_ingoing_transitions_names(state) ] )))
+            smt.add(Or(And( And( And( [ Int('a_y_%s' % transition) >= 0 for transition in fa_a.get_ingoing_transitions_names(state) ] ) , Int('a_z_%s' % state) == 0 ) , And( [ Int('a_y_%s' % transition) == 0 for transition in fa_a.get_ingoing_transitions_names(state) ] ) ), Or( [ And( Int('a_y_%s' % transition) >= 0 , Int('a_z_%s' % transition.split('_')[0]) >= 0, Int('a_z_%s' % state) == Int('a_z_%s' % transition.split('_')[0]) + 1) for transition in fa_a.get_ingoing_transitions_names(state) ] )))
 
     # Allow multiple final states.
     # FA A: At least one of the final state is reached.
-    smt.add( Or( [Int('a_u_%s' % state) == -1 for state in fa_a.final ] ) )
+    smt.add( Or( [ Int('a_u_%s' % state) == -1 for state in fa_a.final ] ) )
 
     # Allow multiple inital states.
     # FA A: Choose only one inital state for a run.
@@ -325,8 +287,10 @@ def check_satisfiability(fa_a, fa_b):
 
     # Check for satisfiability.
     if smt.check() == sat:
-        #print(smt.model())  # DEBUG
+        #print(smt.model())
+        smt.pop()
         return True
+
     smt.pop()
     return False
 
