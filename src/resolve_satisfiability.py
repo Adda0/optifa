@@ -276,9 +276,14 @@ def check_satisfiability(fa_a, fa_b):
 
     smt = Solver()
     # Create lists of variables for conjunction of formulae.
+    hash_phi = [ Int('hash_%s' % symbol) for symbol in fa_a.alphabet ]  # Both FA A and FA B: hash_phi.
+
+    # FA A variables.
     fa_a_transitions_names = fa_a.get_transitions_names()
     a_y_t = [ Int('a_y_%s' % transition) for transition in fa_a_transitions_names ]  # FA A: y_t.
     a_u_q = [ Int('a_u_%s' % state) for state in fa_a.states ]  # FA A: u_q.
+
+    # FA B variables.
 
     smt.push()
     # Add clauses – conjunction of formulae.
@@ -300,10 +305,16 @@ def check_satisfiability(fa_a, fa_b):
     smt.add( And( [ a_y_t[i] >= 0 for i in range( len(fa_a.transitions) ) ] ))
 
     # FA A: Third conjunct.
-    smt.add()
+    for symbol in fa_a.alphabet:
+        smt.add(Int('hash_%s' % symbol) == Sum([Int('a_y_%s' % transition) for transition in fa_a.get_transitions_names_with_symbol(symbol)]))
 
     # FA A: Forth conjunct.
-    smt.add()
+    for state in fa_a.states:
+        if state in fa_a.start:
+            smt.add(Int('a_z_%s' % state) == 1)
+        else:
+            smt.add(Or(And( (Int('a_z_%s' % state) == 0) , And( [ Int('a_y_%s' % transition) == 0 for transition in fa_a.get_ingoing_transitions_names(state) ] ) ), Or( [ And( Int('a_z_%s' % transition.split('_')[0]) >= 0, Int('a_z_%s' % state) == Int('a_z_%s' % transition.split('_')[0]) + 1) for transition in fa_a.get_ingoing_transitions_names(state) ] )))
+
 
     # Check for satisfiability.
     if smt.check() == sat:
