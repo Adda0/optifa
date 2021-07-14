@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S python3 -u
 
 # ====================================================
 # file name: resolve_satisfiability.py
@@ -238,6 +238,8 @@ def check_satisfiability(fa_a, fa_b):
     #! FIXME what if initial state is also a final state?
     # TMP FIX:
     if next(iter(fa_a.start)) in fa_a.final:
+        return True
+    if next(iter(fa_b.start)) in fa_b.final:
         return True
 
     smt = Solver()
