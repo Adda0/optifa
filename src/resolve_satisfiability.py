@@ -317,7 +317,7 @@ def check_satisfiability(fa_a, fa_b):
 
     # Allow multiple final states.
     # FA A: At least one of the final state is reached.
-    smt.add( Or( [ Int('a_u_%s' % state) == -1 for state in fa_a.final ] ) )
+    smt.add( Or( [ Or( Int('a_u_%s' % state) == -1 , Int('a_u_%s' % state) == 0 ) for state in fa_a.final ] ) )
     # FA B: At least one of the final state is reached.
     smt.add( Or( [ Int('b_u_%s' % state) == -1 for state in fa_b.final ] ) )
 
