@@ -145,6 +145,8 @@ def main():
         print(skipped_cnt, end = ' ')
         print(len(intersect_ab.states),  end=' ')
         print(len(intersect_ab.final), end=' ')
+        print()
+        print(intersect_ab.print_automaton())
         #intersect_ab.print_automaton()
         #print(intersect_ab.final)
 
@@ -239,11 +241,13 @@ def check_satisfiability(fa_a, fa_b, smt):
 
     #! FIXME what if initial state is also a final state?
     # TMP FIX:
-    if next(iter(fa_a.start)) in fa_a.final:
-        print("quick true")
-        return True
-    if next(iter(fa_b.start)) in fa_b.final:
-        print("quick true")
+    #if next(iter(fa_a.start)) in fa_a.final:
+    #    print("quick true")
+    #    return True
+    #if next(iter(fa_b.start)) in fa_b.final:
+    #    print("quick true")
+    #    return True
+    if next(iter(fa_a.start)) in fa_a.final and next(iter(fa_b.start)) in fa_b.final:
         return True
 
     #smt = Solver()
@@ -339,6 +343,7 @@ def check_satisfiability(fa_a, fa_b, smt):
     if smt.check() == sat:
         #print(smt.model())
         print("true")
+        #print(smt.model())
         smt.pop()
         return True
 
