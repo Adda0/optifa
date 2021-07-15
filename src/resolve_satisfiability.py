@@ -39,7 +39,7 @@ def main():
         print(len(fa_a_orig.states), end=' ')
 
     # Add one unified final state
-    abstract_final_symbol = '100'
+    abstract_final_symbol = 'abstract_final_symbol'
     abstract_final_state = 'abstract_final_state'
 
     fa_a_orig.alphabet.add(abstract_final_symbol)
@@ -47,12 +47,12 @@ def main():
 
     fa_a_orig.states.add(abstract_final_state)
     for final_state in fa_a_orig.final:
-        fa_a_orig.transitions[final_state] = {int(abstract_final_symbol): [abstract_final_state]}
+        fa_a_orig.transitions[final_state][abstract_final_symbol] = [abstract_final_state]
     fa_a_orig.final = set([abstract_final_state])
 
     fa_b_orig.states.add(abstract_final_state)
     for final_state in fa_b_orig.final:
-        fa_b_orig.transitions[final_state] = {int(abstract_final_symbol): [abstract_final_state]}
+        fa_b_orig.transitions[final_state][abstract_final_symbol] = [abstract_final_state]
     fa_b_orig.final = set([abstract_final_state])
 
     # DEBUG
@@ -301,8 +301,9 @@ def check_satisfiability(fa_a, fa_b, smt):
         if state in fa_a.start:
             smt.add(a_u_q[i] == 1)
         elif state in fa_a.final:
-            smt.add(Or( a_u_q[i] == -1, a_u_q[i] == 0))
-            #smt.add(a_u_q[i] == -1)
+            pass
+            #smt.add(Or( a_u_q[i] == -1, a_u_q[i] == 0))
+            smt.add(a_u_q[i] == -1)
         else:
             smt.add(a_u_q[i] == 0)
 
@@ -310,8 +311,9 @@ def check_satisfiability(fa_a, fa_b, smt):
         if state in fa_b.start:
             smt.add(b_u_q[i] == 1)
         elif state in fa_b.final:
-            smt.add(Or( b_u_q[i] == -1, b_u_q[i] == 0))
-            #smt.add(b_u_q[i] == -1)
+            pass
+            #smt.add(Or( b_u_q[i] == -1, b_u_q[i] == 0))
+            smt.add(b_u_q[i] == -1)
         else:
             smt.add(b_u_q[i] == 0)
 
@@ -354,8 +356,9 @@ def check_satisfiability(fa_a, fa_b, smt):
             smt.add(Or(And( And( Int('b_z_%s' % state) == 0 ) , And( [ Int('b_y_%s' % transition) == 0 for transition in fa_b.get_ingoing_transitions_names(state) ] ) ), Or( [ And( Int('b_y_%s' % transition) >= 0 , Int('b_z_%s' % transition.split('_')[0]) >= 0, Int('b_z_%s' % state) == Int('b_z_%s' % transition.split('_')[0]) + 1) for transition in fa_b.get_ingoing_transitions_names(state) ] )))
 
     # Allow multiple final states.
-    # FA A: At least one of the final state is reached.
+    #FA A: At least one of the final state is reached.
     #smt.add( Or( [ Or( Int('a_u_%s' % state) == -1 , Int('a_u_%s' % state) == 0 ) for state in fa_a.final ] ) )
+    #smt.add( Or( [ Int('a_u_%s' % state) == -1 for state in fa_b.final ] ) )
     # FA B: At least one of the final state is reached.
     #smt.add( Or( [ Or( Int('b_u_%s' % state) == -1 , Int('b_u_%s' % state) == 0 ) for state in fa_b.final ] ) )
     #smt.add( Or( [ Int('b_u_%s' % state) == -1 for state in fa_b.final ] ) )
