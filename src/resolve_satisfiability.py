@@ -271,6 +271,7 @@ def check_satisfiability(fa_a, fa_b, smt):
             smt.add(a_u_q[i] == 1)
         elif state in fa_a.final:
             smt.add(Or( a_u_q[i] == -1, a_u_q[i] == 0))
+            #smt.add(a_u_q[i] == -1)
         else:
             smt.add(a_u_q[i] == 0)
 
@@ -279,6 +280,7 @@ def check_satisfiability(fa_a, fa_b, smt):
             smt.add(b_u_q[i] == 1)
         elif state in fa_b.final:
             smt.add(Or( b_u_q[i] == -1, b_u_q[i] == 0))
+            #smt.add(b_u_q[i] == -1)
         else:
             smt.add(b_u_q[i] == 0)
 
@@ -310,15 +312,15 @@ def check_satisfiability(fa_a, fa_b, smt):
             smt.add(Int('a_z_%s' % state) == 1)
             smt.add(And( [ Int('a_y_%s' % transition) >= 0 for transition in fa_a.get_ingoing_transitions_names(state) ] ))
         else:
-            smt.add(Or(And( And( Int('a_z_%s' % state) == 0 ) , And( [ Int('a_y_%s' % transition) == 0 for transition in fa_a.get_ingoing_transitions_names(state) ] ) ), Or( [ And( Int('a_y_%s' % transition) >= 0 , Int('a_z_%s' % transition.split('_')[0]) >= 0, Int('a_z_%s' % state) == Int('a_z_%s' % transition.split('_')[0]) + 1) for transition in fa_a.get_ingoing_transitions_names(state) ] )))
+            smt.add(Or(And( And( Int('a_z_%s' % state) == 0 ) , And( [ Int('a_y_%s' % transition) == 0 for transition in fa_a.get_ingoing_transitions_names(state) ] ) ), Or( [ And( Int('a_y_%s' % transition) > 0 , Int('a_z_%s' % transition.split('_')[0]) > 0, Int('a_z_%s' % state) == Int('a_z_%s' % transition.split('_')[0]) + 1) for transition in fa_a.get_ingoing_transitions_names(state) ] )))
 
     # FA B: Forth conjunct.
     for state in fa_b.states:
         if state in fa_b.start:
             smt.add(Int('b_z_%s' % state) == 1)
-            smt.add(And( [ Int('b_y_%s' % transition) >= 0 for transition in fa_a.get_ingoing_transitions_names(state) ] ))
+            smt.add(And( [ Int('b_y_%s' % transition) >= 0 for transition in fa_b.get_ingoing_transitions_names(state) ] ))
         else:
-            smt.add(Or(And( And( Int('b_z_%s' % state) == 0 ) , And( [ Int('b_y_%s' % transition) == 0 for transition in fa_b.get_ingoing_transitions_names(state) ] ) ), Or( [ And( Int('b_y_%s' % transition) >= 0 , Int('b_z_%s' % transition.split('_')[0]) >= 0, Int('b_z_%s' % state) == Int('b_z_%s' % transition.split('_')[0]) + 1) for transition in fa_b.get_ingoing_transitions_names(state) ] )))
+            smt.add(Or(And( And( Int('b_z_%s' % state) == 0 ) , And( [ Int('b_y_%s' % transition) == 0 for transition in fa_b.get_ingoing_transitions_names(state) ] ) ), Or( [ And( Int('b_y_%s' % transition) > 0 , Int('b_z_%s' % transition.split('_')[0]) > 0, Int('b_z_%s' % state) == Int('b_z_%s' % transition.split('_')[0]) + 1) for transition in fa_b.get_ingoing_transitions_names(state) ] )))
 
     # Allow multiple final states.
     # FA A: At least one of the final state is reached.
