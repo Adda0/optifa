@@ -45,6 +45,8 @@ def main():
 
         processed_pair_states_cnt = 0
 
+        smt = Solver()
+
         q_checked_pairs = {}
         q_pair_states = deque()
 
@@ -79,7 +81,7 @@ def main():
             if not curr_pair[2]:
                 processed_pair_states_cnt += 1
 
-                satisfiable = check_satisfiability(fa_a_copy, fa_b_copy)
+                satisfiable = check_satisfiability(fa_a_copy, fa_b_copy, smt)
                 if satisfiable:
                     sat_cnt += 1
             else:
@@ -227,7 +229,7 @@ def enqueue_next_states(q_states, fa_orig, curr_state):
                 q_states.append(state)
 
 
-def check_satisfiability(fa_a, fa_b):
+def check_satisfiability(fa_a, fa_b, smt):
     """
     Check satisfiability for Parikh image using SMT solver Z3.
     :param fa_a: First automaton.
@@ -244,7 +246,8 @@ def check_satisfiability(fa_a, fa_b):
         print("quick true")
         return True
 
-    smt = Solver()
+    #smt = Solver()
+    smt.push()
 
     # Create lists of variables for conjunction of formulae.
     hash_phi = [ Int('hash_%s' % symbol) for symbol in fa_a.alphabet ]  # Both FA A and FA B: hash_phi.
@@ -334,10 +337,10 @@ def check_satisfiability(fa_a, fa_b):
     if smt.check() == sat:
         #print(smt.model())
         print("true")
-        #smt.pop()
+        smt.pop()
         return True
 
-    #smt.pop()
+    smt.pop()
     print("false")
     return False
 
