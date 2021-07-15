@@ -339,6 +339,7 @@ def check_satisfiability(fa_a, fa_b, smt):
     for symbol in fa_b.alphabet:
         smt.add(Int('hash_%s' % symbol) == Sum([Int('b_y_%s' % transition) for transition in fa_b.get_transitions_names_with_symbol(symbol)]))
 
+    """
     # FA A: Forth conjunct.
     for state in fa_a.states:
         if state in fa_a.start:
@@ -354,6 +355,7 @@ def check_satisfiability(fa_a, fa_b, smt):
             smt.add(And( [ Int('b_y_%s' % transition) >= 0 for transition in fa_b.get_ingoing_transitions_names(state) ] ))
         else:
             smt.add(Or(And( And( Int('b_z_%s' % state) == 0 ) , And( [ Int('b_y_%s' % transition) == 0 for transition in fa_b.get_ingoing_transitions_names(state) ] ) ), Or( [ And( Int('b_y_%s' % transition) >= 0 , Int('b_z_%s' % transition.split('_')[0]) >= 0, Int('b_z_%s' % state) == Int('b_z_%s' % transition.split('_')[0]) + 1) for transition in fa_b.get_ingoing_transitions_names(state) ] )))
+    """
 
     # Allow multiple final states.
     #FA A: At least one of the final state is reached.
@@ -365,10 +367,10 @@ def check_satisfiability(fa_a, fa_b, smt):
 
     # Allow multiple inital states.
     # FA A: Choose only one inital state for a run.
-    smt.add( Or( [ And( Int('a_u_%s' % state) == 1, Int('a_z_%s' % state) == 1, And( [ And( Int('a_u_%s' % other_state) == 0, Int('a_z_%s' % other_state) == 0 ) for other_state in fa_a.start if other_state != state ] ) ) for state in fa_a.start ] ) )
+    #smt.add( Or( [ And( Int('a_u_%s' % state) == 1, Int('a_z_%s' % state) == 1, And( [ And( Int('a_u_%s' % other_state) == 0, Int('a_z_%s' % other_state) == 0 ) for other_state in fa_a.start if other_state != state ] ) ) for state in fa_a.start ] ) )
 
     # FA B: Choose only one inital state for a run.
-    smt.add( Or( [ And( Int('b_u_%s' % state) == 1, Int('b_z_%s' % state) == 1, And( [ And( Int('b_u_%s' % other_state) == 0, Int('b_z_%s' % other_state) == 0 ) for other_state in fa_b.start if other_state != state ] ) ) for state in fa_b.start ] ) )
+    #smt.add( Or( [ And( Int('b_u_%s' % state) == 1, Int('b_z_%s' % state) == 1, And( [ And( Int('b_u_%s' % other_state) == 0, Int('b_z_%s' % other_state) == 0 ) for other_state in fa_b.start if other_state != state ] ) ) for state in fa_b.start ] ) )
 
     # Check for satisfiability.
     if smt.check() == sat:
