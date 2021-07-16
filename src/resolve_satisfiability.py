@@ -147,6 +147,8 @@ def main():
             else:
                 false_cnt += 1
 
+            print(len(q_pair_states))
+
         if not found:
             """
             print('')
@@ -275,6 +277,7 @@ def check_satisfiability(fa_a, fa_b, smt):
     #    print("quick true")
     #    return True
     if next(iter(fa_a.start)) in fa_a.final and next(iter(fa_b.start)) in fa_b.final:
+        print('final', end=' ')
         return True
 
     #smt = Solver()
@@ -374,13 +377,13 @@ def check_satisfiability(fa_a, fa_b, smt):
 
     # Check for satisfiability.
     if smt.check() == sat:
-        print("true")
+        print("true", end='  ')
         #print(smt.model())
         smt.pop()
         return True
 
     smt.pop()
-    print("false")
+    print("false", end=' ')
     return False
 
 
