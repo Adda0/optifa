@@ -56,18 +56,18 @@ def main():
     fa_b_orig.final = set([abstract_final_state])
 
     # DEBUG
-    print(fa_a_orig.alphabet)
-    print(fa_b_orig.alphabet)
-    print(fa_a_orig.states)
-    print(fa_b_orig.states)
-    print(fa_a_orig.final)
-    print(fa_b_orig.final)
-    print(fa_a_orig.transitions)
-    print(fa_b_orig.transitions)
+    #print(fa_a_orig.alphabet)
+    #print(fa_b_orig.alphabet)
+    #print(fa_a_orig.states)
+    #print(fa_b_orig.states)
+    #print(fa_a_orig.final)
+    #print(fa_b_orig.final)
+    #print(fa_a_orig.transitions)
+    #print(fa_b_orig.transitions)
 
     # Run twice – once for emptiness test (break_when_final == True) and
     # once for full product construction (break_when_final == False).
-    for break_when_final in [True, False]:
+    for break_when_final in [True]:
         #print(len(fa_a_orig.states) * len(fa_b_orig.states), end=' ')
 
         processed_pair_states_cnt = 0
@@ -114,6 +114,7 @@ def main():
                     sat_cnt += 1
             else:
                 satisfiable = True
+                print('sat', end='   ')
                 skipped_cnt += 1
 
             if satisfiable:
@@ -139,7 +140,32 @@ def main():
                     """
                     found = True
                     if break_when_final:
-                        break
+                        first_final_intersect = deepcopy(intersect_ab)
+                        first_final_intersect.remove_abstract_final_state(abstract_final_symbol)
+                        first_final_intersect.remove_useless_transitions()
+                        # Output format: <checked> <processed> <sat> <skipped> <false_cnt> <intersect> <final_cnt>
+                        print('')
+                        print('I', end=' ')
+                        print(len(q_checked_pairs), end = ' ')
+                        print(processed_pair_states_cnt, end = ' ')
+                        print(sat_cnt, end=' ')
+                        print(false_cnt, end=' ')
+                        print(skipped_cnt, end = ' ')
+                        print(len(first_final_intersect.states),  end=' ')
+                        print(len(first_final_intersect.final), end=' ')
+                        print()
+                        #print(first_final_intersect.transitions)
+                        #print(first_final_intersect.print_automaton())
+                        intersect = fa_a_orig.intersection_count(fa_b_orig, True)
+                        intersect.remove_abstract_final_state(abstract_final_symbol)
+                        #print(cnt_operations)
+                        print('')
+                        print('N', end=' ')
+                        print(len(intersect.states), end=' ')
+                        print(len(intersect.final), end=' ')
+                        print()
+
+                        #break
 
                 #print(q_pair_states)
                 old_pair_states_len = len(q_pair_states)
@@ -167,6 +193,8 @@ def main():
             #print("FAILURE: Automata have an empty intersection.")
             """
 
+        intersect_ab.remove_useless_transitions()
+        intersect_ab.remove_abstract_final_state(abstract_final_symbol, abstract_final_state)
         # Output format: <checked> <processed> <sat> <skipped> <false_cnt> <intersect> <final_cnt>
         print('')
         print('I', end=' ')
@@ -178,7 +206,8 @@ def main():
         print(len(intersect_ab.states),  end=' ')
         print(len(intersect_ab.final), end=' ')
         print()
-        print(intersect_ab.print_automaton())
+        #print(intersect_ab.transitions)
+        #print(intersect_ab.print_automaton())
         #intersect_ab.print_automaton()
         #print(intersect_ab.final)
 
@@ -191,7 +220,17 @@ def main():
         #orig_b.unify_transition_symbols()
         #print(f"A states: {len(orig_a.states)}")
         #print(f"B states: {len(orig_b.states)}")
-        intersect = orig_a.intersection_count(orig_b, break_when_final)
+        intersect = orig_a.intersection_count(orig_b, False)
+
+        intersect.remove_abstract_final_state(abstract_final_symbol)
+        #print(cnt_operations)
+        print('')
+        print('N', end=' ')
+        print(len(intersect.states), end=' ')
+        print(len(intersect.final), end=' ')
+        #intersect = intersect.simple_reduce()
+        #print(f"Naive intersect simple_reduce: {len(intersect.states)}")
+        #print(f"Naive intersect simple_reduce final: {len(intersect.final)}")
         #intersect.print_automaton()
         #print(cnt_operations)
         print('')
