@@ -47,11 +47,15 @@ def main():
 
     fa_a_orig.states.add(abstract_final_state)
     for final_state in fa_a_orig.final:
+        if final_state not in fa_a_orig.transitions.keys():
+            fa_a_orig.transitions[final_state] = {}
         fa_a_orig.transitions[final_state][abstract_final_symbol] = [abstract_final_state]
     fa_a_orig.final = set([abstract_final_state])
 
     fa_b_orig.states.add(abstract_final_state)
     for final_state in fa_b_orig.final:
+        if final_state not in fa_b_orig.transitions.keys():
+            fa_b_orig.transitions[final_state] = {}
         fa_b_orig.transitions[final_state][abstract_final_symbol] = [abstract_final_state]
     fa_b_orig.final = set([abstract_final_state])
 
