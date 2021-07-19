@@ -65,15 +65,51 @@ def main():
     #print(fa_a_orig.transitions)
     #print(fa_b_orig.transitions)
 
-    # Run twice – once for emptiness test (break_when_final == True) and
-    # once for full product construction (break_when_final == False).
+    # Run only once – once for emptiness test (break_when_final == True)
+    #  and then continue with full product construction (break_when_final == False).
     for break_when_final in [True]:
         #print(len(fa_a_orig.states) * len(fa_b_orig.states), end=' ')
-
         processed_pair_states_cnt = 0
 
-        smt = Solver()
 
+        # Initialize SMT solver object.
+        smt = Solver()
+        # Add persistent formulae valid for every product-state.
+        # Create lists of variables for conjunction of formulae.
+        hash_phi = [ Int('hash_%s' % symbol) for symbol in fa_a_orig.alphabet ]  # Both FA A and FA B: hash_phi.
+
+        # FA A and FA B variables.
+        fa_a_transitions_names = fa_a_orig.get_transitions_names()
+        a_y_t = [ Int('a_y_%s' % transition) for transition in fa_a_transitions_names ]  # FA A: y_t.
+        fa_b_transitions_names = fa_b_orig.get_transitions_names()
+        b_y_t = [ Int('b_y_%s' % transition) for transition in fa_b_transitions_names ]  # FA B: y_t.
+        a_u_q = [ Int('a_u_%s' % state) for state in fa_a_orig.states ]  # FA A: u_q.
+        b_u_q = [ Int('b_u_%s' % state) for state in fa_b_orig.states ]  # FA B: u_q.
+
+        # FA A: First conjunct.
+        for state in fa_a_orig.states:
+            smt.add(Int('a_u_%s' % state) + Sum([Int('a_y_%s' % transition) for transition in fa_a_orig.get_ingoing_transitions_names(state)]) - Sum([Int('a_y_%s' % transition) for transition in fa_a_orig.get_outgoing_transitions_names(state)]) == 0)
+
+        # FA B: First conjunct.
+        for state in fa_b_orig.states:
+            smt.add(Int('b_u_%s' % state) + Sum([Int('b_y_%s' % transition) for transition in fa_b_orig.get_ingoing_transitions_names(state)]) - Sum([Int('b_y_%s' % transition) for transition in fa_b_orig.get_outgoing_transitions_names(state)]) == 0)
+
+        # FA A: Second conjunct.
+        smt.add( And( [ a_y_t[i] >= 0 for i in range( len(fa_a_transitions_names) ) ] ))
+
+        # FA B: Second conjunct.
+        smt.add( And( [ b_y_t[i] >= 0 for i in range( len(fa_b_transitions_names) ) ] ))
+
+        # FA A: Third conjunct.
+        for symbol in fa_a_orig.alphabet:
+            smt.add(Int('hash_%s' % symbol) == Sum([Int('a_y_%s' % transition) for transition in fa_a_orig.get_transitions_names_with_symbol(symbol)]))
+
+        # FA B: Third conjunct.
+        for symbol in fa_b_orig.alphabet:
+            smt.add(Int('hash_%s' % symbol) == Sum([Int('b_y_%s' % transition) for transition in fa_b_orig.get_transitions_names_with_symbol(symbol)]))
+
+
+        # Define additional variables.
         q_checked_pairs = {}
         q_pair_states = deque()
 
@@ -324,64 +360,29 @@ def check_satisfiability(fa_a, fa_b, smt):
     #smt = Solver()
     smt.push()
 
-    # Create lists of variables for conjunction of formulae.
-    hash_phi = [ Int('hash_%s' % symbol) for symbol in fa_a.alphabet ]  # Both FA A and FA B: hash_phi.
-
-    # FA A variables.
-    fa_a_transitions_names = fa_a.get_transitions_names()
-    a_y_t = [ Int('a_y_%s' % transition) for transition in fa_a_transitions_names ]  # FA A: y_t.
-    fa_b_transitions_names = fa_b.get_transitions_names()
-    b_y_t = [ Int('b_y_%s' % transition) for transition in fa_b_transitions_names ]  # FA B: y_t.
-    a_u_q = [ Int('a_u_%s' % state) for state in fa_a.states ]  # FA A: u_q.
-    b_u_q = [ Int('b_u_%s' % state) for state in fa_b.states ]  # FA B: u_q.
-
-    # FA B variables.
-
     #smt.push()
     # Add clauses – conjunction of formulae.
 
     # Constraints for 'u_q'.
-    for i, state in enumerate(fa_a.states):
+    for state in fa_a.states:
         if state in fa_a.start:
-            smt.add(a_u_q[i] == 1)
+            smt.add(Int('a_u_%s' % state) == 1)
         elif state in fa_a.final:
             pass
             #smt.add(Or( a_u_q[i] == -1, a_u_q[i] == 0))
-            smt.add(a_u_q[i] == -1)
+            smt.add(Int('a_u_%s' % state) == -1)
         else:
-            smt.add(a_u_q[i] == 0)
+            smt.add(Int('a_u_%s' % state) == 0)
 
-    for i, state in enumerate(fa_b.states):
+    for state in fa_b.states:
         if state in fa_b.start:
-            smt.add(b_u_q[i] == 1)
+            smt.add(Int('b_u_%s' % state) == 1)
         elif state in fa_b.final:
             pass
             #smt.add(Or( b_u_q[i] == -1, b_u_q[i] == 0))
-            smt.add(b_u_q[i] == -1)
+            smt.add(Int('b_u_%s' % state) == -1)
         else:
-            smt.add(b_u_q[i] == 0)
-
-    # FA A: First conjunct.
-    for state in fa_a.states:
-        smt.add(Int('a_u_%s' % state) + Sum([Int('a_y_%s' % transition) for transition in fa_a.get_ingoing_transitions_names(state)]) - Sum([Int('a_y_%s' % transition) for transition in fa_a.get_outgoing_transitions_names(state)]) == 0)
-
-    # FA B: First conjunct.
-    for state in fa_b.states:
-        smt.add(Int('b_u_%s' % state) + Sum([Int('b_y_%s' % transition) for transition in fa_b.get_ingoing_transitions_names(state)]) - Sum([Int('b_y_%s' % transition) for transition in fa_b.get_outgoing_transitions_names(state)]) == 0)
-
-    # FA A: Second conjunct.
-    smt.add( And( [ a_y_t[i] >= 0 for i in range( len(fa_a_transitions_names) ) ] ))
-
-    # FA B: Second conjunct.
-    smt.add( And( [ b_y_t[i] >= 0 for i in range( len(fa_b_transitions_names) ) ] ))
-
-    # FA A: Third conjunct.
-    for symbol in fa_a.alphabet:
-        smt.add(Int('hash_%s' % symbol) == Sum([Int('a_y_%s' % transition) for transition in fa_a.get_transitions_names_with_symbol(symbol)]))
-
-    # FA B: Third conjunct.
-    for symbol in fa_b.alphabet:
-        smt.add(Int('hash_%s' % symbol) == Sum([Int('b_y_%s' % transition) for transition in fa_b.get_transitions_names_with_symbol(symbol)]))
+            smt.add(Int('b_u_%s' % state) == 0)
 
     """
     # FA A: Forth conjunct.
