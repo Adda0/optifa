@@ -111,7 +111,7 @@ def main():
         # FA B: Third conjunct.
         for symbol in fa_b_orig.alphabet:
             smt.add(Int('hash_%s' % symbol) == Sum([Int('b_y_%s' % transition) for transition in fa_b_orig.get_transitions_names_with_symbol(symbol)]))
-
+        # End of SMT formulae initialization.
 
         # Define additional variables.
         q_checked_pairs = {}
@@ -251,7 +251,6 @@ def main():
         #intersect_ab.print_automaton()
         #print(intersect_ab.final)
 
-
         #orig_a = symboliclib.parse(fa_a_name)
         #orig_b = symboliclib.parse(fa_b_name)
         orig_a = fa_a_orig
@@ -277,7 +276,6 @@ def main():
         #intersect_ab = intersect_ab.simple_reduce()
         #print(f"Intersect_ab sr: {len(intersect_ab.states)}")
         #print(f"Intersect_ab sr final: {len(intersect_ab.final)}")
-
 
 def make_pairs(fa_a_orig, fa_b_orig, q_pair_states, q_checked_pairs, intersect, curr_state, single_pair = False):
     #if single_pair == None:
@@ -379,8 +377,8 @@ def check_satisfiability(fa_a, fa_b, smt):
         else:
             smt.add(Int('b_u_%s' % state) == 0)
 
-    #"""
-    # FA A: Forth conjunct.
+    """
+    # FA A: Fourth conjunct.
     for state in fa_a.states:
         if state in fa_a.start:
             smt.add(Int('a_z_%s' % state) == 1)
@@ -388,14 +386,14 @@ def check_satisfiability(fa_a, fa_b, smt):
         else:
             smt.add(Or(And( And( Int('a_z_%s' % state) == 0 ) , And( [ Int('a_y_%s' % transition) == 0 for transition in fa_a.get_ingoing_transitions_names(state) ] ) ), Or( [ And( Int('a_y_%s' % transition) >= 0 , Int('a_z_%s' % transition.split('_')[0]) >= 0, Int('a_z_%s' % state) == Int('a_z_%s' % transition.split('_')[0]) + 1) for transition in fa_a.get_ingoing_transitions_names(state) ] )))
 
-    # FA B: Forth conjunct.
+    # FA B: Fourth conjunct.
     for state in fa_b.states:
         if state in fa_b.start:
             smt.add(Int('b_z_%s' % state) == 1)
             smt.add(And( [ Int('b_y_%s' % transition) >= 0 for transition in fa_b.get_ingoing_transitions_names(state) ] ))
         else:
             smt.add(Or(And( And( Int('b_z_%s' % state) == 0 ) , And( [ Int('b_y_%s' % transition) == 0 for transition in fa_b.get_ingoing_transitions_names(state) ] ) ), Or( [ And( Int('b_y_%s' % transition) >= 0 , Int('b_z_%s' % transition.split('_')[0]) >= 0, Int('b_z_%s' % state) == Int('b_z_%s' % transition.split('_')[0]) + 1) for transition in fa_b.get_ingoing_transitions_names(state) ] )))
-    #"""
+    """
 
     # Allow multiple final states.
     #FA A: At least one of the final state is reached.
