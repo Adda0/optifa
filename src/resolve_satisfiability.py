@@ -272,15 +272,6 @@ def main():
         #print(f"Naive intersect simple_reduce: {len(intersect.states)}")
         #print(f"Naive intersect simple_reduce final: {len(intersect.final)}")
         #intersect.print_automaton()
-        #print(cnt_operations)
-        print('')
-        print('N', end=' ')
-        print(len(intersect.states), end=' ')
-        print(len(intersect.final), end=' ')
-        #intersect = intersect.simple_reduce()
-        #print(f"Naive intersect simple_reduce: {len(intersect.states)}")
-        #print(f"Naive intersect simple_reduce final: {len(intersect.final)}")
-
         print()
         #print(intersect.final)
         #intersect_ab = intersect_ab.simple_reduce()
@@ -388,7 +379,7 @@ def check_satisfiability(fa_a, fa_b, smt):
         else:
             smt.add(Int('b_u_%s' % state) == 0)
 
-    """
+    #"""
     # FA A: Forth conjunct.
     for state in fa_a.states:
         if state in fa_a.start:
@@ -404,7 +395,7 @@ def check_satisfiability(fa_a, fa_b, smt):
             smt.add(And( [ Int('b_y_%s' % transition) >= 0 for transition in fa_b.get_ingoing_transitions_names(state) ] ))
         else:
             smt.add(Or(And( And( Int('b_z_%s' % state) == 0 ) , And( [ Int('b_y_%s' % transition) == 0 for transition in fa_b.get_ingoing_transitions_names(state) ] ) ), Or( [ And( Int('b_y_%s' % transition) >= 0 , Int('b_z_%s' % transition.split('_')[0]) >= 0, Int('b_z_%s' % state) == Int('b_z_%s' % transition.split('_')[0]) + 1) for transition in fa_b.get_ingoing_transitions_names(state) ] )))
-    """
+    #"""
 
     # Allow multiple final states.
     #FA A: At least one of the final state is reached.
