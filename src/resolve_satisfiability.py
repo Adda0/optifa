@@ -154,7 +154,8 @@ def main():
                     sat_cnt += 1
             else:
                 satisfiable = True
-                print('sat', end='   ')
+                #print('sat', end='   ')
+                print(product_state_name + " sat", end='  ')
                 skipped_cnt += 1
 
             if satisfiable:
@@ -347,7 +348,8 @@ def check_satisfiability(fa_a, fa_b, smt):
     #    print("quick true")
     #    return True
     if next(iter(fa_a.start)) in fa_a.final and next(iter(fa_b.start)) in fa_b.final:
-        print('final', end=' ')
+        print(next(iter(fa_a.start)) + ',' + next(iter(fa_b.start)) + " final", end='  ')
+        #print('final', end=' ')
         return True
 
     #smt = Solver()
@@ -412,13 +414,15 @@ def check_satisfiability(fa_a, fa_b, smt):
 
     # Check for satisfiability.
     if smt.check() == sat:
-        print("true", end='  ')
+        print(next(iter(fa_a.start)) + ',' + next(iter(fa_b.start)) + " true", end='  ')
+        #print("true", end='  ')
         #print(smt.model())
         smt.pop()
         return True
 
     smt.pop()
-    print("false", end=' ')
+    print(next(iter(fa_a.start)) + ',' + next(iter(fa_b.start)) + " false", end='  ')
+    #print("false", end=' ')
     return False
 
 
