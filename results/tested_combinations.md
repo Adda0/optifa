@@ -1,0 +1,1 @@
+- python3 -u ./resolve_satisfiability.py ../../modified_automata/ARMCautomata/Bakery4pBinEnc-FbOneOne-Nondet-Partial/armcNFA_inclTest_239 ../../modified_automata/ARMCautomata/Bakery4pBinEnc-FbOneOne-Nondet-Partial/armcNFA_inclTest_899
