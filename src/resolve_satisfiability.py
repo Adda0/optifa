@@ -299,15 +299,84 @@ def check_satisfiability(fa_a_formulae_dict, fa_b_formulae_dict):
 
     for fa_a_id in fa_a_only_formulae:
         for fa_b_id in fa_b_only_formulae:
-            smt.push()
-            smt.add(fa_a_var >= 0, fa_b_var >= 0)
-            smt.add(fa_a_id[0] + fa_a_id[1] * fa_a_var == fa_b_id[0] + fa_b_id[1] * fa_b_var)
-
-            if smt.check() == sat:
-                #print(smt.model())  # DEBUG
+            # Handle legths are equal, True without the need to resolve loops.
+            if fa_a_id[0] == fa_b_id[0]:
                 return True
 
-            smt.pop()
+            # Handle lengths are varying, further checking needed.
+            elif fa_a_id[0] > fa_b_id[0]:  # FA A handle is larger.
+                fa_a_id[0] -= fa_b_id[0]
+                fa_b_id[0] = 0
+
+                if fa_a_id[1] == 0 and fa_b_id[1] == 0:  # No loops.
+                    continue
+
+                elif fa_b_id[1] == 0:
+                    continue
+
+                elif fa_a_id[1] == 0:
+                    curr_num = 0
+                    while curr_num <= fa_a_id[0]:
+                        if curr_num == fa_a_id[0]:
+                            return True
+                        else:
+                            curr_num += fa_b_id[1]
+                    continue
+
+                else:  # Two loops:
+                    gcd = math.gcd(fa_a_id[1], fa_b_id[1])
+                    if gcd == 1:
+                        return True
+                    else:
+                        y = - fa_a_id[0]
+                        while y < gcd:
+                            y += fa_a_id[1]
+                        if y % gcd == 0:
+                            return True
+                        else:
+                            continue
+
+            else:  # FA B handle is larger.
+                fa_b_id[0] -= fa_a_id[0]
+                fa_a_id[0] = 0
+
+                if fa_b_id[1] == 0 and fa_a_id[1] == 0:  # No loops.
+                    continue
+
+                elif fa_a_id[1] == 0:
+                    continue
+
+                elif fa_b_id[1] == 0:
+                    curr_num = 0
+                    while curr_num <= fa_b_id[0]:
+                        if curr_num == fa_b_id[0]:
+                            return True
+                        else:
+                            curr_num += fa_a_id[1]
+                    continue
+
+                else:  # Two loops:
+                    gcd = math.gcd(fa_a_id[1], fa_b_id[1])
+                    if gcd == 1:
+                        return True
+                    else:
+                        y = - fa_b_id[0]
+                        while y < gcd:
+                            y += fa_b_id[1]
+                        if y % gcd == 0:
+                            return True
+                        else:
+                            continue
+
+
+            #smt.add(fa_a_var >= 0, fa_b_var >= 0)
+            #smt.add(fa_a_id[0] + fa_a_id[1] * fa_a_var == fa_b_id[0] + fa_b_id[1] * fa_b_var)
+
+            #if smt.check() == sat:
+                #print(smt.model())  # DEBUG
+            #    return True
+
+            #smt.reset()
 
     return False
 
