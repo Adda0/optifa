@@ -77,6 +77,11 @@ done
 # Create results file.
 touch "$F_OUTPUT";
 
+
+
+# Print basic information about initial automata.
+python3 print_automata_sizes.py "$F_FA_A_ORIG" "$F_FA_B_ORIG" >> "$F_OUTPUT";
+
 # Start hyperfine.
 hyperfine "python3 -u resolve_satisfiability.py $F_FA_A_ORIG $F_FA_B_ORIG > tmp_output" --export-csv tmp_time_csv -u second -w 1 -r 3;
 
@@ -84,7 +89,7 @@ hyperfine "python3 -u resolve_satisfiability.py $F_FA_A_ORIG $F_FA_B_ORIG > tmp_
 cat tmp_output >> "$F_OUTPUT";
 cat tmp_time_csv >> "$F_OUTPUT";
 
-
+cat "\n" >> "$F_OUTPUT";
 
 
 # End of file run.sh.
