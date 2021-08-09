@@ -270,7 +270,7 @@ def enqueue_next_states(q_states, fa_orig, curr_state):
             for state in state_dict_elem.split(','):
                 q_states.append(state)
 
-def check_satisfiability(fa_a_formulae_dict, fa_b_formulae_dict):
+def check_satisfiability(fa_a_formulae_dict, fa_b_formulae_dict, smt_free = True):
     """
     Check satisfiability for formulae using SMT solver Z3.
     :param fa_a_formulae_dict: Dictionary with formulae for FA A.
@@ -324,22 +324,37 @@ def check_satisfiability(fa_a_formulae_dict, fa_b_formulae_dict):
     fa_a_only_formulae = get_only_formulae(fa_a_formulae_dict)
     fa_b_only_formulae = get_only_formulae(fa_b_formulae_dict)
 
+    if not smt_free:
+        smt = Solver()
+        fa_a_var = Int('fa_a_var')
+        fa_b_var = Int('fa_b_var')
+        smt.add(fa_a_var >= 0, fa_b_var >= 0)
+
+    # Check for every formulae combination.
     for fa_a_id in fa_a_only_formulae:
         for fa_b_id in fa_b_only_formulae:
-            # Handle legths are equal, True without the need to resolve loops.
-            if fa_a_id[0] == fa_b_id[0]:
-                return True
-
-            # Handle lengths are varying, further checking needed.
-            elif fa_a_id[0] > fa_b_id[0]:  # FA A handle is larger.
-                if solve_one_handle_longer(fa_a_id, fa_b_id):
+            if smt_free:  # Without using SMT solver.
+                # Handle legths are equal, True without the need to resolve loops.
+                if fa_a_id[0] == fa_b_id[0]:
                     return True
-                continue
 
-            else:  # FA B handle is larger.
-                if solve_one_handle_longer(fa_b_id, fa_a_id):
+                # Handle lengths are distinct, further checking needed.
+                elif fa_a_id[0] > fa_b_id[0]:  # FA A handle is longer.
+                    if solve_one_handle_longer(fa_a_id, fa_b_id):
+                        return True
+
+                else:  # FA B handle is longer.
+                    if solve_one_handle_longer(fa_b_id, fa_a_id):
+                        return True
+
+            else:  # Using SMT solver.
+                smt.push()
+                smt.add(fa_a_id[0] + fa_a_id[1] * fa_a_var == fa_b_id[0] + fa_b_id[1] * fa_b_var)
+
+                if smt.check() == sat:
                     return True
-                continue
+
+                smt.pop()
 
     return False
 
