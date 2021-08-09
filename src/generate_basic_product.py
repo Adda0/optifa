@@ -19,6 +19,7 @@ from collections import deque
 from copy import deepcopy
 import itertools
 import argparse
+from optifa import *
 
 # Main script function
 def main():
@@ -27,8 +28,8 @@ def main():
     # Run for emptiness test with break_when_final == True or
     # for full product construction with break_when_final == False.
     intersection = fa_a_orig.intersection_count(fa_b_orig, break_when_final)
-    print(len(intersection.states), end=',')
-    print(len(intersection.final), end=',')
+    print_csv(len(intersection.states))
+    print_csv(len(intersection.final))
 
 
 def parse_args():
