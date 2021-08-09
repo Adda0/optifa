@@ -288,7 +288,7 @@ def check_satisfiability(fa_a_formulae_dict, fa_b_formulae_dict):
 
         return only_formulae
 
-    def solve_one_handle_greater(fa_a_id, fa_b_id):
+    def solve_one_handle_longer(fa_a_id, fa_b_id):
         fa_a_id[0] -= fa_b_id[0]
         fa_b_id[0] = 0
 
@@ -332,12 +332,12 @@ def check_satisfiability(fa_a_formulae_dict, fa_b_formulae_dict):
 
             # Handle lengths are varying, further checking needed.
             elif fa_a_id[0] > fa_b_id[0]:  # FA A handle is larger.
-                if solve_one_handle_greater(fa_a_id, fa_b_id):
+                if solve_one_handle_longer(fa_a_id, fa_b_id):
                     return True
                 continue
 
             else:  # FA B handle is larger.
-                if solve_one_handle_greater(fa_b_id, fa_a_id):
+                if solve_one_handle_longer(fa_b_id, fa_a_id):
                     return True
                 continue
 
