@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S python3 -u
 
 # ====================================================
 # file name: resolve_satisfiability.py
@@ -21,7 +21,7 @@ from copy import deepcopy
 import itertools
 import argparse
 
-# Main script function
+# Main script function.
 def main():
     fa_a_orig, fa_b_orig, break_when_final, smt_free = parse_args()  # Parse program arguments.
 
@@ -29,9 +29,6 @@ def main():
 
     # Run for emptiness test with break_when_final == True or
     # for full product construction with break_when_final == False.
-    q_a_states = deque()
-    q_b_states = deque()
-
     processed_pair_states_cnt = 0
 
     q_checked_pairs = {}
@@ -65,13 +62,9 @@ def main():
     while q_pair_states:
         #curr_pair = q_pair_states.popleft()  # BFS
         curr_pair = q_pair_states.pop()  # DFS
+        product_state_name = curr_pair[0] + ',' + curr_pair[1]
 
-        q_checked_pairs[curr_pair[0] + ',' + curr_pair[1]] = True
-        # DEBUG:
-        #if curr_pair[0]:
-        #    print('Skip: ' + str(curr_pair))
-        #else:
-        #    print(curr_pair)
+        q_checked_pairs[product_state_name] = True
 
         fa_a_unified.start = {curr_pair[0]}
         fa_b_unified.start = {curr_pair[1]}
@@ -93,7 +86,6 @@ def main():
             #print(fa_b_formulae_dict)  # DEBUG
 
             satisfiable = check_satisfiability(fa_a_formulae_dict, fa_b_formulae_dict)
-            #print(satisfiable)
             if satisfiable:
                 sat_cnt += 1
         else:
@@ -101,15 +93,15 @@ def main():
             skipped_cnt += 1
 
         if satisfiable:
-            intersect_ab.states.add(curr_pair[0] + ',' + curr_pair[1])
-            #print(len(intersect_ab.states))  # Debug
+            # Add product states to intersection FA.
+            intersect_ab.states.add(product_state_name)
+            if product_state_name not in intersect_ab.transitions:
+                intersect_ab.transitions[product_state_name] = {}
 
             if curr_pair[0] in fa_a_orig.final and curr_pair[1] in fa_b_orig.final:
                 # Automata have a non-empty intersection. We can end the testing here as we have found a solution.
                 # Output format: 'T <checked> <processed> <sat> <skipped> <false_cnt>
-                #fa_a_handle_and_loop.print_automaton()
-                #fa_b_handle_and_loop.print_automaton()
-                intersect_ab.final.add(curr_pair[0] + ',' + curr_pair[1])
+                intersect_ab.final.add(product_state_name)
                 """
                 print('')
                 print('T', end = ' ')
@@ -129,8 +121,8 @@ def main():
 
             #print(q_pair_states)
             old_pair_states_len = len(q_pair_states)
-            make_pairs(fa_a_orig, fa_b_orig, q_pair_states, q_checked_pairs, curr_pair)
-            pair_states_len_diff = len(q_pair_states) - old_pair_states_len
+            make_pairs(fa_a_orig, fa_b_orig, q_pair_states, q_checked_pairs, intersect_ab, curr_pair)
+            #pair_states_len_diff = len(q_pair_states) - old_pair_states_len
             #print(pair_states_len_diff)
             #print(q_pair_states)
         else:
@@ -155,6 +147,7 @@ def main():
         #print("FAILURE: Automata have an empty intersection.")
         """
 
+    intersect_ab.remove_useless_transitions()
     # Output format: <checked> <processed> <sat> <skipped> <false_cnt> <intersect> <final_cnt>
     print('')
     print('I', end=' ')
@@ -171,17 +164,18 @@ def main():
         print(len(fa_a_handle_and_loop.states), end=' ')
     print(len(intersect_ab.states),  end=' ')
     print(len(intersect_ab.final), end=' ')
+    print()
+    #print(intersect_ab.transitions)
     #intersect_ab.print_automaton()
     #print(intersect_ab.final)
-    #fa_a_handle_and_loop.print_automaton()
-    #fa_b_handle_and_loop.print_automaton()
 
 
-def make_pairs(fa_a_orig, fa_b_orig, q_pair_states, q_checked_pairs, curr_state, single_pair = False):
+def make_pairs(fa_a_orig, fa_b_orig, q_pair_states, q_checked_pairs, intersect, curr_state, single_pair = False):
     #if single_pair == None:
     #    single_pair = True if (len(q_a_states) == 1 and len(q_b_states) == 1) else False
     a_state = curr_state[0]
     b_state = curr_state[1]
+    product_state_name = a_state + ',' + b_state
 
     new_pairs = deque()
     new_pairs_cnt = 0
@@ -191,17 +185,15 @@ def make_pairs(fa_a_orig, fa_b_orig, q_pair_states, q_checked_pairs, curr_state,
             if label in fa_b_orig.transitions[b_state]:
                 endstates = itertools.product(fa_a_orig.transitions[a_state][label], fa_b_orig.transitions[b_state][label])
                 for endstate in endstates:
-                    #endstate_str = endstate[0] + "_1|" + endstate[1] + "_2]"
+                    endstate_str = endstate[0] + "," + endstate[1]
 
-                    #if label not in intersect.transitions[combined_str]:
-                    #    intersect.transitions[combined_str][label] = [endstate_str]
-                    #else:
-                    #    intersect.transitions[combined_str][label].append(endstate_str)
+                    if label not in intersect.transitions[product_state_name]:
+                        intersect.transitions[product_state_name][label] = [endstate_str]
+                    else:
+                        intersect.transitions[product_state_name][label].append(endstate_str)
 
-                    end_str = endstate[0] + ',' + endstate[1]
-                    #endstate = [endstate[0], endstate[1]]
                     new_pairs_cnt += 1
-                    if end_str not in q_checked_pairs:
+                    if endstate_str not in q_checked_pairs:
                         new_pairs.append(endstate)
 
 
