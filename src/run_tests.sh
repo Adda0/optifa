@@ -20,6 +20,9 @@ print_stderr() { printf "%s\n" "$*" >&2; } # print message to stderr (newline ch
 F_FA_A_ORIG=""
 F_FA_B_ORIG=""
 
+F_TIME_CSV="tmp_time_csv"
+F_DATA_OUT="tmp_data_out"
+
 # handle given arguments
 # ./run.sh [-a finite_automaton_A] [-b finite_automaton_B] [-o output]"
 while getopts :a:b:o:h o; do
@@ -80,16 +83,39 @@ touch "$F_OUTPUT";
 
 
 # Print basic information about initial automata.
+echo -n ""$F_FA_A_ORIG","$F_FA_B_ORIG"," >> "$F_OUTPUT"
 python3 print_automata_sizes.py "$F_FA_A_ORIG" "$F_FA_B_ORIG" >> "$F_OUTPUT";
 
-# Start hyperfine.
-hyperfine "python3 -u resolve_satisfiability.py $F_FA_A_ORIG $F_FA_B_ORIG > tmp_output" --export-csv tmp_time_csv -u second -w 1 -r 3;
+# Run every algorithm version:
+## Emptiness tests:
+### Basic algorithm:
+hyperfine "python3 -u generate_basic_product.py --break_when_final $F_FA_A_ORIG $F_FA_B_ORIG > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -w 1 -r 3;
 
-# Append to the results file.
-cat tmp_output >> "$F_OUTPUT";
-cat tmp_time_csv >> "$F_OUTPUT";
+cat "$F_DATA_OUT" >> "$F_OUTPUT";
+echo -n "$(cut --complement -f 1 -d, "$F_TIME_CSV")" > "$F_TIME_CSV"
+echo -n "$(tail -n +2 "$F_TIME_CSV")" > "$F_TIME_CSV"
+cat "$F_TIME_CSV" >> "$F_OUTPUT";
 
-cat "\n" >> "$F_OUTPUT";
+### Length abstraction:
+# - With SMT solver:
+hyperfine "python3 -u resolve_satisfiability_length_abstraction.py --smt --break_when_final $F_FA_A_ORIG $F_FA_B_ORIG > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -w 1 -r 3;
+
+cat "$F_DATA_OUT" >> "$F_OUTPUT";
+echo -n "$(cut --complement -f 1 -d, "$F_TIME_CSV")" > "$F_TIME_CSV"
+echo -n "$(tail -n +2 "$F_TIME_CSV")" > "$F_TIME_CSV"
+cat "$F_TIME_CSV" >> "$F_OUTPUT";
+
+# - Without SMT solver:
+hyperfine "python3 -u resolve_satisfiability_length_abstraction.py --break_when_final $F_FA_A_ORIG $F_FA_B_ORIG > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -w 1 -r 3;
+
+cat "$F_DATA_OUT" >> "$F_OUTPUT";
+echo -n "$(cut --complement -f 1 -d, "$F_TIME_CSV")" > "$F_TIME_CSV"
+echo -n "$(tail -n +2 "$F_TIME_CSV")" > "$F_TIME_CSV"
+cat "$F_TIME_CSV" >> "$F_OUTPUT";
+
+
+
+echo "" >> "$F_OUTPUT"; # End the current experiment results.
 
 
 # End of file run.sh.

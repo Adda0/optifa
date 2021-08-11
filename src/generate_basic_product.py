@@ -39,7 +39,7 @@ def parse_args():
                     help='Automaton A to generate product from.')
     arg_parser.add_argument('fa_b_path', metavar='AUTOMATON_B', type=str,
                     help='Automaton B to generate product from.')
-    arg_parser.add_argument('--break_when_final', action='store_true', default=False,
+    arg_parser.add_argument('--break_when_final', '-b', action='store_true', default=False,
                     help='Break when final state is encountered to execute emptiness test.')
 
     # Test for '--help' argument.
