@@ -128,25 +128,6 @@ def main():
         else:
             false_cnt += 1
 
-    if not found:
-        """
-        #print(f"handle and loop a: {len(fa_a_handle_and_loop.states)}")
-        #print(f"handle and loop b: {len(fa_b_handle_and_loop.states)}")
-        print('')
-        # Output format: 'F <checked> <processed> <skipped> <false_cnt>'
-        print('F', end = ' ')
-        print(len(q_checked_pairs), end = ' ')
-        print(processed_pair_states_cnt, end = ' ')
-        print(sat_cnt, end=' ')
-        print(false_cnt, end=' ')
-        print(skipped_cnt, end = ' ')
-        print(len(fa_a_handle_and_loop.states), end=' ')
-        print(len(fa_b_handle_and_loop.states), end=' ')
-        print(len(intersect_ab.states),  end=' ')
-        print(len(intersect_ab.final), end=' ')
-        #print("FAILURE: Automata have an empty intersection.")
-        """
-
     intersect_ab.remove_useless_transitions()
     # Output format: <checked> <processed> <sat> <skipped> <false_cnt> <intersect> <final_cnt>
     print('')
@@ -171,8 +152,6 @@ def main():
 
 
 def make_pairs(fa_a_orig, fa_b_orig, q_pair_states, q_checked_pairs, intersect, curr_state, single_pair = False):
-    #if single_pair == None:
-    #    single_pair = True if (len(q_a_states) == 1 and len(q_b_states) == 1) else False
     a_state = curr_state[0]
     b_state = curr_state[1]
     product_state_name = a_state + ',' + b_state
