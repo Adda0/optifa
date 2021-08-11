@@ -23,7 +23,7 @@ import argparse
 
 # Main script function.
 def main():
-    fa_a_orig, fa_b_orig, break_when_final, reverse_lengths = parse_args()  # Parse program arguments.
+    fa_a_orig, fa_b_orig, break_when_final, reverse_lengths, use_z_constraints = parse_args()  # Parse program arguments.
 
     A_larger = True if len(fa_a_orig.states) > len(fa_b_orig.states) else False
 
@@ -91,25 +91,26 @@ def main():
         smt.add(Int('hash_%s' % symbol) == Sum([Int('b_y_%s' % transition) for transition in fa_b_orig.get_transitions_names_with_symbol(symbol)]))
 
     if reverse_lengths:
-        #"""
-        # FA A: Fourth conjunct.
-        for state in fa_a_orig.states:
-            if state in fa_a_orig.final:
-                smt.add(Int('a_z_%s' % state) == 1)
-                smt.add(And( [ Int('a_y_%s' % transition) >= 0 for transition in fa_a_orig.get_outgoing_transitions_names(state) ] ))
+        if use_z_constraints:
+            #"""
+            # FA A: Fourth conjunct.
+            for state in fa_a_orig.states:
+                if state in fa_a_orig.final:
+                    smt.add(Int('a_z_%s' % state) == 1)
+                    smt.add(And( [ Int('a_y_%s' % transition) >= 0 for transition in fa_a_orig.get_outgoing_transitions_names(state) ] ))
 
-            if state not in fa_a_orig.start and state not in fa_a_orig.final:
-                smt.add(Or(And( And( Int('a_z_%s' % state) == 0 ) , And( [ Int('a_y_%s' % transition) == 0 for transition in fa_a_orig.get_ingoing_transitions_names(state) ] ) ), Or( [ And( Int('a_y_%s' % transition) >= 0 , Int('a_z_%s' % transition.split('_')[0]) > 0, Int('a_z_%s' % state) == Int('a_z_%s' % transition.split('_')[0]) - 1) for transition in fa_a_orig.get_ingoing_transitions_names(state) ] )))
+                if state not in fa_a_orig.start and state not in fa_a_orig.final:
+                    smt.add(Or(And( And( Int('a_z_%s' % state) == 0 ) , And( [ Int('a_y_%s' % transition) == 0 for transition in fa_a_orig.get_ingoing_transitions_names(state) ] ) ), Or( [ And( Int('a_y_%s' % transition) >= 0 , Int('a_z_%s' % transition.split('_')[0]) > 0, Int('a_z_%s' % state) == Int('a_z_%s' % transition.split('_')[0]) - 1) for transition in fa_a_orig.get_ingoing_transitions_names(state) ] )))
 
-        # FA B: Fourth conjunct.
-        for state in fa_b_orig.states:
-            if state in fa_b_orig.final:
-                smt.add(Int('b_z_%s' % state) == 1)
-                smt.add(And( [ Int('b_y_%s' % transition) >= 0 for transition in fa_b_orig.get_outgoing_transitions_names(state) ] ))
+            # FA B: Fourth conjunct.
+            for state in fa_b_orig.states:
+                if state in fa_b_orig.final:
+                    smt.add(Int('b_z_%s' % state) == 1)
+                    smt.add(And( [ Int('b_y_%s' % transition) >= 0 for transition in fa_b_orig.get_outgoing_transitions_names(state) ] ))
 
-            if state not in fa_b_orig.start and state not in fa_a_orig.final:
-                smt.add(Or(And( And( Int('bz_%s' % state) == 0 ) , And( [ Int('b_y_%s' % transition) == 0 for transition in fa_b_orig.get_ingoing_transitions_names(state) ] ) ), Or( [ And( Int('b_y_%s' % transition) >= 0 , Int('b_z_%s' % transition.split('_')[0]) > 0, Int('b_z_%s' % state) == Int('b_z_%s' % transition.split('_')[0]) - 1) for transition in fa_b_orig.get_ingoing_transitions_names(state) ] )))
-        #"""
+                if state not in fa_b_orig.start and state not in fa_a_orig.final:
+                    smt.add(Or(And( And( Int('bz_%s' % state) == 0 ) , And( [ Int('b_y_%s' % transition) == 0 for transition in fa_b_orig.get_ingoing_transitions_names(state) ] ) ), Or( [ And( Int('b_y_%s' % transition) >= 0 , Int('b_z_%s' % transition.split('_')[0]) > 0, Int('b_z_%s' % state) == Int('b_z_%s' % transition.split('_')[0]) - 1) for transition in fa_b_orig.get_ingoing_transitions_names(state) ] )))
+            #"""
 
     # End of SMT formulae initialization.
 
@@ -279,7 +280,7 @@ def enqueue_next_states(q_states, fa_orig, curr_state):
                 q_states.append(state)
 
 
-def check_satisfiability(fa_a, fa_b, smt, reverse_lengths = True):
+def check_satisfiability(fa_a, fa_b, smt, reverse_lengths = True, use_z_constraints = True):
     """
     Check satisfiability for Parikh image using SMT solver Z3.
     :param fa_a: First automaton.
@@ -328,23 +329,24 @@ def check_satisfiability(fa_a, fa_b, smt, reverse_lengths = True):
             smt.add(Int('b_u_%s' % state) == 0)
 
     if not reverse_lengths:
-        #"""
-        # FA A: Fourth conjunct.
-        for state in fa_a.states:
-            if state in fa_a.start:
-                smt.add(Int('a_z_%s' % state) == 1)
-                smt.add(And( [ Int('a_y_%s' % transition) >= 0 for transition in fa_a.get_ingoing_transitions_names(state) ] ))
-            else:
-                smt.add(Or(And( And( Int('a_z_%s' % state) == 0 ) , And( [ Int('a_y_%s' % transition) == 0 for transition in fa_a.get_ingoing_transitions_names(state) ] ) ), Or( [ And( Int('a_y_%s' % transition) > 0 , Int('a_z_%s' % transition.split('_')[0]) > 0, Int('a_z_%s' % state) == Int('a_z_%s' % transition.split('_')[0]) + 1) for transition in fa_a.get_ingoing_transitions_names(state) ] )))
+        if use_z_constraints:
+            #"""
+            # FA A: Fourth conjunct.
+            for state in fa_a.states:
+                if state in fa_a.start:
+                    smt.add(Int('a_z_%s' % state) == 1)
+                    smt.add(And( [ Int('a_y_%s' % transition) >= 0 for transition in fa_a.get_ingoing_transitions_names(state) ] ))
+                else:
+                    smt.add(Or(And( And( Int('a_z_%s' % state) == 0 ) , And( [ Int('a_y_%s' % transition) == 0 for transition in fa_a.get_ingoing_transitions_names(state) ] ) ), Or( [ And( Int('a_y_%s' % transition) > 0 , Int('a_z_%s' % transition.split('_')[0]) > 0, Int('a_z_%s' % state) == Int('a_z_%s' % transition.split('_')[0]) + 1) for transition in fa_a.get_ingoing_transitions_names(state) ] )))
 
-        # FA B: Fourth conjunct.
-        for state in fa_b.states:
-            if state in fa_b.start:
-                smt.add(Int('b_z_%s' % state) == 1)
-                smt.add(And( [ Int('b_y_%s' % transition) >= 0 for transition in fa_b.get_ingoing_transitions_names(state) ] ))
-            else:
-                smt.add(Or(And( And( Int('b_z_%s' % state) == 0 ) , And( [ Int('b_y_%s' % transition) == 0 for transition in fa_b.get_ingoing_transitions_names(state) ] ) ), Or( [ And( Int('b_y_%s' % transition) > 0 , Int('b_z_%s' % transition.split('_')[0]) > 0, Int('b_z_%s' % state) == Int('b_z_%s' % transition.split('_')[0]) + 1) for transition in fa_b.get_ingoing_transitions_names(state) ] )))
-        #"""
+            # FA B: Fourth conjunct.
+            for state in fa_b.states:
+                if state in fa_b.start:
+                    smt.add(Int('b_z_%s' % state) == 1)
+                    smt.add(And( [ Int('b_y_%s' % transition) >= 0 for transition in fa_b.get_ingoing_transitions_names(state) ] ))
+                else:
+                    smt.add(Or(And( And( Int('b_z_%s' % state) == 0 ) , And( [ Int('b_y_%s' % transition) == 0 for transition in fa_b.get_ingoing_transitions_names(state) ] ) ), Or( [ And( Int('b_y_%s' % transition) > 0 , Int('b_z_%s' % transition.split('_')[0]) > 0, Int('b_z_%s' % state) == Int('b_z_%s' % transition.split('_')[0]) + 1) for transition in fa_b.get_ingoing_transitions_names(state) ] )))
+            #"""
 
     # Allow multiple final states.
     #FA A: At least one of the final state is reached.
@@ -386,6 +388,8 @@ def parse_args():
                     help='Break when final state is encountered to execute emptiness test.')
     arg_parser.add_argument('--forward_lengths', action='store_true', default=False,
                     help='Use SMT solver Z3 to check for satisfiability of formulae.')
+    arg_parser.add_argument('--no_z_constraints', action='store_true', default=False,
+                    help='Compute formulae without constraints for connectivity of automaton.')
 
     # Test for '--help' argument.
     if '--help' in sys.argv or '-h' in sys.argv:
@@ -402,7 +406,7 @@ def parse_args():
     fa_a_orig = symboliclib.parse(args.fa_a_path)
     fa_b_orig = symboliclib.parse(args.fa_b_path)
 
-    return fa_a_orig, fa_b_orig, args.break_when_final, not args.forward_lengths
+    return fa_a_orig, fa_b_orig, args.break_when_final, not args.forward_lengths, not args.no_z_constraints
 
 
 if __name__ == "__main__":
