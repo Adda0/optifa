@@ -167,61 +167,36 @@ def main():
 
             if curr_pair[0] in fa_a_orig.final and curr_pair[1] in fa_b_orig.final:
                 # Automata have a non-empty intersection. We can end the testing here as we have found a solution.
-                # Output format: 'T <checked> <processed> <sat> <skipped> <false_cnt>
                 intersect_ab.final.add(product_state_name)
-                """
-                print('')
-                print('T', end = ' ')
-                print(len(q_checked_pairs), end = ' ')
-                print(processed_pair_states_cnt, end = ' ')
-                print(sat_cnt, end=' ')
-                print(false_cnt, end=' ')
-                print(skipped_cnt, end = ' ')
-                print(len(intersect_ab.states),  end=' ')
-                print(len(intersect_ab.final), end=' ')
-                """
                 found = True
                 if break_when_final:
                     break
 
             #print(q_pair_states)
-            old_pair_states_len = len(q_pair_states)
+            #old_pair_states_len = len(q_pair_states)
+
+            # Generate the following potential product-states.
             make_pairs(fa_a_orig, fa_b_orig, q_pair_states, q_checked_pairs, intersect_ab, curr_pair)
-            pair_states_len_diff = len(q_pair_states) - old_pair_states_len
+
+            #pair_states_len_diff = len(q_pair_states) - old_pair_states_len
             #print(pair_states_len_diff)
             #print(q_pair_states)
         else:
             false_cnt += 1
 
-        print(len(q_pair_states))
-
-    if not found:
-        """
-        print('')
-        # Output format: 'F <checked> <processed> <skipped> <false_cnt>'
-        print('F', end = ' ')
-        print(len(q_checked_pairs), end = ' ')
-        print(processed_pair_states_cnt, end = ' ')
-        print(sat_cnt, end=' ')
-        print(false_cnt, end=' ')
-        print(skipped_cnt, end = ' ')
-        print(len(intersect_ab.states),  end=' ')
-        print(len(intersect_ab.final), end=' ')
-        #print("FAILURE: Automata have an empty intersection.")
-        """
+        #print(len(q_pair_states), end=' ')
 
     intersect_ab.remove_useless_transitions()
     intersect_ab.remove_abstract_final_state(abstract_final_symbol, abstract_final_state)
     # Output format: <checked> <processed> <sat> <skipped> <false_cnt> <intersect> <final_cnt>
     print('')
-    print('I', end=' ')
-    print(len(q_checked_pairs), end = ' ')
-    print(processed_pair_states_cnt, end = ' ')
-    print(sat_cnt, end=' ')
-    print(false_cnt, end=' ')
-    print(skipped_cnt, end = ' ')
-    print(len(intersect_ab.states),  end=' ')
-    print(len(intersect_ab.final), end=' ')
+    print_csv(len(q_checked_pairs))
+    print_csv(processed_pair_states_cnt)
+    print_csv(sat_cnt)
+    print_csv(false_cnt)
+    print_csv(skipped_cnt)
+    print_csv(len(intersect_ab.states))
+    print_csv(len(intersect_ab.final))
     print()
     #print(intersect_ab.transitions)
     #intersect_ab.print_automaton()
@@ -298,8 +273,8 @@ def check_satisfiability(fa_a, fa_b, smt, reverse_lengths = True, use_z_constrai
     #    print("quick true")
     #    return True
     if next(iter(fa_a.start)) in fa_a.final and next(iter(fa_b.start)) in fa_b.final:
-        print(next(iter(fa_a.start)) + ',' + next(iter(fa_b.start)) + " final", end='  ')
-        #print('final', end=' ')
+        #print(next(iter(fa_a.start)) + ',' + next(iter(fa_b.start)) + " final", end='  ')
+        #print('final')
         return True
 
     #smt = Solver()
@@ -366,15 +341,15 @@ def check_satisfiability(fa_a, fa_b, smt, reverse_lengths = True, use_z_constrai
 
     # Check for satisfiability.
     if smt.check() == sat:
-        print(next(iter(fa_a.start)) + ',' + next(iter(fa_b.start)) + " true", end='  ')
+        #print(next(iter(fa_a.start)) + ',' + next(iter(fa_b.start)) + " true", end='  ')
         #print("true", end='  ')
         #print(smt.model())
         smt.pop()
         return True
 
     smt.pop()
-    print(next(iter(fa_a.start)) + ',' + next(iter(fa_b.start)) + " false", end='  ')
-    #print("false", end=' ')
+    #print(next(iter(fa_a.start)) + ',' + next(iter(fa_b.start)) + " false", end='  ')
+    #print("false")
     return False
 
 
