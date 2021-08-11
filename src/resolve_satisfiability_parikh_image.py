@@ -189,7 +189,6 @@ def main():
     intersect_ab.remove_useless_transitions()
     intersect_ab.remove_abstract_final_state(abstract_final_symbol, abstract_final_state)
     # Output format: <checked> <processed> <sat> <skipped> <false_cnt> <intersect> <final_cnt>
-    print('')
     print_csv(len(q_checked_pairs))
     print_csv(processed_pair_states_cnt)
     print_csv(sat_cnt)
@@ -197,7 +196,6 @@ def main():
     print_csv(skipped_cnt)
     print_csv(len(intersect_ab.states))
     print_csv(len(intersect_ab.final))
-    print()
     #print(intersect_ab.transitions)
     #intersect_ab.print_automaton()
     #print(intersect_ab.final)
