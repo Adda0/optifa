@@ -20,6 +20,7 @@ from collections import deque
 from copy import deepcopy
 import itertools
 import argparse
+from optifa import *
 
 # Main script function.
 def main():
@@ -384,11 +385,11 @@ def parse_args():
                     help='Automaton A to generate product from.')
     arg_parser.add_argument('fa_b_path', metavar='AUTOMATON_B', type=str,
                     help='Automaton B to generate product from.')
-    arg_parser.add_argument('--break_when_final', action='store_true', default=False,
+    arg_parser.add_argument('--break_when_final', '-b', action='store_true', default=False,
                     help='Break when final state is encountered to execute emptiness test.')
-    arg_parser.add_argument('--forward_lengths', action='store_true', default=False,
+    arg_parser.add_argument('--forward_lengths', '-f', action='store_true', default=False,
                     help='Use SMT solver Z3 to check for satisfiability of formulae.')
-    arg_parser.add_argument('--no_z_constraints', action='store_true', default=False,
+    arg_parser.add_argument('--no_z_constraints', '-z', action='store_true', default=False,
                     help='Compute formulae without constraints for connectivity of automaton.')
 
     # Test for '--help' argument.

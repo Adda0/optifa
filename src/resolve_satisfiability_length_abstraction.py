@@ -20,6 +20,7 @@ from collections import deque
 from copy import deepcopy
 import itertools
 import argparse
+from optifa import *
 
 # Main script function.
 def main():
@@ -85,7 +86,7 @@ def main():
             fa_b_formulae_dict = fa_b_handle_and_loop.count_formulae_for_lfa()
             #print(fa_b_formulae_dict)  # DEBUG
 
-            satisfiable = check_satisfiability(fa_a_formulae_dict, fa_b_formulae_dict)
+            satisfiable = check_satisfiability(fa_a_formulae_dict, fa_b_formulae_dict, smt_free)
             if satisfiable:
                 sat_cnt += 1
         else:
@@ -120,7 +121,7 @@ def main():
                     break
 
             #print(q_pair_states)
-            old_pair_states_len = len(q_pair_states)
+            #old_pair_states_len = len(q_pair_states)
             make_pairs(fa_a_orig, fa_b_orig, q_pair_states, q_checked_pairs, intersect_ab, curr_pair)
             #pair_states_len_diff = len(q_pair_states) - old_pair_states_len
             #print(pair_states_len_diff)
@@ -193,6 +194,7 @@ def make_pairs(fa_a_orig, fa_b_orig, q_pair_states, q_checked_pairs, intersect, 
         else:
             q_pair_states.append([new_pair[0], new_pair[1], single_pair])
 
+
 def enqueue_next_states(q_states, fa_orig, curr_state):
     transitions = fa_orig.get_deterministic_transitions(curr_state)
 
@@ -200,6 +202,7 @@ def enqueue_next_states(q_states, fa_orig, curr_state):
         for state_dict_elem in transitions[trans_symbol]:
             for state in state_dict_elem.split(','):
                 q_states.append(state)
+
 
 def check_satisfiability(fa_a_formulae_dict, fa_b_formulae_dict, smt_free = True):
     """
@@ -297,9 +300,9 @@ def parse_args():
                     help='Automaton A to generate product from.')
     arg_parser.add_argument('fa_b_path', metavar='AUTOMATON_B', type=str,
                     help='Automaton B to generate product from.')
-    arg_parser.add_argument('--break_when_final', action='store_true', default=False,
+    arg_parser.add_argument('--break_when_final', '-b', action='store_true', default=False,
                     help='Break when final state is encountered to execute emptiness test.')
-    arg_parser.add_argument('--smt', action='store_true', default=False,
+    arg_parser.add_argument('--smt', '-s', action='store_true', default=False,
                     help='Use SMT solver Z3 to check for satisfiability of formulae.')
 
     # Test for '--help' argument.
