@@ -101,21 +101,7 @@ def main():
 
             if curr_pair[0] in fa_a_orig.final and curr_pair[1] in fa_b_orig.final:
                 # Automata have a non-empty intersection. We can end the testing here as we have found a solution.
-                # Output format: 'T <checked> <processed> <sat> <skipped> <false_cnt>
                 intersect_ab.final.add(product_state_name)
-                """
-                print('')
-                print('T', end = ' ')
-                print(len(q_checked_pairs), end = ' ')
-                print(processed_pair_states_cnt, end = ' ')
-                print(sat_cnt, end=' ')
-                print(false_cnt, end=' ')
-                print(skipped_cnt, end = ' ')
-                print(len(fa_a_handle_and_loop.states), end=' ')
-                print(len(fa_b_handle_and_loop.states), end=' ')
-                print(len(intersect_ab.states),  end=' ')
-                print(len(intersect_ab.final), end=' ')
-                """
                 found = True
                 if break_when_final:
                     break
