@@ -179,7 +179,7 @@ def main():
                 sat_cnt += 1
         else:
             satisfiable = True
-            #print(product_state_name + " sat", end='  ')
+            print(product_state_name + " sat", end='  ')
             skipped_cnt += 1
 
         if satisfiable:
@@ -207,7 +207,7 @@ def main():
         else:
             false_cnt += 1
 
-        #print(len(q_pair_states), end=' ')
+        print(len(q_pair_states))
 
     intersect_ab.remove_useless_transitions()
     intersect_ab.remove_abstract_final_state(abstract_final_symbol, abstract_final_state)
@@ -343,7 +343,7 @@ def check_satisfiability(fa_a, fa_b, fa_a_formulae_dict, fa_b_formulae_dict, smt
     #    print("quick true")
     #    return True
     if next(iter(fa_a.start)) in fa_a.final and next(iter(fa_b.start)) in fa_b.final:
-        #print(next(iter(fa_a.start)) + ',' + next(iter(fa_b.start)) + " final", end='  ')
+        print(next(iter(fa_a.start)) + ',' + next(iter(fa_b.start)) + " final", end='  ')
         #print('final')
         return True
 
@@ -390,6 +390,7 @@ def check_satisfiability(fa_a, fa_b, fa_a_formulae_dict, fa_b_formulae_dict, smt
                 smt_length.pop()
 
     if not length_satisfiable:
+        print("Length abstraction not satisfiable.", end=' ')
         return False
 
     #smt = Solver()
@@ -456,14 +457,14 @@ def check_satisfiability(fa_a, fa_b, fa_a_formulae_dict, fa_b_formulae_dict, smt
 
     # Check for satisfiability.
     if smt.check() == sat:
-        #print(next(iter(fa_a.start)) + ',' + next(iter(fa_b.start)) + " true", end='  ')
+        print(next(iter(fa_a.start)) + ',' + next(iter(fa_b.start)) + " true", end='  ')
         #print("true", end='  ')
         #print(smt.model())
         smt.pop()
         return True
 
     smt.pop()
-    #print(next(iter(fa_a.start)) + ',' + next(iter(fa_b.start)) + " false", end='  ')
+    print(next(iter(fa_a.start)) + ',' + next(iter(fa_b.start)) + " false", end='  ')
     #print("false")
     return False
 
