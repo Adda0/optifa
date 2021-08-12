@@ -393,6 +393,7 @@ def check_satisfiability(fa_a, fa_b, fa_a_formulae_dict, fa_b_formulae_dict, smt
         print("Length abstraction not satisfiable.", end=' ')
         return False
 
+    print("Length abstraction satisfiable.", end=' ')
     #smt = Solver()
     smt.push()
 
