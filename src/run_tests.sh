@@ -93,7 +93,9 @@ fi
 echo "" >> "$F_OUTPUT";
 
 # Print basic information about initial automata.
-python3 print_automata_paths.py "$F_FA_A_ORIG" "$F_FA_B_ORIG" | tee -a "$F_OUTPUT" "$F_TESTED_COMBINATIONS" >/dev/null;
+AUTOMATA_PATHS="$(python3 print_automata_paths.py "$F_FA_A_ORIG" "$F_FA_B_ORIG")"
+echo "$AUTOMATA_PATHS" >> "$F_OUTPUT";
+grep -qxF "$AUTOMATA_PATHS" "$F_TESTED_COMBINATIONS" || echo "$AUTOMATA_PATHS" >> "$F_TESTED_COMBINATIONS";
 echo "" >> "$F_TESTED_COMBINATIONS";
 python3 print_automata_sizes.py "$F_FA_A_ORIG" "$F_FA_B_ORIG" >> "$F_OUTPUT";
 
