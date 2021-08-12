@@ -202,8 +202,6 @@ def main():
 
 
 def make_pairs(fa_a_orig, fa_b_orig, q_pair_states, q_checked_pairs, intersect, curr_state, single_pair = False):
-    #if single_pair == None:
-    #    single_pair = True if (len(q_a_states) == 1 and len(q_b_states) == 1) else False
     a_state = curr_state[0]
     b_state = curr_state[1]
     product_state_name = a_state + ',' + b_state
@@ -244,6 +242,7 @@ def make_pairs(fa_a_orig, fa_b_orig, q_pair_states, q_checked_pairs, intersect, 
             q_pair_states[id][2] = True
         else:
             q_pair_states.append([new_pair[0], new_pair[1], single_pair])
+
 
 def enqueue_next_states(q_states, fa_orig, curr_state):
     transitions = fa_orig.get_deterministic_transitions(curr_state)
@@ -361,7 +360,7 @@ def parse_args():
     arg_parser.add_argument('--break_when_final', '-b', action='store_true', default=False,
                     help='Break when final state is encountered to execute emptiness test.')
     arg_parser.add_argument('--forward_lengths', '-f', action='store_true', default=False,
-                    help='Use SMT solver Z3 to check for satisfiability of formulae.')
+                    help="Compute forward lengths 'z' for Parikh image.")
     arg_parser.add_argument('--no_z_constraints', '-z', action='store_true', default=False,
                     help='Compute formulae without constraints for connectivity of automaton.')
 
