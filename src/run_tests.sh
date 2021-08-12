@@ -64,11 +64,20 @@ while getopts :a:b:o:h o; do
             F_OUTPUT="$OPTARG"
         fi
         ;;
+    t) # Tested combinations
+        if [ -z "$OPTARG" ]; then # Parameter -t without given output file following '-t'.
+            print_stderr "Invalid flag: -t <tested_combinations_file>."
+            exit 1;
+        else
+            F_TESTED_COMBINATIONS="$OPTARG"
+        fi
+        ;;
     h) # help #TODO
         printf "Usage: ./run.sh [-a finite_automaton_A_file] [-b finite_automaton_B_file] [-o output]\n\n"
         echo "   [-a finite_automaton_A_file] –– set finite_automaton_A file to be Timbuk description of finite automaton A"
         echo "   [-b finite_automaton_B_file] –– set finite_automaton_B file to be Timbuk description of finite automaton B"
         echo "   [-o output_file] –– set output file containing the result"
+        echo "   [-t tested_combinations_file] –– set output file containing the tested combinations"
         exit 0
         ;;
     *) # invalid flag
