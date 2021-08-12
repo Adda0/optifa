@@ -79,8 +79,14 @@ while getopts :a:b:o:h o; do
 done
 
 # Create results file.
-touch "$F_OUTPUT";
-touch "$F_TESTED_COMBINATIONS";
+if [ ! -f "$F_OUTPUT" ]; then
+    touch "$F_OUTPUT";
+    cat "legend..." > "$F_OUTPUT" #! TODO Complete legend
+fi
+if [ ! -f "$F_TESTED_COMBINATIONS" ]; then
+    touch "$F_TESTED_COMBINATIONS";
+    cat "legend..." > "$F_TESTED_COMBINATIONS" #! TODO Complete legend
+fi
 
 # Print basic information about initial automata.
 echo -n ""$F_FA_A_ORIG","$F_FA_B_ORIG"," | tee -a "$F_OUTPUT" "$F_TESTED_COMBINATIONS" >/dev/null
