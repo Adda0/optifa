@@ -22,6 +22,7 @@ F_FA_B_ORIG=""
 
 F_TIME_CSV="tmp_time_csv"
 F_DATA_OUT="tmp_data_out"
+F_TESTED_COMBINATIONS="tested_combinations"
 
 # handle given arguments
 # ./run.sh [-a finite_automaton_A] [-b finite_automaton_B] [-o output]"
@@ -79,11 +80,11 @@ done
 
 # Create results file.
 touch "$F_OUTPUT";
-
-
+touch "$F_TESTED_COMBINATIONS";
 
 # Print basic information about initial automata.
-echo -n ""$F_FA_A_ORIG","$F_FA_B_ORIG"," >> "$F_OUTPUT"
+echo -n ""$F_FA_A_ORIG","$F_FA_B_ORIG"," | tee -a "$F_OUTPUT" "$F_TESTED_COMBINATIONS" >/dev/null
+echo "" >> "$F_TESTED_COMBINATIONS"
 python3 print_automata_sizes.py "$F_FA_A_ORIG" "$F_FA_B_ORIG" >> "$F_OUTPUT";
 
 # Run every algorithm version:
