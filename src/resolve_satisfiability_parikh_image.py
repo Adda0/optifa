@@ -151,7 +151,7 @@ def main():
         if not curr_pair[2]:
             processed_pair_states_cnt += 1
 
-            satisfiable = check_satisfiability(fa_a_copy, fa_b_copy, smt, reverse_lengths)
+            satisfiable = check_satisfiability(fa_a_copy, fa_b_copy, smt, reverse_lengths, use_z_constraints)
             if satisfiable:
                 sat_cnt += 1
         else:
