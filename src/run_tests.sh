@@ -105,7 +105,6 @@ echo "" >> "$F_OUTPUT";
 AUTOMATA_PATHS="$(python3 print_automata_paths.py "$F_FA_A_ORIG" "$F_FA_B_ORIG")"
 echo -n "$AUTOMATA_PATHS" >> "$F_OUTPUT";
 grep -qxF "$AUTOMATA_PATHS" "$F_TESTED_COMBINATIONS" || echo "$AUTOMATA_PATHS" >> "$F_TESTED_COMBINATIONS";
-echo "" >> "$F_TESTED_COMBINATIONS";
 python3 print_automata_sizes.py "$F_FA_A_ORIG" "$F_FA_B_ORIG" >> "$F_OUTPUT";
 
 # Run every algorithm version:
