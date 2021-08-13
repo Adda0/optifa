@@ -20,8 +20,6 @@ print_stderr() { printf "%s\n" "$*" >&2; } # print message to stderr (newline ch
 F_FA_A_ORIG=""
 F_FA_B_ORIG=""
 
-F_TIME_CSV="tmp_time_csv"
-F_DATA_OUT="tmp_data_out"
 F_TESTED_COMBINATIONS="tested_combinations"
 
 # handle given arguments
@@ -106,6 +104,10 @@ AUTOMATA_PATHS="$(python3 print_automata_paths.py "$F_FA_A_ORIG" "$F_FA_B_ORIG")
 echo -n "$AUTOMATA_PATHS" >> "$F_OUTPUT";
 grep -qxF "$AUTOMATA_PATHS" "$F_TESTED_COMBINATIONS" || echo "$AUTOMATA_PATHS" >> "$F_TESTED_COMBINATIONS";
 python3 print_automata_sizes.py "$F_FA_A_ORIG" "$F_FA_B_ORIG" >> "$F_OUTPUT";
+
+F_TIME_CSV="tmp_time_csv_"$F_OUTPUT""
+F_DATA_OUT="tmp_data_out_"$F_OUTPUT""
+
 
 # Run every algorithm version:
 ## Emptiness tests:
