@@ -111,7 +111,7 @@ python3 print_automata_sizes.py "$F_FA_A_ORIG" "$F_FA_B_ORIG" >> "$F_OUTPUT";
 # Run every algorithm version:
 ## Emptiness tests:
 ### Basic algorithm:
-hyperfine "python3 generate_basic_product.py --break_when_final $F_FA_A_ORIG $F_FA_B_ORIG > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -w 1 -r 2;
+hyperfine "python3 generate_basic_product.py --break_when_final $F_FA_A_ORIG $F_FA_B_ORIG > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
 
 cat "$F_DATA_OUT" >> "$F_OUTPUT";
 echo -n "$(cut --complement -f 1 -d, "$F_TIME_CSV")" > "$F_TIME_CSV"
@@ -121,7 +121,7 @@ echo -n "," >> "$F_OUTPUT";
 
 ### Length abstraction:
 # - With SMT solver:
-hyperfine "python3 resolve_satisfiability_length_abstraction.py --smt --break_when_final $F_FA_A_ORIG $F_FA_B_ORIG > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -w 1 -r 2;
+hyperfine "python3 resolve_satisfiability_length_abstraction.py --smt --break_when_final $F_FA_A_ORIG $F_FA_B_ORIG > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
 
 cat "$F_DATA_OUT" >> "$F_OUTPUT";
 echo -n "$(cut --complement -f 1 -d, "$F_TIME_CSV")" > "$F_TIME_CSV"
@@ -130,7 +130,7 @@ cat "$F_TIME_CSV" >> "$F_OUTPUT";
 echo -n "," >> "$F_OUTPUT";
 
 # - Without SMT solver:
-hyperfine "python3 resolve_satisfiability_length_abstraction.py --break_when_final $F_FA_A_ORIG $F_FA_B_ORIG > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -w 1 -r 2;
+hyperfine "python3 resolve_satisfiability_length_abstraction.py --break_when_final $F_FA_A_ORIG $F_FA_B_ORIG > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
 
 cat "$F_DATA_OUT" >> "$F_OUTPUT";
 echo -n "$(cut --complement -f 1 -d, "$F_TIME_CSV")" > "$F_TIME_CSV"
@@ -140,7 +140,7 @@ echo -n "," >> "$F_OUTPUT";
 
 ### Parikh image:
 # - Forward lengths computation:
-hyperfine "python3 resolve_satisfiability_parikh_image.py --forward_lengths --break_when_final $F_FA_A_ORIG $F_FA_B_ORIG > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -w 1 -r 2;
+hyperfine "python3 resolve_satisfiability_parikh_image.py --forward_lengths --break_when_final $F_FA_A_ORIG $F_FA_B_ORIG > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
 
 cat "$F_DATA_OUT" >> "$F_OUTPUT";
 echo -n "$(cut --complement -f 1 -d, "$F_TIME_CSV")" > "$F_TIME_CSV"
@@ -149,7 +149,7 @@ cat "$F_TIME_CSV" >> "$F_OUTPUT";
 echo -n "," >> "$F_OUTPUT";
 
 # - Backward lengths computation:
-hyperfine "python3 resolve_satisfiability_parikh_image.py --break_when_final $F_FA_A_ORIG $F_FA_B_ORIG > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -w 1 -r 2;
+hyperfine "python3 resolve_satisfiability_parikh_image.py --break_when_final $F_FA_A_ORIG $F_FA_B_ORIG > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
 
 cat "$F_DATA_OUT" >> "$F_OUTPUT";
 echo -n "$(cut --complement -f 1 -d, "$F_TIME_CSV")" > "$F_TIME_CSV"
@@ -158,7 +158,7 @@ cat "$F_TIME_CSV" >> "$F_OUTPUT";
 echo -n "," >> "$F_OUTPUT";
 
 # - Without legths computation:
-hyperfine "python3 resolve_satisfiability_parikh_image.py --no_z_constraints --break_when_final $F_FA_A_ORIG $F_FA_B_ORIG > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -w 1 -r 2;
+hyperfine "python3 resolve_satisfiability_parikh_image.py --no_z_constraints --break_when_final $F_FA_A_ORIG $F_FA_B_ORIG > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
 
 cat "$F_DATA_OUT" >> "$F_OUTPUT";
 echo -n "$(cut --complement -f 1 -d, "$F_TIME_CSV")" > "$F_TIME_CSV"
@@ -169,7 +169,7 @@ echo -n "," >> "$F_OUTPUT";
 
 ## Full product generation:
 ### Basic algorithm:
-hyperfine "python3 generate_basic_product.py $F_FA_A_ORIG $F_FA_B_ORIG > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -w 1 -r 2;
+hyperfine "python3 generate_basic_product.py $F_FA_A_ORIG $F_FA_B_ORIG > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
 
 cat "$F_DATA_OUT" >> "$F_OUTPUT";
 echo -n "$(cut --complement -f 1 -d, "$F_TIME_CSV")" > "$F_TIME_CSV"
@@ -179,7 +179,7 @@ echo -n "," >> "$F_OUTPUT";
 
 ### Length abstraction:
 # - With SMT solver:
-hyperfine "python3 resolve_satisfiability_length_abstraction.py --smt $F_FA_A_ORIG $F_FA_B_ORIG > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -w 1 -r 2;
+hyperfine "python3 resolve_satisfiability_length_abstraction.py --smt $F_FA_A_ORIG $F_FA_B_ORIG > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
 
 cat "$F_DATA_OUT" >> "$F_OUTPUT";
 echo -n "$(cut --complement -f 1 -d, "$F_TIME_CSV")" > "$F_TIME_CSV"
@@ -188,7 +188,7 @@ cat "$F_TIME_CSV" >> "$F_OUTPUT";
 echo -n "," >> "$F_OUTPUT";
 
 # - Without SMT solver:
-hyperfine "python3 resolve_satisfiability_length_abstraction.py $F_FA_A_ORIG $F_FA_B_ORIG > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -w 1 -r 2;
+hyperfine "python3 resolve_satisfiability_length_abstraction.py $F_FA_A_ORIG $F_FA_B_ORIG > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
 
 cat "$F_DATA_OUT" >> "$F_OUTPUT";
 echo -n "$(cut --complement -f 1 -d, "$F_TIME_CSV")" > "$F_TIME_CSV"
@@ -198,7 +198,7 @@ echo -n "," >> "$F_OUTPUT";
 
 ### Parikh image:
 # - Forward lengths computation:
-hyperfine "python3 resolve_satisfiability_parikh_image.py --forward_lengths $F_FA_A_ORIG $F_FA_B_ORIG > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -w 1 -r 2;
+hyperfine "python3 resolve_satisfiability_parikh_image.py --forward_lengths $F_FA_A_ORIG $F_FA_B_ORIG > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
 
 cat "$F_DATA_OUT" >> "$F_OUTPUT";
 echo -n "$(cut --complement -f 1 -d, "$F_TIME_CSV")" > "$F_TIME_CSV"
@@ -207,7 +207,7 @@ cat "$F_TIME_CSV" >> "$F_OUTPUT";
 echo -n "," >> "$F_OUTPUT";
 
 # - Backward lengths computation:
-hyperfine "python3 resolve_satisfiability_parikh_image.py $F_FA_A_ORIG $F_FA_B_ORIG > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -w 1 -r 2;
+hyperfine "python3 resolve_satisfiability_parikh_image.py $F_FA_A_ORIG $F_FA_B_ORIG > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
 
 cat "$F_DATA_OUT" >> "$F_OUTPUT";
 echo -n "$(cut --complement -f 1 -d, "$F_TIME_CSV")" > "$F_TIME_CSV"
@@ -216,7 +216,7 @@ cat "$F_TIME_CSV" >> "$F_OUTPUT";
 echo -n "," >> "$F_OUTPUT";
 
 # - Without legths computation:
-hyperfine "python3 resolve_satisfiability_parikh_image.py --no_z_constraints $F_FA_A_ORIG $F_FA_B_ORIG > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -w 1 -r 2;
+hyperfine "python3 resolve_satisfiability_parikh_image.py --no_z_constraints $F_FA_A_ORIG $F_FA_B_ORIG > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
 
 cat "$F_DATA_OUT" >> "$F_OUTPUT";
 echo -n "$(cut --complement -f 1 -d, "$F_TIME_CSV")" > "$F_TIME_CSV"
