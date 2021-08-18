@@ -168,6 +168,14 @@ echo -n "$(tail -n +2 "$F_TIME_CSV")" > "$F_TIME_CSV"
 cat "$F_TIME_CSV" >> "$F_OUTPUT";
 echo -n "," >> "$F_OUTPUT";
 
+### Combined algorithms:
+#hyperfine "python3 resolve_satisfiability_combined.py --no_z_constraints --break_when_final $F_FA_A_ORIG $F_FA_B_ORIG > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -w 1 -r 2;
+#
+#cat "$F_DATA_OUT" >> "$F_OUTPUT";
+#echo -n "$(cut --complement -f 1 -d, "$F_TIME_CSV")" > "$F_TIME_CSV"
+#echo -n "$(tail -n +2 "$F_TIME_CSV")" > "$F_TIME_CSV"
+#cat "$F_TIME_CSV" >> "$F_OUTPUT";
+#echo -n "," >> "$F_OUTPUT";
 
 ## Full product generation:
 ### Basic algorithm:
@@ -226,5 +234,13 @@ echo -n "$(tail -n +2 "$F_TIME_CSV")" > "$F_TIME_CSV"
 cat "$F_TIME_CSV" >> "$F_OUTPUT";
 echo -n "," >> "$F_OUTPUT";
 
+### Combined algorithms:
+#hyperfine "python3 resolve_satisfiability_combined.py --no_z_constraints $F_FA_A_ORIG $F_FA_B_ORIG > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -w 1 -r 2;
+#
+#cat "$F_DATA_OUT" >> "$F_OUTPUT";
+#echo -n "$(cut --complement -f 1 -d, "$F_TIME_CSV")" > "$F_TIME_CSV"
+#echo -n "$(tail -n +2 "$F_TIME_CSV")" > "$F_TIME_CSV"
+#cat "$F_TIME_CSV" >> "$F_OUTPUT";
+#echo -n "," >> "$F_OUTPUT";
 
 # End of file run.sh.
