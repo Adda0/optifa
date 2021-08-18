@@ -28,6 +28,8 @@ append_output() {
 F_FA_A_ORIG=""
 F_FA_B_ORIG=""
 
+F_TIME_CSV="tmp_time_csv"
+F_DATA_OUT="tmp_data_out"
 F_TESTED_COMBINATIONS="tested_combinations"
 
 # handle given arguments
