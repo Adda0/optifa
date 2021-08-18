@@ -1,0 +1,3 @@
+Larger automaton,Smaller automaton,
+../../ARMCautomata/Bakery-4P-BinEnc-BwBad/armcNFA_inclTest_35,../../ARMCautomata/Bakery-4P-BinEnc-BwBad/armcNFA_inclTest_0,
+../../modified_automata/ARMCautomata/IBakery-5P-UnrEnc-BwBad-Nondet/armcNFA_inclTest_30_removed_transitions,../../modified_automata/ARMCautomata/IBakery-5P-UnrEnc-BwBad-Nondet/armcNFA_inclTest_15,
