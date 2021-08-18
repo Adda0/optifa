@@ -21,6 +21,7 @@ from copy import deepcopy
 import itertools
 import argparse
 from optifa import *
+from dataclasses import dataclass
 
 # Main script function.
 def main():
@@ -53,7 +54,6 @@ def main():
     # Run for emptiness test with break_when_final == True or
     # for full product construction with break_when_final == False.
     processed_pair_states_cnt = 0
-
 
     # Initialize SMT solver object.
     smt = Solver()
@@ -144,6 +144,7 @@ def main():
     skipped_cnt = 0
     false_cnt = 0
     sat_cnt = 0
+    sat_counters = SatCounters()
 
     # When there are any pair states to test for satisfiability, test them.
     while q_pair_states:
@@ -174,7 +175,7 @@ def main():
             fa_b_formulae_dict = fa_b_handle_and_loop.count_formulae_for_lfa()
             #print(fa_b_formulae_dict)  # DEBUG
 
-            satisfiable = check_satisfiability(fa_a_copy, fa_b_copy, fa_a_formulae_dict, fa_b_formulae_dict, smt, smt_free, reverse_lengths, use_z_constraints)
+            satisfiable = check_satisfiability(fa_a_copy, fa_b_copy, fa_a_formulae_dict, fa_b_formulae_dict, sat_counters, smt, smt_free, reverse_lengths, use_z_constraints)
             if satisfiable:
                 sat_cnt += 1
         else:
@@ -211,12 +212,15 @@ def main():
 
     intersect_ab.remove_useless_transitions()
     intersect_ab.remove_abstract_final_state(abstract_final_symbol, abstract_final_state)
-    # Output format: <checked> <processed> <sat> <skipped> <false_cnt> <intersect> <final_cnt>
     print_csv(len(q_checked_pairs))
     print_csv(processed_pair_states_cnt)
     print_csv(sat_cnt)
     print_csv(false_cnt)
     print_csv(skipped_cnt)
+    print_csv(sat_counters.length_abstraction_sat_states)
+    print_csv(sat_counters.length_abstraction_unsat_states)
+    print_csv(sat_counters.parikh_image_sat_states)
+    print_csv(sat_counters.parikh_image_unsat_states)
     if A_larger:
         print_csv(len(fa_a_handle_and_loop.states))
         print_csv(len(fa_b_handle_and_loop.states))
@@ -282,13 +286,14 @@ def enqueue_next_states(q_states, fa_orig, curr_state):
                 q_states.append(state)
 
 
-def check_satisfiability(fa_a, fa_b, fa_a_formulae_dict, fa_b_formulae_dict, smt, smt_free = True, reverse_lengths = True, use_z_constraints = True):
+def check_satisfiability(fa_a, fa_b, fa_a_formulae_dict, fa_b_formulae_dict, sat_counters, smt, smt_free = True, reverse_lengths = True, use_z_constraints = True):
     """
     Check satisfiability for formulae and Parikh image using SMT solver Z3.
     :param fa_a: First automaton.
     :param fa_b: Second automaton.
     :param fa_a_formulae_dict: Dictionary with formulae for FA A.
     :param fa_b_formulae_dict: Dictionary with formulae for FA B.
+    :param sat_counters: Counters of various satisfiability combinations.
     :return: True if satisfiable; False if not satisfiable.
     """
 
@@ -391,9 +396,11 @@ def check_satisfiability(fa_a, fa_b, fa_a_formulae_dict, fa_b_formulae_dict, smt
 
     if not length_satisfiable:
         #print"Length abstraction not satisfiable.", end=' ')
+        sat_counters.length_abstraction_unsat_states += 1
         return False
 
     #print"Length abstraction satisfiable.", end=' ')
+    sat_counters.length_abstraction_sat_states += 1
     #smt = Solver()
     smt.push()
 
@@ -461,12 +468,14 @@ def check_satisfiability(fa_a, fa_b, fa_a_formulae_dict, fa_b_formulae_dict, smt
         #printnext(iter(fa_a.start)) + ',' + next(iter(fa_b.start)) + " true", end='  ')
         #print("true", end='  ')
         #print(smt.model())
+        sat_counters.parikh_image_sat_states += 1
         smt.pop()
         return True
 
     smt.pop()
     #printnext(iter(fa_a.start)) + ',' + next(iter(fa_b.start)) + " false", end='  ')
     #print("false")
+    sat_counters.parikh_image_unsat_states += 1
     return False
 
 
@@ -502,6 +511,13 @@ def parse_args():
     fa_b_orig = symboliclib.parse(args.fa_b_path)
 
     return fa_a_orig, fa_b_orig, args.break_when_final, not args.smt, not args.forward_lengths, not args.no_z_constraints
+
+@dataclass
+class SatCounters:
+    length_abstraction_sat_states: int = 0  # Length abstraction satisfiable, test for Parikh image satisfiability.
+    length_abstraction_unsat_states: int = 0  # Length abstraction unsatisfiable.
+    parikh_image_sat_states: int = 0  # Both length abstraction and Parikh image satisfiable.
+    parikh_image_unsat_states: int = 0  # Length abstraction satisfiable, Parikh image unsatisfiable.
 
 
 if __name__ == "__main__":
