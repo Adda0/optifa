@@ -30,6 +30,8 @@ F_FA_B_ORIG=""
 
 F_TIME_CSV="tmp_time_csv"
 F_DATA_OUT="tmp_data_out"
+F_FA_A_LOADED="tmp_automaton_a"
+F_FA_B_LOADED="tmp_automaton_b"
 F_TESTED_COMBINATIONS="tested_combinations"
 
 # handle given arguments
@@ -134,69 +136,75 @@ python3 print_automata_sizes.py "$F_FA_A_ORIG" "$F_FA_B_ORIG" >> "$F_OUTPUT";
 
 F_TIME_CSV="tmp_time_csv_"$F_OUTPUT""
 F_DATA_OUT="tmp_data_out_"$F_OUTPUT""
+F_FA_A_LOADED="tmp_automaton_a_"$F_OUTPUT""
+F_FA_B_LOADED="tmp_automaton_b_"$F_OUTPUT""
 
+# Load automata to a Python object.
+load_automata.py -a "$F_FA_A_ORIG" -b "$F_FA_B_ORIG" --out_a "$F_FA_A_LOADED" --out_b "$F_FA_B_LOADED"
 
 # Run every algorithm version:
 ## Emptiness tests:
 ### Basic algorithm:
-hyperfine "python3 generate_basic_product.py --break_when_final $F_FA_A_ORIG $F_FA_B_ORIG > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
+hyperfine "python3 generate_basic_product.py --break_when_final "$F_FA_A_LOADED" "$F_FA_B_LOADED" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
 append_output;
 
 ### Length abstraction:
 # - With SMT solver:
-hyperfine "python3 resolve_satisfiability_length_abstraction.py --smt --break_when_final $F_FA_A_ORIG $F_FA_B_ORIG > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
+hyperfine "python3 resolve_satisfiability_length_abstraction.py --smt --break_when_final "$F_FA_A_ORIG" "$F_FA_B_ORIG" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
 append_output;
 
 # - Without SMT solver:
-hyperfine "python3 resolve_satisfiability_length_abstraction.py --break_when_final $F_FA_A_ORIG $F_FA_B_ORIG > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
+hyperfine "python3 resolve_satisfiability_length_abstraction.py --break_when_final "$F_FA_A_ORIG" "$F_FA_B_ORIG" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
 append_output;
 
 ### Parikh image:
 # - Forward lengths computation:
-hyperfine "python3 resolve_satisfiability_parikh_image.py --forward_lengths --break_when_final $F_FA_A_ORIG $F_FA_B_ORIG > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
-append_output;
+#hyperfine "python3 resolve_satisfiability_parikh_image.py --forward_lengths --break_when_final "$F_FA_A_ORIG" "$F_FA_B_ORIG" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
+#append_output;
+echo -n ",,,,,,,,,,,,,," >> "$F_OUTPUT";
 
 # - Backward lengths computation:
-hyperfine "python3 resolve_satisfiability_parikh_image.py --break_when_final $F_FA_A_ORIG $F_FA_B_ORIG > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
+hyperfine "python3 resolve_satisfiability_parikh_image.py --break_when_final "$F_FA_A_ORIG" "$F_FA_B_ORIG" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
 append_output;
 
 # - Without legths computation:
-hyperfine "python3 resolve_satisfiability_parikh_image.py --no_z_constraints --break_when_final $F_FA_A_ORIG $F_FA_B_ORIG > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
+hyperfine "python3 resolve_satisfiability_parikh_image.py --no_z_constraints --break_when_final "$F_FA_A_ORIG" "$F_FA_B_ORIG" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
 append_output;
 
 ### Combined algorithms:
-hyperfine "python3 resolve_satisfiability_combined.py --no_z_constraints --break_when_final $F_FA_A_ORIG $F_FA_B_ORIG > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -w 1 -r 2;
+hyperfine "python3 resolve_satisfiability_combined.py --no_z_constraints --break_when_final "$F_FA_A_ORIG" "$F_FA_B_ORIG" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -w 1 -r 2;
 append_output;
 
 ## Full product generation:
 ### Basic algorithm:
-hyperfine "python3 generate_basic_product.py $F_FA_A_ORIG $F_FA_B_ORIG > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
+hyperfine "python3 generate_basic_product.py "$F_FA_A_ORIG" "$F_FA_B_ORIG" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
 append_output;
 
 ### Length abstraction:
 # - With SMT solver:
-hyperfine "python3 resolve_satisfiability_length_abstraction.py --smt $F_FA_A_ORIG $F_FA_B_ORIG > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
+hyperfine "python3 resolve_satisfiability_length_abstraction.py --smt "$F_FA_A_ORIG" "$F_FA_B_ORIG" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
 append_output;
 
 # - Without SMT solver:
-hyperfine "python3 resolve_satisfiability_length_abstraction.py $F_FA_A_ORIG $F_FA_B_ORIG > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
+hyperfine "python3 resolve_satisfiability_length_abstraction.py "$F_FA_A_ORIG" "$F_FA_B_ORIG" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
 append_output;
 
 ### Parikh image:
 # - Forward lengths computation:
-hyperfine "python3 resolve_satisfiability_parikh_image.py --forward_lengths $F_FA_A_ORIG $F_FA_B_ORIG > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
-append_output;
+#hyperfine "python3 resolve_satisfiability_parikh_image.py --forward_lengths "$F_FA_A_ORIG" "$F_FA_B_ORIG" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
+#append_output;
+echo -n ",,,,,,,,,,,,,," >> "$F_OUTPUT";
 
 # - Backward lengths computation:
-hyperfine "python3 resolve_satisfiability_parikh_image.py $F_FA_A_ORIG $F_FA_B_ORIG > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
+hyperfine "python3 resolve_satisfiability_parikh_image.py "$F_FA_A_ORIG" "$F_FA_B_ORIG" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
 append_output;
 
 # - Without legths computation:
-hyperfine "python3 resolve_satisfiability_parikh_image.py --no_z_constraints $F_FA_A_ORIG $F_FA_B_ORIG > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
+hyperfine "python3 resolve_satisfiability_parikh_image.py --no_z_constraints "$F_FA_A_ORIG" "$F_FA_B_ORIG" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
 append_output;
 
 ### Combined algorithms:
-hyperfine "python3 resolve_satisfiability_combined.py --no_z_constraints $F_FA_A_ORIG $F_FA_B_ORIG > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -w 1 -r 2;
+hyperfine "python3 resolve_satisfiability_combined.py --no_z_constraints "$F_FA_A_ORIG" "$F_FA_B_ORIG" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -w 1 -r 2;
 append_output;
 
 # End of file run.sh.
