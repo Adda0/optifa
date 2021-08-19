@@ -283,9 +283,9 @@ def parse_args():
                     help='Automaton A to generate product from.')
     arg_parser.add_argument('fa_b_path', metavar='AUTOMATON_B', type=str,
                     help='Automaton B to generate product from.')
-    arg_parser.add_argument('--break_when_final', '-b', action='store_true', default=False,
+    arg_parser.add_argument('--break_when_final', '-b', action='store_true',
                     help='Break when final state is encountered to execute emptiness test.')
-    arg_parser.add_argument('--smt', '-s', action='store_true', default=False,
+    arg_parser.add_argument('--smt', '-s', action='store_true',
                     help='Use SMT solver Z3 to check for satisfiability of formulae.')
 
     # Test for '--help' argument.
