@@ -22,6 +22,7 @@ import itertools
 import argparse
 from optifa import *
 from dataclasses import dataclass
+import pickle
 
 # Main script function.
 def main():
@@ -482,9 +483,13 @@ def check_satisfiability(fa_a, fa_b, fa_a_formulae_dict, fa_b_formulae_dict, sat
 def parse_args():
     """Parse arguments using argparse."""
     arg_parser = argparse.ArgumentParser(description='Interpreter of IPPcode21 in XML format.')
-    arg_parser.add_argument('fa_a_path', metavar='AUTOMATON_A', type=str,
+    arg_parser.add_argument('fa_a_loaded', metavar='AUTOMATON_A_LOADED', type=argparse.FileType('rb'),
+                    help='Automaton A object file to generate product from.')
+    arg_parser.add_argument('fa_b_loaded', metavar='AUTOMATON_B_LOADED', type=argparse.FileType('rb'),
+                    help='Automaton B object file to generate product from.')
+    arg_parser.add_argument('--fa_a_path', metavar='AUTOMATON_A', type=str,
                     help='Automaton A to generate product from.')
-    arg_parser.add_argument('fa_b_path', metavar='AUTOMATON_B', type=str,
+    arg_parser.add_argument('--fa_b_path', metavar='AUTOMATON_B', type=str,
                     help='Automaton B to generate product from.')
     arg_parser.add_argument('--break_when_final', '-b', action='store_true',
                     help='Break when final state is encountered to execute emptiness test.')
@@ -507,13 +512,19 @@ def parse_args():
     #except:
     #    print_error("Got invalid arguments.")
 
-    fa_a_orig = symboliclib.parse(args.fa_a_path)
-    fa_b_orig = symboliclib.parse(args.fa_b_path)
+    if args.fa_a_loaded and args.fa_b_loaded:
+        fa_a_orig = pickle.load(args.fa_a_loaded)
+        fa_b_orig = pickle.load(args.fa_b_loaded)
+    elif args.fa_a_path and args.fa_b_path:
+        fa_a_orig = symboliclib.parse(args.fa_a_path)
+        fa_b_orig = symboliclib.parse(args.fa_b_path)
+
 
     return fa_a_orig, fa_b_orig, args.break_when_final, not args.smt, not args.forward_lengths, not args.no_z_constraints
 
 @dataclass
 class SatCounters:
+    """Counters for various satisfiability combinations."""
     length_abstraction_sat_states: int = 0  # Length abstraction satisfiable, test for Parikh image satisfiability.
     length_abstraction_unsat_states: int = 0  # Length abstraction unsatisfiable.
     parikh_image_sat_states: int = 0  # Both length abstraction and Parikh image satisfiable.
