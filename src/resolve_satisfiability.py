@@ -283,21 +283,19 @@ def check_satisfiability(fa_a_formulae_dict, fa_b_formulae_dict):
     #print(fa_b_only_formulae)  # DEBUG
 
     smt = Solver()
-    fa_a_var = Int('fa_a_var')
-    fa_b_var = Int('fa_b_var')
+    fa_a_var = Int('a')
+    fa_b_var = Int('b')
 
-    for fa_a_id in fa_a_only_formulae:
-        for fa_b_id in fa_b_only_formulae:
-            smt.push()
-            smt.add(fa_a_var >= 0, fa_b_var >= 0)
-            smt.add(fa_a_id[0] + fa_a_id[1] * fa_a_var == fa_b_id[0] + fa_b_id[1] * fa_b_var)
+    smt.push()
+    smt.add(fa_a_var >= 0, fa_b_var >= 0)
+    formulae_combinations = Or( [ fa_a_id[0] + fa_a_id[1] * fa_a_var == fa_b_id[0] + fa_b_id[1] * fa_b_var for fa_a_id in fa_a_only_formulae for fa_b_id in fa_b_only_formulae ] )
 
-            if smt.check() == sat:
-                #print(smt.model())  # DEBUG
-                return True
+    #print(formulae_combinations)
+    smt.add(formulae_combinations)
 
-            smt.pop()
-
+    if smt.check() == sat:
+        #print(smt.model())  # DEBUG
+        return True
     return False
 
 
