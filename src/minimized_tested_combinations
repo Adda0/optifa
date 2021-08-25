@@ -1,0 +1,3 @@
+Larger automaton,Smaller automaton,
+../../modified_automata/ARMCautomata/ProdConsDHeadQ-FwBad-Nondet/armcNFA_inclTest_19,../../modified_automata/ARMCautomata/ProdConsDHeadQ-FwBad-Nondet/armcNFA_inclTest_10,
+../../modified_automata/ARMCautomata/IProdConsDHeadQ-FwBad-Nondet/armcNFA_inclTest_18,../../modified_automata/ARMCautomata/IProdConsDHeadQ-FwBad-Nondet/armcNFA_inclTest_19_changed_final2,

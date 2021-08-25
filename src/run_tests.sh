@@ -111,6 +111,8 @@ if [ ! -f "$F_OUTPUT" ]; then
     echo -n "ET.P.backward.checked,ET.P.backward.processed,ET.P.backward.sat,ET.P.backward.false,ET.P.backward.skipped,ET.P.backward.states,ET.P.backward.final,ET.P.backward.mean,ET.P.backward.stddev,ET.P.backward.median,ET.P.backward.user,ET.P.backward.system,ET.P.backward.min,ET.P.backward.max," >> "$F_OUTPUT";
     echo -n "ET.P.no_lengths.checked,ET.P.no_lengths.processed,ET.P.no_lengths.sat,ET.P.no_lengths.false,ET.P.no_lengths.skipped,ET.P.no_lengths.states,ET.P.no_lengths.final,ET.P.no_lengths.mean,ET.P.no_lengths.stddev,ET.P.no_lengths.median,ET.P.no_lengths.user,ET.P.no_lengths.system,ET.P.no_lengths.min,ET.P.no_lengths.max," >> "$F_OUTPUT";
     echo -n "ET.C.checked,ET.C.processed,ET.C.sat,ET.C.false,ET.C.skipped,ET.C.len.sat,ET.C.len.unsat,ET.C.par.sat,ET.C.par.unsat,ET.C.l.lasso,ET.C.s.lasso,ET.C.states,ET.C.final,ET.C.mean,ET.C.stddev,ET.C.median,ET.C.user,ET.C.system,ET.C.min,ET.C.max," >> "$F_OUTPUT";
+    echo -n "ET.M.checked,ET.M.processed,ET.M.sat,ET.M.false,ET.M.skipped,ET.M.states,ET.M.final,ET.M.mean,ET.M.stddev,ET.M.median,ET.M.user,ET.M.system,ET.M.min,ET.M.max," >> "$F_OUTPUT";
+    echo -n "ET.CM.checked,ET.CM.processed,ET.CM.sat,ET.CM.false,ET.CM.skipped,ET.CM.len.sat,ET.CM.len.unsat,ET.CM.par.sat,ET.CM.par.unsat,ET.CM.l.lasso,ET.CM.s.lasso,ET.CM.states,ET.CM.final,ET.CM.mean,ET.CM.stddev,ET.CM.median,ET.CM.user,ET.CM.system,ET.CM.min,ET.CM.max," >> "$F_OUTPUT";
     echo -n "FP.B.states,FP.B.final,FP.B.mean,FP.B.stddev,FP.B.median,FP.B.user,FP.B.system,FP.B.min,FP.B.max," >> "$F_OUTPUT";
     echo -n "FP.L.smt.checked,FP.L.smt.processed,FP.L.smt.sat,FP.L.smt.false,FP.L.smt.skipped,FP.L.smt.l.lasso,FP.L.smt.s.lasso,FP.L.smt.states,FP.L.smt.final,FP.L.smt.mean,FP.L.smt.stddev,FP.L.smt.median,FP.L.smt.user,FP.L.smt.system,FP.L.smt.min,FP.L.smt.max," >> "$F_OUTPUT";
     echo -n "FP.L.smt_free.checked,FP.L.smt_free.processed,FP.L.smt_free.sat,FP.L.smt_free.false,FP.L.smt_free.skipped,FP.L.smt_free.l.lasso,FP.L.smt_free.s.lasso,FP.L.smt_free.states,FP.L.smt_free.final,FP.L.smt_free.mean,FP.L.smt_free.stddev,FP.L.smt_free.median,FP.L.smt_free.user,FP.L.smt_free.system,FP.L.smt_free.min,FP.L.smt_free.max," >> "$F_OUTPUT";
@@ -118,6 +120,8 @@ if [ ! -f "$F_OUTPUT" ]; then
     echo -n "FP.P.backward.checked,FP.P.backward.processed,FP.P.backward.sat,FP.P.backward.false,FP.P.backward.skipped,FP.P.backward.states,FP.P.backward.final,FP.P.backward.mean,FP.P.backward.stddev,FP.P.backward.median,FP.P.backward.user,FP.P.backward.system,FP.P.backward.min,FP.P.backward.max," >> "$F_OUTPUT";
     echo -n "FP.P.no_lengths.checked,FP.P.no_lengths.processed,FP.P.no_lengths.sat,FP.P.no_lengths.false,FP.P.no_lengths.skipped,FP.P.no_lengths.states,FP.P.no_lengths.final,FP.P.no_lengths.mean,FP.P.no_lengths.stddev,FP.P.no_lengths.median,FP.P.no_lengths.user,FP.P.no_lengths.system,FP.P.no_lengths.min,FP.P.no_lengths.max," >> "$F_OUTPUT";
     echo -n "FP.C.checked,FP.C.processed,FP.C.sat,FP.C.false,FP.C.skipped,FP.C.len.sat,FP.C.len.unsat,FP.C.par.sat,FP.C.par.unsat,FP.C.l.lasso,FP.C.s.lasso,FP.C.states,FP.C.final,FP.C.mean,FP.C.stddev,FP.C.median,FP.C.user,FP.C.system,FP.C.min,FP.C.max," >> "$F_OUTPUT";
+    echo -n "FP.M.checked,FP.M.processed,FP.M.sat,FP.M.false,FP.M.skipped,FP.M.states,FP.M.final,FP.M.mean,FP.M.stddev,FP.M.median,FP.M.user,FP.M.system,FP.M.min,FP.M.max," >> "$F_OUTPUT";
+    echo -n "FP.CM.checked,FP.CM.processed,FP.CM.sat,FP.CM.false,FP.CM.skipped,FP.CM.len.sat,FP.CM.len.unsat,FP.CM.par.sat,FP.CM.par.unsat,FP.CM.l.lasso,FP.CM.s.lasso,FP.CM.states,FP.CM.final,FP.CM.mean,FP.CM.stddev,FP.CM.median,FP.CM.user,FP.CM.system,FP.CM.min,FP.CM.max," >> "$F_OUTPUT";
 fi
 
 if [ ! -f "$F_TESTED_COMBINATIONS" ]; then
@@ -175,6 +179,15 @@ append_output;
 hyperfine "python3 resolve_satisfiability_combined.py --no_z_constraints --break_when_final "$F_FA_A_LOADED" "$F_FA_B_LOADED" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
 append_output;
 
+### Minimized algorithms:
+# - Parikh image minimized:
+hyperfine "python3 resolve_satisfiability_parikh_image_minimized.py --break_when_final --no_z_constraints "$F_FA_A_LOADED" "$F_FA_B_LOADED" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
+append_output;
+
+# - Combined Parikh image minimized:
+hyperfine "python3 resolve_satisfiability_combined_minimized.py --break_when_final --no_z_constraints "$F_FA_A_LOADED" "$F_FA_B_LOADED" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
+append_output;
+
 ## Full product generation:
 ### Basic algorithm:
 hyperfine "python3 generate_basic_product.py "$F_FA_A_LOADED" "$F_FA_B_LOADED" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
@@ -205,6 +218,15 @@ append_output;
 
 ### Combined algorithms:
 hyperfine "python3 resolve_satisfiability_combined.py --no_z_constraints "$F_FA_A_LOADED" "$F_FA_B_LOADED" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
+append_output;
+
+### Minimized algorithms:
+# - Parikh image minimized:
+hyperfine "python3 resolve_satisfiability_parikh_image_minimized.py --no_z_constraints "$F_FA_A_LOADED" "$F_FA_B_LOADED" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
+append_output;
+
+# - Combined Parikh image minimized:
+hyperfine "python3 resolve_satisfiability_combined_minimized.py --no_z_constraints "$F_FA_A_LOADED" "$F_FA_B_LOADED" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
 append_output;
 
 # End of file run.sh.
