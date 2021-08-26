@@ -134,10 +134,12 @@ echo -n "$AUTOMATA_PATHS" >> "$F_OUTPUT";
 grep -qxF "$AUTOMATA_PATHS" "$F_TESTED_COMBINATIONS" || echo "$AUTOMATA_PATHS" >> "$F_TESTED_COMBINATIONS";
 python3 print_automata_sizes.py "$F_FA_A_ORIG" "$F_FA_B_ORIG" >> "$F_OUTPUT";
 
-F_TIME_CSV="tmp_time_csv_"$F_OUTPUT""
-F_DATA_OUT="tmp_data_out_"$F_OUTPUT""
-F_FA_A_LOADED="tmp_automaton_a_"$F_OUTPUT""
-F_FA_B_LOADED="tmp_automaton_b_"$F_OUTPUT""
+OUT_FILENAME="$(basename "$F_OUTPUT" | sed 's/\(.*\)\..*/\1/')";
+
+F_TIME_CSV="tmp_time_csv_"$OUT_FILENAME""
+F_DATA_OUT="tmp_data_out_"$OUT_FILENAME""
+F_FA_A_LOADED="tmp_automaton_a_"$OUT_FILENAME""
+F_FA_B_LOADED="tmp_automaton_b_"$OUT_FILENAME""
 
 # Load automata to a Python object.
 load_automata.py -a "$F_FA_A_ORIG" -b "$F_FA_B_ORIG" --out_a "$F_FA_A_LOADED" --out_b "$F_FA_B_LOADED";
