@@ -164,8 +164,9 @@ append_output;
 echo -n ",,,,,,,,,,,,,," >> "$F_OUTPUT";
 
 # - Backward lengths computation:
-hyperfine "python3 resolve_satisfiability_parikh_image.py --break_when_final "$F_FA_A_LOADED" "$F_FA_B_LOADED" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
-append_output;
+#hyperfine "python3 resolve_satisfiability_parikh_image.py --break_when_final "$F_FA_A_LOADED" "$F_FA_B_LOADED" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
+#append_output;
+echo -n ",,,,,,,,,,,,,," >> "$F_OUTPUT";
 
 # - Without legths computation:
 hyperfine "python3 resolve_satisfiability_parikh_image.py --no_z_constraints --break_when_final "$F_FA_A_LOADED" "$F_FA_B_LOADED" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
@@ -196,8 +197,9 @@ append_output;
 echo -n ",,,,,,,,,,,,,," >> "$F_OUTPUT";
 
 # - Backward lengths computation:
-hyperfine "python3 resolve_satisfiability_parikh_image.py "$F_FA_A_LOADED" "$F_FA_B_LOADED" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
-append_output;
+#hyperfine "python3 resolve_satisfiability_parikh_image.py "$F_FA_A_LOADED" "$F_FA_B_LOADED" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
+#append_output;
+echo -n ",,,,,,,,,,,,,," >> "$F_OUTPUT";
 
 # - Without legths computation:
 hyperfine "python3 resolve_satisfiability_parikh_image.py --no_z_constraints "$F_FA_A_LOADED" "$F_FA_B_LOADED" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
