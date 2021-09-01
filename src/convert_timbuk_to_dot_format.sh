@@ -24,7 +24,7 @@ F_VTF2DOT=""
 OUT=""
 
 # Handle given arguments.
-while getopts :i:o:t:v:n:h o; do
+while getopts :i:po:t:v:n:h o; do
     case "$o" in
     i) # input FA file in Timbuk format.
         if [ -z "$OPTARG" ]; then # Parameter '-i' without given finite automaton in Timbuk format file following '-i'.
@@ -38,6 +38,9 @@ while getopts :i:o:t:v:n:h o; do
                 exit 1;
             fi
         fi
+        ;;
+    p) # Print the output dot format FA.
+        PRINT=true;
         ;;
     t) # Timbuk to vtf converter script file.
         if [ -z "$OPTARG" ]; then # Parameter '-t' without given Timbuk to vtf converter script file following '-t'.
@@ -91,19 +94,25 @@ while getopts :i:o:t:v:n:h o; do
     esac
 done
 
-if test ! -z "$OUT" ; then
-    if test -d "$OUT" ; then # Store output to file in the goven directory with optional directory depth.
-        # Double 'rev' trick taken from answer on SO by ACK_stoverflow: https://stackoverflow.com/a/31728689.
-        F_FA_DOT="$(echo "$F_FA_TIMBUK" | rev | cut -d'/' -f-"$NUMBER_OF_ELEMENTS" | rev)";
-        F_FA_DOT=""${OUT%%/*}"/"$F_FA_DOT".dot";
-    else # Store output to new file.
-        F_FA_DOT="$OUT";
+if test ! "$PRINT" ; then
+    if test ! -z "$OUT" ; then # Specified '-o' path.
+        if test -d "$OUT" ; then # Store output to file in the goven directory with optional directory depth.
+            # Double 'rev' trick taken from answer on SO by ACK_stoverflow: https://stackoverflow.com/a/31728689.
+            F_FA_DOT="$(echo "$F_FA_TIMBUK" | rev | cut -d'/' -f-"$NUMBER_OF_ELEMENTS" | rev)";
+            F_FA_DOT=""${OUT%%*(/)}"/"$F_FA_DOT".dot";
+        else # Store output to new file.
+            F_FA_DOT="$OUT";
+        fi
+    else # Given '-o' paramter without any optional argument.
+        # Store result in the same directory as input Timbuk format FA file.
+        F_FA_DOT=""$F_FA_TIMBUK".dot";
     fi
+
+    # Create file inside desired subdirectories, if specified.
+    mkdir --parents "${F_FA_DOT%/*}" && touch "$F_FA_DOT";
 fi
 
-# Create file inside desired subdirectories, if specified.
-mkdir --parents "${F_FA_DOT%/*}" && touch "$F_FA_DOT";
-
+# Convert given finite automaton in Timbuk format to dot format and store the result in a specified path.
 "$F_TIMBUK2VTF" --fa "$F_FA_TIMBUK" | "$F_VTF2DOT" > "$F_FA_DOT";
 
 # End of file run.sh.
