@@ -42,10 +42,6 @@ def print_data(larger, smaller):
     print_csv(smaller.count_transitions())
 
 
-def count_transitions(automaton):
-    pass
-
-
 def parse_args():
     """Parse arguments using argparse."""
     arg_parser = argparse.ArgumentParser(description='Interpreter of IPPcode21 in XML format.')
@@ -59,12 +55,7 @@ def parse_args():
         arg_parser.print_help()
         sys.exit(0)
 
-    #try:
     args = arg_parser.parse_args()
-    #except OSError as exception:
-    #    print_error(f"{exception.strerror}: {exception.filename}")
-    #except:
-    #    print_error("Got invalid arguments.")
 
     fa_a_orig = symboliclib.parse(args.fa_a_path)
     fa_b_orig = symboliclib.parse(args.fa_b_path)
