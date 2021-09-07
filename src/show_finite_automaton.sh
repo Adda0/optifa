@@ -1,9 +1,9 @@
 #!/usr/bin/env sh
 
 # ====================================================
-# file name: convert_timbuk_to_dot.sh
+# file name: show_finite_automaton.sh
 #
-# Base script for converting FA in Timbuk format to dot format.
+# Base script for visualizing FA in Timbuk format in dot format.
 # ====================================================
 # project: Optimizing Automata Product Construction and Emptiness Test
 # "Optimalizace automatové konstrukce produktu a testu prázdnosti jazyka"
@@ -86,4 +86,4 @@ done
 
 "$F_TIMBUK2VTF" --fa "$F_FA_TIMBUK" | "$F_VTF2DOT" | xdot /dev/stdin;
 
-# End of file run.sh.
+# End of file.

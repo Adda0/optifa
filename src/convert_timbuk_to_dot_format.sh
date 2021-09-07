@@ -115,4 +115,4 @@ fi
 # Convert given finite automaton in Timbuk format to dot format and store the result in a specified path.
 "$F_TIMBUK2VTF" --fa "$F_FA_TIMBUK" | "$F_VTF2DOT" > "$F_FA_DOT";
 
-# End of file run.sh.
+# End of file.

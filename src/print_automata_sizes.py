@@ -35,11 +35,15 @@ def print_data(larger, smaller):
     print_csv(len(larger.states))
     print_csv(len(larger.start))
     print_csv(len(larger.final))
-    print_csv(len(larger.transitions))
+    print_csv(larger.count_transitions())
     print_csv(len(smaller.states))
     print_csv(len(smaller.start))
     print_csv(len(smaller.final))
-    print_csv(len(smaller.transitions))
+    print_csv(smaller.count_transitions())
+
+
+def count_transitions(automaton):
+    pass
 
 
 def parse_args():

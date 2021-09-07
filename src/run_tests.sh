@@ -211,4 +211,4 @@ append_output;
 hyperfine "python3 resolve_satisfiability_combined.py --no_z_constraints "$F_FA_A_LOADED" "$F_FA_B_LOADED" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
 append_output;
 
-# End of file run.sh.
+# End of file.
