@@ -13,16 +13,19 @@
 
 import os
 import sys
-import symboliclib
-from lfa import LFA
-from z3 import *
 from collections import deque
 from copy import deepcopy
 import itertools
 import argparse
-from optifa import *
 from dataclasses import dataclass
+
 import pickle
+from z3 import *
+
+from lfa import LFA
+import symboliclib
+from optifa import *
+
 
 # Main script function.
 def main():
