@@ -84,6 +84,12 @@ while getopts :i:o:t:v:h o; do
     esac
 done
 
+# If input automaton was not specified, open YAD file selection dialog
+# to pick an automaton file to show in dot format.
+if test -z "$F_FA_TIMBUK" ; then
+    F_FA_TIMBUK="$(yad --file)";
+fi
+
 "$F_TIMBUK2VTF" --fa "$F_FA_TIMBUK" | "$F_VTF2DOT" | xdot /dev/stdin;
 
 # End of file.

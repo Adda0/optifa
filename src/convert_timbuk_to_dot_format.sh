@@ -94,6 +94,12 @@ while getopts :i:po:t:v:n:h o; do
     esac
 done
 
+# If input automaton was not specified, open YAD file selection dialog
+# to pick an automaton file to show in dot format.
+if test -z "$F_FA_TIMBUK" ; then
+    F_FA_TIMBUK="$(yad --file)";
+fi
+
 if test ! "$PRINT" ; then
     if test ! -z "$OUT" ; then # Specified '-o' path.
         if test -d "$OUT" ; then # Store output to file in the goven directory with optional directory depth.
