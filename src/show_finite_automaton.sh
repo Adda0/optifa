@@ -90,6 +90,7 @@ if test -z "$F_FA_TIMBUK" ; then
     F_FA_TIMBUK="$(yad --file)";
 fi
 
+# Convert given finite automaton in Timbuk format to dot format and show the automaton in xdot.
 "$F_TIMBUK2VTF" --fa "$F_FA_TIMBUK" | "$F_VTF2DOT" | xdot /dev/stdin;
 
 # End of file.
