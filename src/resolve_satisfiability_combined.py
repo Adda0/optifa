@@ -22,8 +22,8 @@ from dataclasses import dataclass
 import pickle
 from z3 import *
 
-from lfa import LFA
 import symboliclib
+from lfa import LFA
 from optifa import *
 
 
@@ -486,9 +486,9 @@ def check_satisfiability(fa_a, fa_b, fa_a_formulae_dict, fa_b_formulae_dict, sat
 def parse_args():
     """Parse arguments using argparse."""
     arg_parser = argparse.ArgumentParser(description='Interpreter of IPPcode21 in XML format.')
-    arg_parser.add_argument('fa_a_loaded', metavar='AUTOMATON_A_LOADED', type=argparse.FileType('rb'),
+    arg_parser.add_argument('--fa_a_loaded', metavar='AUTOMATON_A_LOADED', type=argparse.FileType('rb'),
                     help='Automaton A object file to generate product from.')
-    arg_parser.add_argument('fa_b_loaded', metavar='AUTOMATON_B_LOADED', type=argparse.FileType('rb'),
+    arg_parser.add_argument('--fa_b_loaded', metavar='AUTOMATON_B_LOADED', type=argparse.FileType('rb'),
                     help='Automaton B object file to generate product from.')
     arg_parser.add_argument('--fa_a_path', metavar='AUTOMATON_A', type=str,
                     help='Automaton A to generate product from.')

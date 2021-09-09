@@ -13,15 +13,18 @@
 
 import os
 import sys
-import symboliclib
-from lfa import LFA
-from z3 import *
 from collections import deque
 from copy import deepcopy
 import itertools
 import argparse
-from optifa import *
+
 import pickle
+from z3 import *
+
+import symboliclib
+from lfa import LFA
+from optifa import *
+
 
 # Main script function.
 def main():
@@ -354,9 +357,9 @@ def check_satisfiability(fa_a, fa_b, smt, reverse_lengths = True, use_z_constrai
 def parse_args():
     """Parse arguments using argparse."""
     arg_parser = argparse.ArgumentParser(description='Interpreter of IPPcode21 in XML format.')
-    arg_parser.add_argument('fa_a_loaded', metavar='AUTOMATON_A_LOADED', type=argparse.FileType('rb'),
+    arg_parser.add_argument('--fa_a_loaded', metavar='AUTOMATON_A_LOADED', type=argparse.FileType('rb'),
                     help='Automaton A object file to generate product from.')
-    arg_parser.add_argument('fa_b_loaded', metavar='AUTOMATON_B_LOADED', type=argparse.FileType('rb'),
+    arg_parser.add_argument('--fa_b_loaded', metavar='AUTOMATON_B_LOADED', type=argparse.FileType('rb'),
                     help='Automaton B object file to generate product from.')
     arg_parser.add_argument('--fa_a_path', metavar='AUTOMATON_A', type=str,
                     help='Automaton A to generate product from.')
