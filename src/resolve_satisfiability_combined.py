@@ -41,7 +41,12 @@ def main():
     fa_a_orig.add_abstract_final_state(abstract_final_state, abstract_final_symbol)
     fa_b_orig.add_abstract_final_state(abstract_final_state, abstract_final_symbol)
 
+    # Add one unified initial state.
+    abstract_initial_symbol = 'abstract_initial_symbol'
+    abstract_initial_state = 'abstract_initial_state'
 
+    fa_a_orig.add_abstract_initial_state(abstract_initial_state, abstract_initial_symbol)
+    fa_b_orig.add_abstract_initial_state(abstract_initial_state, abstract_initial_symbol)
 
     # Run for emptiness test with break_when_final == True or
     # for full product construction with break_when_final == False.
@@ -199,8 +204,10 @@ def main():
 
         #printlen(q_pair_states))
 
+    intersect_ab.start = set([f"{abstract_initial_state},{abstract_initial_state}"])
     intersect_ab.remove_useless_transitions()
     intersect_ab.remove_abstract_final_state(abstract_final_symbol, abstract_final_state)
+    intersect_ab.remove_abstract_initial_state(abstract_initial_symbol, abstract_initial_state)
     print_csv(len(q_checked_pairs))
     print_csv(processed_pair_states_cnt)
     print_csv(sat_cnt)
