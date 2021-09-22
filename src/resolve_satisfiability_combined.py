@@ -29,7 +29,7 @@ from optifa import *
 
 # Main script function.
 def main():
-    fa_a_orig, fa_b_orig, break_when_final, smt_free, reverse_lengths, use_z_constraints = parse_args()  # Parse program arguments.
+    fa_a_orig, fa_b_orig, break_when_final, smt_free, reverse_lengths, use_z_constraints, store_product = parse_args()  # Parse program arguments.
 
     A_larger = True if len(fa_a_orig.states) > len(fa_b_orig.states) else False
 
@@ -228,6 +228,10 @@ def main():
     #print(intersect_ab.transitions)
     #intersect_ab.print_automaton()
     #print(intersect_ab.final)
+
+    # Store product.
+    if store_product:
+        intersect_ab.print_automaton(store_product)
 
 
 def make_pairs(fa_a_orig, fa_b_orig, q_pair_states, q_checked_pairs, intersect, curr_state, single_pair = False):
@@ -495,6 +499,8 @@ def parse_args():
                     help="Compute forward lengths 'z' for Parikh image.")
     arg_parser.add_argument('--no_z_constraints', '-z', action='store_true',
                     help='Compute formulae without constraints for connectivity of automaton.')
+    arg_parser.add_argument('--store-product', '-p', metavar="PRODUCT_FILE", type=str,
+                    help='Store generated product into a file PRODUCT_FILE.')
 
     # Test for '--help' argument.
     if '--help' in sys.argv or '-h' in sys.argv:
@@ -515,8 +521,7 @@ def parse_args():
         fa_a_orig = symboliclib.parse(args.fa_a_path)
         fa_b_orig = symboliclib.parse(args.fa_b_path)
 
-
-    return fa_a_orig, fa_b_orig, args.break_when_final, not args.smt, not args.forward_lengths, not args.no_z_constraints
+    return fa_a_orig, fa_b_orig, args.break_when_final, not args.smt, not args.forward_lengths, not args.no_z_constraints, args.store_product
 
 @dataclass
 class SatCounters:
