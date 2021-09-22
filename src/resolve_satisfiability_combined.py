@@ -38,22 +38,10 @@ def main():
     abstract_final_symbol = 'abstract_final_symbol'
     abstract_final_state = 'abstract_final_state'
 
-    fa_a_orig.alphabet.add(abstract_final_symbol)
-    fa_b_orig.alphabet.add(abstract_final_symbol)
+    fa_a_orig.add_abstract_final_state(abstract_final_state, abstract_final_symbol)
+    fa_b_orig.add_abstract_final_state(abstract_final_state, abstract_final_symbol)
 
-    fa_a_orig.states.add(abstract_final_state)
-    for final_state in fa_a_orig.final:
-        if final_state not in fa_a_orig.transitions.keys():
-            fa_a_orig.transitions[final_state] = {}
-        fa_a_orig.transitions[final_state][abstract_final_symbol] = [abstract_final_state]
-    fa_a_orig.final = set([abstract_final_state])
 
-    fa_b_orig.states.add(abstract_final_state)
-    for final_state in fa_b_orig.final:
-        if final_state not in fa_b_orig.transitions.keys():
-            fa_b_orig.transitions[final_state] = {}
-        fa_b_orig.transitions[final_state][abstract_final_symbol] = [abstract_final_state]
-    fa_b_orig.final = set([abstract_final_state])
 
     # Run for emptiness test with break_when_final == True or
     # for full product construction with break_when_final == False.
@@ -97,7 +85,6 @@ def main():
 
     if reverse_lengths:
         if use_z_constraints:
-            #"""
             # FA A: Fourth conjunct.
             for state in fa_a_orig.states:
                 if state in fa_a_orig.final:
@@ -115,7 +102,6 @@ def main():
 
                 if state not in fa_b_orig.start and state not in fa_a_orig.final:
                     smt.add(Or(And( And( Int('bz_%s' % state) == 0 ) , And( [ Int('b_y_%s' % transition) == 0 for transition in fa_b_orig.get_ingoing_transitions_names(state) ] ) ), Or( [ And( Int('b_y_%s' % transition) >= 0 , Int('b_z_%s' % transition.split('_')[0]) > 0, Int('b_z_%s' % state) == Int('b_z_%s' % transition.split('_')[0]) - 1) for transition in fa_b_orig.get_ingoing_transitions_names(state) ] )))
-            #"""
 
     # End of SMT formulae initialization.
 
@@ -128,8 +114,7 @@ def main():
         for b_initial_state in fa_b_orig.start:
             q_pair_states.append([a_initial_state, b_initial_state, False])
 
-
-    # Generate signle handle and loop automata per original input automaton.
+    # Generate single handle and loop automata per original input automaton.
     # Therefore, only single handle and loop automaton for all of the tested
     # states in the original automaton is needed.
     fa_a_handle_and_loop = LFA.get_new()
