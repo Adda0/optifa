@@ -247,6 +247,7 @@ def make_pairs(fa_a_orig, fa_b_orig, q_pair_states, q_checked_pairs, intersect, 
 
                     if label not in intersect.transitions[product_state_name]:
                         intersect.transitions[product_state_name][label] = [endstate_str]
+                        intersect.alphabet.add(str(label))
                     else:
                         intersect.transitions[product_state_name][label].append(endstate_str)
 
