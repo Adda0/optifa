@@ -18,9 +18,11 @@ from copy import deepcopy
 import itertools
 import argparse
 from dataclasses import dataclass
+import math
 
 import pickle
-from z3 import *
+import z3
+from z3 import And, Int, Or, Sum
 
 import symboliclib
 from lfa import LFA
@@ -53,7 +55,7 @@ def main():
     processed_pair_states_cnt = 0
 
     # Initialize SMT solver object.
-    smt = Solver()
+    smt = z3.Solver()
     # Add persistent formulae valid for every product-state.
     # Create lists of variables for conjunction of formulae.
     hash_phi = [ Int('hash_%s' % symbol) for symbol in fa_a_orig.alphabet ]  # Both FA A and FA B: hash_phi.
@@ -359,7 +361,7 @@ def check_satisfiability(fa_a, fa_b, fa_a_formulae_dict, fa_b_formulae_dict, sat
     length_satisfiable = False
 
     if not smt_free:
-        smt_length = Solver()
+        smt_length = z3.Solver()
         fa_a_var = Int('fa_a_var')
         fa_b_var = Int('fa_b_var')
         smt_length.add(fa_a_var >= 0, fa_b_var >= 0)
@@ -402,10 +404,8 @@ def check_satisfiability(fa_a, fa_b, fa_a_formulae_dict, fa_b_formulae_dict, sat
 
     #print"Length abstraction satisfiable.", end=' ')
     sat_counters.length_abstraction_sat_states += 1
-    #smt = Solver()
     smt.push()
 
-    #smt.push()
     # Add clauses – conjunction of formulae.
 
     # Constraints for 'u_q'.
@@ -465,7 +465,10 @@ def check_satisfiability(fa_a, fa_b, fa_a_formulae_dict, fa_b_formulae_dict, sat
     #smt.add( Or( [ And( Int('b_u_%s' % state) == 1, Int('b_z_%s' % state) == 1, And( [ And( Int('b_u_%s' % other_state) == 0, Int('b_z_%s' % other_state) == 0 ) for other_state in fa_b.start if other_state != state ] ) ) for state in fa_b.start ] ) )
 
     # Check for satisfiability.
-    if smt.check() == sat:
+    print("start smt check")
+    res = smt.check()
+    print(res)
+    if res != z3.unsat:  # ~ in [z3.sat, z3.unknown]
         #printnext(iter(fa_a.start)) + ',' + next(iter(fa_b.start)) + " true", end='  ')
         #print("true", end='  ')
         #print(smt.model())
