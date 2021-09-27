@@ -27,13 +27,17 @@ from optifa import *
 
 # Main script function
 def main():
-    fa_a_orig, fa_b_orig, break_when_final = parse_args()  # Parse program arguments.
+    fa_a_orig, fa_b_orig, break_when_final, store_product = parse_args()  # Parse program arguments.
 
     # Run for emptiness test with break_when_final == True or
     # for full product construction with break_when_final == False.
     intersection = fa_a_orig.intersection_count(fa_b_orig, break_when_final)
     print_csv(len(intersection.states))
     print_csv(len(intersection.final))
+
+    # Store product.
+    if store_product:
+        intersection.print_automaton(store_product)
 
 
 def parse_args():
@@ -49,6 +53,8 @@ def parse_args():
                     help='Automaton B to generate product from.')
     arg_parser.add_argument('--break_when_final', '-b', action='store_true', default=False,
                     help='Break when final state is encountered to execute emptiness test.')
+    arg_parser.add_argument('--store-product', '-p', metavar="PRODUCT_FILE", type=str,
+                    help='Store generated product into a file PRODUCT_FILE.')
 
     # Test for '--help' argument.
     if '--help' in sys.argv or '-h' in sys.argv:
@@ -69,7 +75,7 @@ def parse_args():
         fa_a_orig = symboliclib.parse(args.fa_a_path)
         fa_b_orig = symboliclib.parse(args.fa_b_path)
 
-    return fa_a_orig, fa_b_orig, args.break_when_final
+    return fa_a_orig, fa_b_orig, args.break_when_final, args.store_product
 
 
 if __name__ == "__main__":
