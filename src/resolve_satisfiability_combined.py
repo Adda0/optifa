@@ -34,11 +34,6 @@ def main():
     config = parse_args()  # Parse program arguments.
     fa_a_orig = config.fa_a_orig
     fa_b_orig = config.fa_b_orig
-    break_when_final = config.break_when_final
-    smt_free = config.smt_free
-    reverse_lengths = config.reverse_lengths
-    use_z_constraints = config.use_z_constraints
-    store_product = config.store_product
 
     A_larger = True if len(fa_a_orig.states) > len(fa_b_orig.states) else False
 
@@ -98,8 +93,8 @@ def main():
     for symbol in fa_b_orig.alphabet:
         smt.add(Int('hash_%s' % symbol) == Sum([Int('b_y_%s' % transition) for transition in fa_b_orig.get_transitions_names_with_symbol(symbol)]))
 
-    if reverse_lengths:
-        if use_z_constraints:
+    if config.reverse_lengths:
+        if config.use_z_constraints:
             # FA A: Fourth conjunct.
             for state in fa_a_orig.states:
                 if state in fa_a_orig.final:
@@ -179,7 +174,7 @@ def main():
             fa_b_formulae_dict = fa_b_handle_and_loop.count_formulae_for_lfa()
             #print(fa_b_formulae_dict)  # DEBUG
 
-            satisfiable = check_satisfiability(fa_a_copy, fa_b_copy, fa_a_formulae_dict, fa_b_formulae_dict, sat_counters, smt, smt_free, reverse_lengths, use_z_constraints)
+            satisfiable = check_satisfiability(fa_a_copy, fa_b_copy, fa_a_formulae_dict, fa_b_formulae_dict, sat_counters, smt, config)
             if satisfiable:
                 sat_cnt += 1
         else:
@@ -197,7 +192,7 @@ def main():
                 # Automata have a non-empty intersection. We can end the testing here as we have found a solution.
                 intersect_ab.final.add(product_state_name)
                 found = True
-                if break_when_final:
+                if config.break_when_final:
                     break
 
             #print(q_pair_states)
@@ -240,8 +235,8 @@ def main():
     #print(intersect_ab.final)
 
     # Store product.
-    if store_product:
-        intersect_ab.print_automaton(store_product)
+    if config.store_product:
+        intersect_ab.print_automaton(config.store_product)
 
 
 def make_pairs(fa_a_orig, fa_b_orig, q_pair_states, q_checked_pairs, intersect, curr_state, single_pair = False):
@@ -297,7 +292,7 @@ def enqueue_next_states(q_states, fa_orig, curr_state):
                 q_states.append(state)
 
 
-def check_satisfiability(fa_a, fa_b, fa_a_formulae_dict, fa_b_formulae_dict, sat_counters, smt, smt_free = True, reverse_lengths = True, use_z_constraints = True):
+def check_satisfiability(fa_a, fa_b, fa_a_formulae_dict, fa_b_formulae_dict, sat_counters, smt, config):
     """
     Check satisfiability for formulae and Parikh image using SMT solver Z3.
     :param fa_a: First automaton.
@@ -363,12 +358,13 @@ def check_satisfiability(fa_a, fa_b, fa_a_formulae_dict, fa_b_formulae_dict, sat
         #print('final')
         return True
 
+
     fa_a_only_formulae = get_only_formulae(fa_a_formulae_dict)
     fa_b_only_formulae = get_only_formulae(fa_b_formulae_dict)
 
     length_satisfiable = False
 
-    if not smt_free:
+    if not config.smt_free:
         smt_length = z3.Solver()
         fa_a_var = Int('fa_a_var')
         fa_b_var = Int('fa_b_var')
@@ -379,7 +375,7 @@ def check_satisfiability(fa_a, fa_b, fa_a_formulae_dict, fa_b_formulae_dict, sat
         if length_satisfiable == True:
             break
         for fa_b_id in fa_b_only_formulae:
-            if smt_free:  # Without using SMT solver.
+            if config.smt_free:  # Without using SMT solver.
                 # Handle legths are equal, True without the need to resolve loops.
                 if fa_a_id[0] == fa_b_id[0]:
                     length_satisfiable = True
@@ -437,8 +433,8 @@ def check_satisfiability(fa_a, fa_b, fa_a_formulae_dict, fa_b_formulae_dict, sat
         else:
             smt.add(Int('b_u_%s' % state) == 0)
 
-    if not reverse_lengths:
-        if use_z_constraints:
+    if not config.reverse_lengths:
+        if config.use_z_constraints:
             #"""
             # FA A: Fourth conjunct.
             for state in fa_a.states:
