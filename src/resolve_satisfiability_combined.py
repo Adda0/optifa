@@ -58,7 +58,9 @@ def main():
 
     # Initialize SMT solver object.
     smt = z3.Solver()
-    smt.set("timeout", 600)  # Set solver to timeout after given amount of time in ms.
+    if config.timeout:
+        #print(f"Setting timeout {config.timeout}")
+        smt.set("timeout", config.timeout)  # Set solver to timeout after given amount of time in ms.
 
     # Add persistent formulae valid for every product-state.
 
