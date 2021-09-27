@@ -43,15 +43,15 @@ def main():
 def parse_args():
     """Parse arguments using argparse."""
     arg_parser = argparse.ArgumentParser(description='Script to generate basic product of two automata.')
-    arg_parser.add_argument('--fa_a_loaded', metavar='AUTOMATON_A_LOADED', type=argparse.FileType('rb'),
+    arg_parser.add_argument('--fa-a-loaded', metavar='AUTOMATON_A_LOADED', type=argparse.FileType('rb'),
                     help='Automaton A object file to generate product from.')
-    arg_parser.add_argument('--fa_b_loaded', metavar='AUTOMATON_B_LOADED', type=argparse.FileType('rb'),
+    arg_parser.add_argument('--fa-b-loaded', metavar='AUTOMATON_B_LOADED', type=argparse.FileType('rb'),
                     help='Automaton B object file to generate product from.')
-    arg_parser.add_argument('--fa_a_path', metavar='AUTOMATON_A', type=str,
+    arg_parser.add_argument('--fa-a-path', metavar='AUTOMATON_A', type=str,
                     help='Automaton A to generate product from.')
-    arg_parser.add_argument('--fa_b_path', metavar='AUTOMATON_B', type=str,
+    arg_parser.add_argument('--fa-b-path', metavar='AUTOMATON_B', type=str,
                     help='Automaton B to generate product from.')
-    arg_parser.add_argument('--break_when_final', '-b', action='store_true', default=False,
+    arg_parser.add_argument('--break-when-final', '-b', action='store_true', default=False,
                     help='Break when final state is encountered to execute emptiness test.')
     arg_parser.add_argument('--store-product', '-p', metavar="PRODUCT_FILE", type=str,
                     help='Store generated product into a file PRODUCT_FILE.')
