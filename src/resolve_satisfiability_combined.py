@@ -490,28 +490,28 @@ def check_satisfiability(fa_a, fa_b, fa_a_formulae_dict, fa_b_formulae_dict, sat
 def parse_args():
     """Parse arguments using argparse."""
     arg_parser = argparse.ArgumentParser(
-        description='Construct product (intersection) of two finite automata using abstraction optimization techniques.'
+        description = 'Construct product (intersection) of two finite automata using abstraction optimization techniques.'
     )
-    arg_parser.add_argument('--fa_a_loaded', metavar='AUTOMATON_A_LOADED', type=argparse.FileType('rb'),
-                    help='Automaton A object file to generate product from.')
-    arg_parser.add_argument('--fa_b_loaded', metavar='AUTOMATON_B_LOADED', type=argparse.FileType('rb'),
-                    help='Automaton B object file to generate product from.')
-    arg_parser.add_argument('--fa_a_path', metavar='AUTOMATON_A', type=str,
-                    help='Automaton A to generate product from.')
-    arg_parser.add_argument('--fa_b_path', metavar='AUTOMATON_B', type=str,
-                    help='Automaton B to generate product from.')
-    arg_parser.add_argument('--break_when_final', '-b', action='store_true',
-                    help='Break when final state is encountered to execute emptiness test.')
-    arg_parser.add_argument('--smt', '-s', action='store_true',
-                    help='Use SMT solver Z3 to check for satisfiability of formulae.')
-    arg_parser.add_argument('--forward_lengths', '-f', action='store_true',
-                    help="Compute forward lengths 'z' for Parikh image.")
-    arg_parser.add_argument('--no_z_constraints', '-z', action='store_true',
-                    help='Compute formulae without constraints for connectivity of automaton.')
-    arg_parser.add_argument('--store-product', '-p', metavar="PRODUCT_FILE", type=str,
-                    help='Store generated product into a file PRODUCT_FILE.')
-    arg_parser.add_argument('--set-timeout', '-t', metavar="TIMEOUT_MS", type=int,
-                    help='Set timeout after TIMEOUT_MS ms for Z3 SMT solver.')
+    arg_parser.add_argument('--fa_a_loaded', metavar = 'AUTOMATON_A_LOADED', type = argparse.FileType('rb'),
+                    help = 'Automaton A object file to generate product from.')
+    arg_parser.add_argument('--fa_b_loaded', metavar = 'AUTOMATON_B_LOADED', type = argparse.FileType('rb'),
+                    help = 'Automaton B object file to generate product from.')
+    arg_parser.add_argument('--fa_a_path', metavar = 'AUTOMATON_A', type = str,
+                    help = 'Automaton A to generate product from.')
+    arg_parser.add_argument('--fa_b_path', metavar = 'AUTOMATON_B', type = str,
+                    help = 'Automaton B to generate product from.')
+    arg_parser.add_argument('--break_when_final', '-b', action = 'store_true',
+                    help = 'Break when final state is encountered to execute emptiness test.')
+    arg_parser.add_argument('--smt', '-s', action = 'store_true',
+                    help = 'Use SMT solver Z3 to check for satisfiability of formulae.')
+    arg_parser.add_argument('--forward_lengths', '-f', action = 'store_true',
+                    help = "Compute forward lengths 'z' for Parikh image.")
+    arg_parser.add_argument('--no_z_constraints', '-z', action = 'store_true',
+                    help = 'Compute formulae without constraints for connectivity of automaton.')
+    arg_parser.add_argument('--store-product', '-p', metavar = 'PRODUCT_FILE', type = str,
+                    help = 'Store generated product into a file PRODUCT_FILE.')
+    arg_parser.add_argument('--set-timeout', '-t', metavar = 'TIMEOUT_MS', type = int,
+                    help = 'Set timeout after TIMEOUT_MS ms for Z3 SMT solver.')
 
     # Test for '--help' argument.
     if '--help' in sys.argv or '-h' in sys.argv:
