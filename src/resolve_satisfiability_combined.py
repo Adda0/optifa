@@ -56,6 +56,7 @@ def main():
 
     # Initialize SMT solver object.
     smt = z3.Solver()
+    smt.set("timeout", 600)  # Set solver to timeout after given amount of time in ms.
     # Add persistent formulae valid for every product-state.
     # Create lists of variables for conjunction of formulae.
     hash_phi = [ Int('hash_%s' % symbol) for symbol in fa_a_orig.alphabet ]  # Both FA A and FA B: hash_phi.
