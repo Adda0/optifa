@@ -396,7 +396,7 @@ def check_satisfiability(fa_a, fa_b, fa_a_formulae_dict, fa_b_formulae_dict, sat
                 smt_length.push()
                 smt_length.add(fa_a_id[0] + fa_a_id[1] * fa_a_var == fa_b_id[0] + fa_b_id[1] * fa_b_var)
 
-                if smt_length.check() == sat:
+                if smt_length.check() != z3.unsat:
                     length_satisfiable = True
                     break
                 smt_length.pop()
@@ -472,15 +472,16 @@ def check_satisfiability(fa_a, fa_b, fa_a_formulae_dict, fa_b_formulae_dict, sat
     print("start smt check")
     res = smt.check()
     print(res)
+
+    smt.pop()
+
     if res != z3.unsat:  # ~ in [z3.sat, z3.unknown]
         #printnext(iter(fa_a.start)) + ',' + next(iter(fa_b.start)) + " true", end='  ')
         #print("true", end='  ')
         #print(smt.model())
         sat_counters.parikh_image_sat_states += 1
-        smt.pop()
         return True
 
-    smt.pop()
     #printnext(iter(fa_a.start)) + ',' + next(iter(fa_b.start)) + " false", end='  ')
     #print("false")
     sat_counters.parikh_image_unsat_states += 1
