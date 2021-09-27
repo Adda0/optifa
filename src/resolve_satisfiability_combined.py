@@ -59,17 +59,8 @@ def main():
     # Initialize SMT solver object.
     smt = z3.Solver()
     smt.set("timeout", 600)  # Set solver to timeout after given amount of time in ms.
-    # Add persistent formulae valid for every product-state.
-    # Create lists of variables for conjunction of formulae.
-    hash_phi = [ Int('hash_%s' % symbol) for symbol in fa_a_orig.alphabet ]  # Both FA A and FA B: hash_phi.
 
-    # FA A and FA B variables.
-    fa_a_transitions_names = fa_a_orig.get_transitions_names()
-    a_y_t = [ Int('a_y_%s' % transition) for transition in fa_a_transitions_names ]  # FA A: y_t.
-    fa_b_transitions_names = fa_b_orig.get_transitions_names()
-    b_y_t = [ Int('b_y_%s' % transition) for transition in fa_b_transitions_names ]  # FA B: y_t.
-    a_u_q = [ Int('a_u_%s' % state) for state in fa_a_orig.states ]  # FA A: u_q.
-    b_u_q = [ Int('b_u_%s' % state) for state in fa_b_orig.states ]  # FA B: u_q.
+    # Add persistent formulae valid for every product-state.
 
     # FA A: First conjunct.
     for state in fa_a_orig.states:
@@ -80,10 +71,10 @@ def main():
         smt.add(Int('b_u_%s' % state) + Sum([Int('b_y_%s' % transition) for transition in fa_b_orig.get_ingoing_transitions_names(state)]) - Sum([Int('b_y_%s' % transition) for transition in fa_b_orig.get_outgoing_transitions_names(state)]) == 0)
 
     # FA A: Second conjunct.
-    smt.add( And( [ a_y_t[i] >= 0 for i in range( len(fa_a_transitions_names) ) ] ))
+    smt.add( And( [ Int('a_y_%s' % transition) >= 0 for transition in fa_a_orig.get_transitions_names() ] ))
 
     # FA B: Second conjunct.
-    smt.add( And( [ b_y_t[i] >= 0 for i in range( len(fa_b_transitions_names) ) ] ))
+    smt.add( And( [ Int('b_y_%s' % transition) >= 0 for transition in fa_b_orig.get_transitions_names() ] ))
 
     # FA A: Third conjunct.
     for symbol in fa_a_orig.alphabet:
