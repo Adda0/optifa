@@ -462,9 +462,9 @@ def check_satisfiability(fa_a, fa_b, fa_a_formulae_dict, fa_b_formulae_dict, sat
     #smt.add( Or( [ And( Int('b_u_%s' % state) == 1, Int('b_z_%s' % state) == 1, And( [ And( Int('b_u_%s' % other_state) == 0, Int('b_z_%s' % other_state) == 0 ) for other_state in fa_b.start if other_state != state ] ) ) for state in fa_b.start ] ) )
 
     # Check for satisfiability.
-    print("start smt check")
+    #print("start smt check")
     res = smt.check()
-    print(res)
+    #print(res)
 
     smt.pop()
 
@@ -486,15 +486,20 @@ def parse_args():
     arg_parser = argparse.ArgumentParser(
         description = 'Construct product (intersection) of two finite automata using abstraction optimization techniques.'
     )
-    arg_parser.add_argument('--fa-a-loaded', metavar = 'AUTOMATON_A_LOADED', type = argparse.FileType('rb'),
-                    help = 'Automaton A object file to generate product from.')
-    arg_parser.add_argument('--fa-b-loaded', metavar = 'AUTOMATON_B_LOADED', type = argparse.FileType('rb'),
-                    help = 'Automaton B object file to generate product from.')
-    arg_parser.add_argument('--fa-a-path', metavar = 'AUTOMATON_A', type = str,
+
+    automata_format_group = arg_parser.add_mutually_exclusive_group(required = True)
+    automata_format_group.add_argument('--loaded', '-l', action = 'store_true',
+                    help = 'Read the automata files as a loaded Python objects parsed by Symboliclib.')
+    automata_format_group.add_argument('--path', '-p', action = 'store_true',
+                    help = 'Read the automata files as a Timbuk format files ready to be parsed by Symboliclib.')
+
+    automata_path_group = arg_parser.add_argument_group(title = "Automata to work with", description = "The automata paths for automata to generate product from.")
+    automata_path_group.add_argument('--fa-a', '-a', metavar = 'AUTOMATON_A', type = str, required = True,
                     help = 'Automaton A to generate product from.')
-    arg_parser.add_argument('--fa-b-path', metavar = 'AUTOMATON_B', type = str,
+    automata_path_group.add_argument('--fa-b', '-b', metavar = 'AUTOMATON_B', type = str, required = True,
                     help = 'Automaton B to generate product from.')
-    arg_parser.add_argument('--break-when-final', '-b', action = 'store_true',
+
+    arg_parser.add_argument('--break-when-final', '-r', action = 'store_true',
                     help = 'Break when final state is encountered to execute emptiness test.')
     arg_parser.add_argument('--smt', '-s', action = 'store_true',
                     help = 'Use SMT solver Z3 to check for satisfiability of formulae.')
@@ -502,9 +507,9 @@ def parse_args():
                     help = "Compute forward lengths 'z' for Parikh image.")
     arg_parser.add_argument('--no-z-constraints', '-z', action = 'store_true',
                     help = 'Compute formulae without constraints for connectivity of automaton.')
-    arg_parser.add_argument('--store-product', '-p', metavar = 'PRODUCT_FILE', type = str,
+    arg_parser.add_argument('--store-product', '-o', metavar = 'PRODUCT_FILE', type = str,
                     help = 'Store generated product into a file PRODUCT_FILE.')
-    arg_parser.add_argument('--set-timeout', '-t', metavar = 'TIMEOUT_MS', type = int,
+    arg_parser.add_argument('--timeout', '-t', metavar = 'TIMEOUT_MS', type = int,
                     help = 'Set timeout after TIMEOUT_MS ms for Z3 SMT solver.')
 
     # Test for '--help' argument.
@@ -530,15 +535,17 @@ class SatCounters:
     parikh_image_sat_states: int = 0  # Both length abstraction and Parikh image satisfiable.
     parikh_image_unsat_states: int = 0  # Length abstraction satisfiable, Parikh image unsatisfiable.
 
+
 class Config:
     """Class for storing program configurations passed as command line arguments."""
     def __init__(self, args):
-        if args.fa_a_loaded and args.fa_b_loaded:
-            self.fa_a_orig = pickle.load(args.fa_a_loaded)
-            self.fa_b_orig = pickle.load(args.fa_b_loaded)
-        elif args.fa_a_path and args.fa_b_path:
-            self.fa_a_orig = symboliclib.parse(args.fa_a_path)
-            self.fa_b_orig = symboliclib.parse(args.fa_b_path)
+        if args.loaded:
+            with open(args.fa_a, 'rb') as fa_a, open(args.fa_b, 'rb') as fa_b:
+                self.fa_a_orig = pickle.load(fa_a)
+                self.fa_b_orig = pickle.load(fa_b)
+        elif args.path:
+            self.fa_a_orig = symboliclib.parse(args.fa_a)
+            self.fa_b_orig = symboliclib.parse(args.fa_b)
         else:
             raise ValueError("missing automata arguments or their wrong combination")
 
@@ -547,7 +554,7 @@ class Config:
         self.reverse_lengths = not args.forward_lengths
         self.use_z_constraints = not args.no_z_constraints
         self.store_product = args.store_product
-        self.timeout = args.set_timeout
+        self.timeout = args.timeout
 
 
 if __name__ == "__main__":

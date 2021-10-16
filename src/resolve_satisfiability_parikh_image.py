@@ -360,15 +360,20 @@ def parse_args():
     arg_parser = argparse.ArgumentParser(
         description = 'Construct product (intersection) of two finite automata using abstraction optimization techniques.'
     )
-    arg_parser.add_argument('--fa-a-loaded', metavar = 'AUTOMATON_A_LOADED', type = argparse.FileType('rb'),
-                    help = 'Automaton A object file to generate product from.')
-    arg_parser.add_argument('--fa-b-loaded', metavar = 'AUTOMATON_B_LOADED', type = argparse.FileType('rb'),
-                    help = 'Automaton B object file to generate product from.')
-    arg_parser.add_argument('--fa-a-path', metavar = 'AUTOMATON_A', type = str,
+
+    automata_format_group = arg_parser.add_mutually_exclusive_group(required = True)
+    automata_format_group.add_argument('--loaded', '-l', action = 'store_true',
+                    help = 'Read the automata files as a loaded Python objects parsed by Symboliclib.')
+    automata_format_group.add_argument('--path', '-p', action = 'store_true',
+                    help = 'Read the automata files as a Timbuk format files ready to be parsed by Symboliclib.')
+
+    automata_path_group = arg_parser.add_argument_group(title = "Automata to work with", description = "The automata paths for automata to generate product from.")
+    automata_path_group.add_argument('--fa-a', '-a', metavar = 'AUTOMATON_A', type = str, required = True,
                     help = 'Automaton A to generate product from.')
-    arg_parser.add_argument('--fa-b-path', metavar = 'AUTOMATON_B', type = str,
+    automata_path_group.add_argument('--fa-b', '-b', metavar = 'AUTOMATON_B', type = str, required = True,
                     help = 'Automaton B to generate product from.')
-    arg_parser.add_argument('--break-when-final', '-b', action = 'store_true',
+
+    arg_parser.add_argument('--break-when-final', '-r', action = 'store_true',
                     help = 'Break when final state is encountered to execute emptiness test.')
     arg_parser.add_argument('--forward-lengths', '-f', action = 'store_true',
                     help = "Compute forward lengths 'z' for Parikh image.")
@@ -387,12 +392,13 @@ def parse_args():
     #except:
     #    print_error("Got invalid arguments.")
 
-    if args.fa_a_loaded and args.fa_b_loaded:
-        fa_a_orig = pickle.load(args.fa_a_loaded)
-        fa_b_orig = pickle.load(args.fa_b_loaded)
-    elif args.fa_a_path and args.fa_b_path:
-        fa_a_orig = symboliclib.parse(args.fa_a_path)
-        fa_b_orig = symboliclib.parse(args.fa_b_path)
+    if args.loaded:
+        with open(args.fa_a, 'rb') as fa_a, open(args.fa_b, 'rb') as fa_b:
+            fa_a_orig = pickle.load(fa_a)
+            fa_b_orig = pickle.load(fa_b)
+    elif args.path:
+        fa_a_orig = symboliclib.parse(args.fa_a)
+        fa_b_orig = symboliclib.parse(args.fa_b)
 
     return fa_a_orig, fa_b_orig, args.break_when_final, not args.forward_lengths, not args.no_z_constraints
 
