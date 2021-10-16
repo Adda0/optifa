@@ -39,8 +39,8 @@ def main():
     f_fa_a_loaded.close()
     f_fa_b_loaded.close()
 
-    fa_a_orig.print_automaton()
-    fa_b_orig.print_automaton()
+    #fa_a_orig.print_automaton()
+    #fa_b_orig.print_automaton()
 
 
 def parse_args():
