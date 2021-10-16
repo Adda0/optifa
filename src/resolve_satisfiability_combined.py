@@ -13,7 +13,6 @@
 
 import os
 import sys
-from collections import deque
 from copy import deepcopy
 import itertools
 import argparse
@@ -62,51 +61,7 @@ def main():
         #print(f"Setting timeout {config.timeout}")
         smt.set("timeout", config.timeout)  # Set solver to timeout after given amount of time in ms.
 
-    # Add persistent formulae valid for every product-state.
-
-    # FA A: First conjunct.
-    for state in fa_a_orig.states:
-        smt.add(Int('a_u_%s' % state) + Sum([Int('a_y_%s' % transition) for transition in fa_a_orig.get_ingoing_transitions_names(state)]) - Sum([Int('a_y_%s' % transition) for transition in fa_a_orig.get_outgoing_transitions_names(state)]) == 0)
-
-    # FA B: First conjunct.
-    for state in fa_b_orig.states:
-        smt.add(Int('b_u_%s' % state) + Sum([Int('b_y_%s' % transition) for transition in fa_b_orig.get_ingoing_transitions_names(state)]) - Sum([Int('b_y_%s' % transition) for transition in fa_b_orig.get_outgoing_transitions_names(state)]) == 0)
-
-    # FA A: Second conjunct.
-    smt.add( And( [ Int('a_y_%s' % transition) >= 0 for transition in fa_a_orig.get_transitions_names() ] ))
-
-    # FA B: Second conjunct.
-    smt.add( And( [ Int('b_y_%s' % transition) >= 0 for transition in fa_b_orig.get_transitions_names() ] ))
-
-    # FA A: Third conjunct.
-    for symbol in fa_a_orig.alphabet:
-        smt.add(Int('hash_%s' % symbol) == Sum([Int('a_y_%s' % transition) for transition in fa_a_orig.get_transitions_names_with_symbol(symbol)]))
-
-    # FA B: Third conjunct.
-    for symbol in fa_b_orig.alphabet:
-        smt.add(Int('hash_%s' % symbol) == Sum([Int('b_y_%s' % transition) for transition in fa_b_orig.get_transitions_names_with_symbol(symbol)]))
-
-    if config.reverse_lengths:
-        if config.use_z_constraints:
-            # FA A: Fourth conjunct.
-            for state in fa_a_orig.states:
-                if state in fa_a_orig.final:
-                    smt.add(Int('a_z_%s' % state) == 1)
-                    smt.add(And( [ Int('a_y_%s' % transition) >= 0 for transition in fa_a_orig.get_outgoing_transitions_names(state) ] ))
-
-                if state not in fa_a_orig.start and state not in fa_a_orig.final:
-                    smt.add(Or(And( And( Int('a_z_%s' % state) == 0 ) , And( [ Int('a_y_%s' % transition) == 0 for transition in fa_a_orig.get_ingoing_transitions_names(state) ] ) ), Or( [ And( Int('a_y_%s' % transition) >= 0 , Int('a_z_%s' % transition.split('_')[0]) > 0, Int('a_z_%s' % state) == Int('a_z_%s' % transition.split('_')[0]) - 1) for transition in fa_a_orig.get_ingoing_transitions_names(state) ] )))
-
-            # FA B: Fourth conjunct.
-            for state in fa_b_orig.states:
-                if state in fa_b_orig.final:
-                    smt.add(Int('b_z_%s' % state) == 1)
-                    smt.add(And( [ Int('b_y_%s' % transition) >= 0 for transition in fa_b_orig.get_outgoing_transitions_names(state) ] ))
-
-                if state not in fa_b_orig.start and state not in fa_a_orig.final:
-                    smt.add(Or(And( And( Int('bz_%s' % state) == 0 ) , And( [ Int('b_y_%s' % transition) == 0 for transition in fa_b_orig.get_ingoing_transitions_names(state) ] ) ), Or( [ And( Int('b_y_%s' % transition) >= 0 , Int('b_z_%s' % transition.split('_')[0]) > 0, Int('b_z_%s' % state) == Int('b_z_%s' % transition.split('_')[0]) - 1) for transition in fa_b_orig.get_ingoing_transitions_names(state) ] )))
-
-    # End of SMT formulae initialization.
+    add_persistent_formulae(smt, fa_a_orig, fa_b_orig, config)
 
     # Define additional variables.
     q_checked_pairs = {}
@@ -232,59 +187,6 @@ def main():
         intersect_ab.print_automaton(config.store_product)
 
 
-def make_pairs(fa_a_orig, fa_b_orig, q_pair_states, q_checked_pairs, intersect, curr_state, single_pair = False):
-    a_state = curr_state[0]
-    b_state = curr_state[1]
-    product_state_name = a_state + ',' + b_state
-
-    new_pairs = deque()
-    new_pairs_cnt = 0
-
-    if a_state in fa_a_orig.transitions and b_state in fa_b_orig.transitions:
-        for label in fa_a_orig.transitions[a_state]:
-            if label in fa_b_orig.transitions[b_state]:
-                endstates = itertools.product(fa_a_orig.transitions[a_state][label], fa_b_orig.transitions[b_state][label])
-                for endstate in endstates:
-                    endstate_str = endstate[0] + "," + endstate[1]
-
-                    if label not in intersect.transitions[product_state_name]:
-                        intersect.transitions[product_state_name][label] = [endstate_str]
-                        intersect.alphabet.add(str(label))
-                    else:
-                        intersect.transitions[product_state_name][label].append(endstate_str)
-
-                    new_pairs_cnt += 1
-                    if endstate_str not in q_checked_pairs:
-                        new_pairs.append(endstate)
-
-
-    # If only a single new product state was generated, set this state as skippable.
-    if new_pairs_cnt == 1:
-        single_pair = True
-
-    # Append new product states to work set, optionally update the work set elements.
-    for new_pair in new_pairs:
-        # Add state to checked states.
-        q_checked_pairs[new_pair[0] + ',' + new_pair[1]] = True
-
-        if [new_pair[0], new_pair[1], True] in q_pair_states:
-            pass
-        elif [new_pair[0], new_pair[1], False] in q_pair_states and single_pair:
-            id = q_pair_states.index([new_pair[0], new_pair[1], False])
-            q_pair_states[id][2] = True
-        else:
-            q_pair_states.append([new_pair[0], new_pair[1], single_pair])
-
-
-def enqueue_next_states(q_states, fa_orig, curr_state):
-    transitions = fa_orig.get_deterministic_transitions(curr_state)
-
-    for trans_symbol in transitions:
-        for state_dict_elem in transitions[trans_symbol]:
-            for state in state_dict_elem.split(','):
-                q_states.append(state)
-
-
 def check_satisfiability(fa_a, fa_b, fa_a_formulae_dict, fa_b_formulae_dict, sat_counters, smt, config):
     """
     Check satisfiability for formulae and Parikh image using SMT solver Z3.
@@ -293,6 +195,7 @@ def check_satisfiability(fa_a, fa_b, fa_a_formulae_dict, fa_b_formulae_dict, sat
     :param fa_a_formulae_dict: Dictionary with formulae for FA A.
     :param fa_b_formulae_dict: Dictionary with formulae for FA B.
     :param sat_counters: Counters of various satisfiability combinations.
+    :param config: Program configuration.
     :return: True if satisfiable; False if not satisfiable.
     """
 
@@ -350,7 +253,6 @@ def check_satisfiability(fa_a, fa_b, fa_a_formulae_dict, fa_b_formulae_dict, sat
         #printnext(iter(fa_a.start)) + ',' + next(iter(fa_b.start)) + " final", end='  ')
         #print('final')
         return True
-
 
     fa_a_only_formulae = get_only_formulae(fa_a_formulae_dict)
     fa_b_only_formulae = get_only_formulae(fa_b_formulae_dict)

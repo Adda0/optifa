@@ -17,9 +17,11 @@ from collections import deque
 from copy import deepcopy
 import itertools
 import argparse
+import math
 
 import pickle
-from z3 import *
+import z3
+from z3 import And, Int, Or, Sum
 
 import symboliclib
 from lfa import LFA
@@ -28,7 +30,9 @@ from optifa import *
 
 # Main script function.
 def main():
-    fa_a_orig, fa_b_orig, break_when_final, reverse_lengths, use_z_constraints = parse_args()  # Parse program arguments.
+    config = parse_args()  # Parse program arguments.
+    fa_a_orig = config.fa_a_orig
+    fa_b_orig = config.fa_b_orig
 
     A_larger = True if len(fa_a_orig.states) > len(fa_b_orig.states) else False
 
@@ -60,64 +64,12 @@ def main():
 
 
     # Initialize SMT solver object.
-    smt = Solver()
-    # Add persistent formulae valid for every product-state.
-    # Create lists of variables for conjunction of formulae.
-    hash_phi = [ Int('hash_%s' % symbol) for symbol in fa_a_orig.alphabet ]  # Both FA A and FA B: hash_phi.
+    smt = z3.Solver()
+    if config.timeout:
+        #print(f"Setting timeout {config.timeout}")
+        smt.set("timeout", config.timeout)  # Set solver to timeout after given amount of time in ms.
 
-    # FA A and FA B variables.
-    fa_a_transitions_names = fa_a_orig.get_transitions_names()
-    a_y_t = [ Int('a_y_%s' % transition) for transition in fa_a_transitions_names ]  # FA A: y_t.
-    fa_b_transitions_names = fa_b_orig.get_transitions_names()
-    b_y_t = [ Int('b_y_%s' % transition) for transition in fa_b_transitions_names ]  # FA B: y_t.
-    a_u_q = [ Int('a_u_%s' % state) for state in fa_a_orig.states ]  # FA A: u_q.
-    b_u_q = [ Int('b_u_%s' % state) for state in fa_b_orig.states ]  # FA B: u_q.
-
-    # FA A: First conjunct.
-    for state in fa_a_orig.states:
-        smt.add(Int('a_u_%s' % state) + Sum([Int('a_y_%s' % transition) for transition in fa_a_orig.get_ingoing_transitions_names(state)]) - Sum([Int('a_y_%s' % transition) for transition in fa_a_orig.get_outgoing_transitions_names(state)]) == 0)
-
-    # FA B: First conjunct.
-    for state in fa_b_orig.states:
-        smt.add(Int('b_u_%s' % state) + Sum([Int('b_y_%s' % transition) for transition in fa_b_orig.get_ingoing_transitions_names(state)]) - Sum([Int('b_y_%s' % transition) for transition in fa_b_orig.get_outgoing_transitions_names(state)]) == 0)
-
-    # FA A: Second conjunct.
-    smt.add( And( [ a_y_t[i] >= 0 for i in range( len(fa_a_transitions_names) ) ] ))
-
-    # FA B: Second conjunct.
-    smt.add( And( [ b_y_t[i] >= 0 for i in range( len(fa_b_transitions_names) ) ] ))
-
-    # FA A: Third conjunct.
-    for symbol in fa_a_orig.alphabet:
-        smt.add(Int('hash_%s' % symbol) == Sum([Int('a_y_%s' % transition) for transition in fa_a_orig.get_transitions_names_with_symbol(symbol)]))
-
-    # FA B: Third conjunct.
-    for symbol in fa_b_orig.alphabet:
-        smt.add(Int('hash_%s' % symbol) == Sum([Int('b_y_%s' % transition) for transition in fa_b_orig.get_transitions_names_with_symbol(symbol)]))
-
-    if reverse_lengths:
-        if use_z_constraints:
-            #"""
-            # FA A: Fourth conjunct.
-            for state in fa_a_orig.states:
-                if state in fa_a_orig.final:
-                    smt.add(Int('a_z_%s' % state) == 1)
-                    smt.add(And( [ Int('a_y_%s' % transition) >= 0 for transition in fa_a_orig.get_outgoing_transitions_names(state) ] ))
-
-                if state not in fa_a_orig.start and state not in fa_a_orig.final:
-                    smt.add(Or(And( And( Int('a_z_%s' % state) == 0 ) , And( [ Int('a_y_%s' % transition) == 0 for transition in fa_a_orig.get_ingoing_transitions_names(state) ] ) ), Or( [ And( Int('a_y_%s' % transition) >= 0 , Int('a_z_%s' % transition.split('_')[0]) > 0, Int('a_z_%s' % state) == Int('a_z_%s' % transition.split('_')[0]) - 1) for transition in fa_a_orig.get_ingoing_transitions_names(state) ] )))
-
-            # FA B: Fourth conjunct.
-            for state in fa_b_orig.states:
-                if state in fa_b_orig.final:
-                    smt.add(Int('b_z_%s' % state) == 1)
-                    smt.add(And( [ Int('b_y_%s' % transition) >= 0 for transition in fa_b_orig.get_outgoing_transitions_names(state) ] ))
-
-                if state not in fa_b_orig.start and state not in fa_a_orig.final:
-                    smt.add(Or(And( And( Int('bz_%s' % state) == 0 ) , And( [ Int('b_y_%s' % transition) == 0 for transition in fa_b_orig.get_ingoing_transitions_names(state) ] ) ), Or( [ And( Int('b_y_%s' % transition) >= 0 , Int('b_z_%s' % transition.split('_')[0]) > 0, Int('b_z_%s' % state) == Int('b_z_%s' % transition.split('_')[0]) - 1) for transition in fa_b_orig.get_ingoing_transitions_names(state) ] )))
-            #"""
-
-    # End of SMT formulae initialization.
+    add_persistent_formulae(smt, fa_a_orig, fa_b_orig, config)
 
     # Define additional variables.
     q_checked_pairs = {}
@@ -155,7 +107,7 @@ def main():
         if not curr_pair[2]:
             processed_pair_states_cnt += 1
 
-            satisfiable = check_satisfiability(fa_a_copy, fa_b_copy, smt, reverse_lengths, use_z_constraints)
+            satisfiable = check_satisfiability(fa_a_copy, fa_b_copy, smt, config)
             if satisfiable:
                 sat_cnt += 1
         else:
@@ -173,7 +125,7 @@ def main():
                 # Automata have a non-empty intersection. We can end the testing here as we have found a solution.
                 intersect_ab.final.add(product_state_name)
                 found = True
-                if break_when_final:
+                if config.break_when_final:
                     break
 
             #print(q_pair_states)
@@ -204,65 +156,19 @@ def main():
     #intersect_ab.print_automaton()
     #print(intersect_ab.final)
 
-
-def make_pairs(fa_a_orig, fa_b_orig, q_pair_states, q_checked_pairs, intersect, curr_state, single_pair = False):
-    a_state = curr_state[0]
-    b_state = curr_state[1]
-    product_state_name = a_state + ',' + b_state
-
-    new_pairs = deque()
-    new_pairs_cnt = 0
-
-    if a_state in fa_a_orig.transitions and b_state in fa_b_orig.transitions:
-        for label in fa_a_orig.transitions[a_state]:
-            if label in fa_b_orig.transitions[b_state]:
-                endstates = itertools.product(fa_a_orig.transitions[a_state][label], fa_b_orig.transitions[b_state][label])
-                for endstate in endstates:
-                    endstate_str = endstate[0] + "," + endstate[1]
-
-                    if label not in intersect.transitions[product_state_name]:
-                        intersect.transitions[product_state_name][label] = [endstate_str]
-                        intersect.alphabet.add(str(label))
-                    else:
-                        intersect.transitions[product_state_name][label].append(endstate_str)
-
-                    new_pairs_cnt += 1
-                    if endstate_str not in q_checked_pairs:
-                        new_pairs.append(endstate)
+    # Store product.
+    if config.store_product:
+        intersect_ab.print_automaton(config.store_product)
 
 
-    # If only a single new product state was generated, set this state as skippable.
-    if new_pairs_cnt == 1:
-        single_pair = True
-
-    # Append new product states to work set, optionally update the work set elements.
-    for new_pair in new_pairs:
-        # Add state to checked states.
-        q_checked_pairs[new_pair[0] + ',' + new_pair[1]] = True
-
-        if [new_pair[0], new_pair[1], True] in q_pair_states:
-            pass
-        elif [new_pair[0], new_pair[1], False] in q_pair_states and single_pair:
-            id = q_pair_states.index([new_pair[0], new_pair[1], False])
-            q_pair_states[id][2] = True
-        else:
-            q_pair_states.append([new_pair[0], new_pair[1], single_pair])
-
-
-def enqueue_next_states(q_states, fa_orig, curr_state):
-    transitions = fa_orig.get_deterministic_transitions(curr_state)
-
-    for trans_symbol in transitions:
-        for state_dict_elem in transitions[trans_symbol]:
-            for state in state_dict_elem.split(','):
-                q_states.append(state)
-
-
-def check_satisfiability(fa_a, fa_b, smt, reverse_lengths = True, use_z_constraints = True):
+def check_satisfiability(fa_a, fa_b, smt, config):
     """
-    Check satisfiability for Parikh image using SMT solver Z3.
+    Check satisfiability for formulae and Parikh image using SMT solver Z3.
     :param fa_a: First automaton.
     :param fa_b: Second automaton.
+    :param fa_a_formulae_dict: Dictionary with formulae for FA A.
+    :param fa_b_formulae_dict: Dictionary with formulae for FA B.
+    :param config: Program configuration.
     :return: True if satisfiable; False if not satisfiable.
     """
 
@@ -306,8 +212,8 @@ def check_satisfiability(fa_a, fa_b, smt, reverse_lengths = True, use_z_constrai
         else:
             smt.add(Int('b_u_%s' % state) == 0)
 
-    if not reverse_lengths:
-        if use_z_constraints:
+    if not config.reverse_lengths:
+        if config.use_z_constraints:
             #"""
             # FA A: Fourth conjunct.
             for state in fa_a.states:
@@ -342,7 +248,7 @@ def check_satisfiability(fa_a, fa_b, smt, reverse_lengths = True, use_z_constrai
     #smt.add( Or( [ And( Int('b_u_%s' % state) == 1, Int('b_z_%s' % state) == 1, And( [ And( Int('b_u_%s' % other_state) == 0, Int('b_z_%s' % other_state) == 0 ) for other_state in fa_b.start if other_state != state ] ) ) for state in fa_b.start ] ) )
 
     # Check for satisfiability.
-    if smt.check() == sat:
+    if smt.check() == z3.sat:
         #printnext(iter(fa_a.start)) + ',' + next(iter(fa_b.start)) + " true", end='  ')
         #print("true", end='  ')
         #print(smt.model())
@@ -379,29 +285,39 @@ def parse_args():
                     help = "Compute forward lengths 'z' for Parikh image.")
     arg_parser.add_argument('--no-z-constraints', '-z', action = 'store_true',
                     help = 'Compute formulae without constraints for connectivity of automaton.')
+    arg_parser.add_argument('--store-product', '-o', metavar = 'PRODUCT_FILE', type = str,
+                    help = 'Store generated product into a file PRODUCT_FILE.')
+    arg_parser.add_argument('--timeout', '-t', metavar = 'TIMEOUT_MS', type = int,
+                    help = 'Set timeout after TIMEOUT_MS ms for Z3 SMT solver.')
 
     # Test for '--help' argument.
     if '--help' in sys.argv or '-h' in sys.argv:
         arg_parser.print_help()
         sys.exit(0)
 
-    #try:
     args = arg_parser.parse_args()
-    #except OSError as exception:
-    #    print_error(f"{exception.strerror}: {exception.filename}")
-    #except:
-    #    print_error("Got invalid arguments.")
 
-    if args.loaded:
-        with open(args.fa_a, 'rb') as fa_a, open(args.fa_b, 'rb') as fa_b:
-            fa_a_orig = pickle.load(fa_a)
-            fa_b_orig = pickle.load(fa_b)
-    elif args.path:
-        fa_a_orig = symboliclib.parse(args.fa_a)
-        fa_b_orig = symboliclib.parse(args.fa_b)
+    return Config(args)
 
-    return fa_a_orig, fa_b_orig, args.break_when_final, not args.forward_lengths, not args.no_z_constraints
 
+class Config:
+    """Class for storing program configurations passed as command line arguments."""
+    def __init__(self, args):
+        if args.loaded:
+            with open(args.fa_a, 'rb') as fa_a, open(args.fa_b, 'rb') as fa_b:
+                self.fa_a_orig = pickle.load(fa_a)
+                self.fa_b_orig = pickle.load(fa_b)
+        elif args.path:
+            self.fa_a_orig = symboliclib.parse(args.fa_a)
+            self.fa_b_orig = symboliclib.parse(args.fa_b)
+        else:
+            raise ValueError("missing automata arguments or their wrong combination")
+
+        self.break_when_final = args.break_when_final
+        self.reverse_lengths = not args.forward_lengths
+        self.use_z_constraints = not args.no_z_constraints
+        self.store_product = args.store_product
+        self.timeout = args.timeout
 
 if __name__ == "__main__":
     main()
