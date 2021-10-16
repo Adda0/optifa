@@ -11,7 +11,6 @@
 # author: David Chocholatý (xchoch08), FIT BUT
 # ====================================================
 
-import os
 import sys
 from collections import deque
 from copy import deepcopy
@@ -29,38 +28,21 @@ from optifa import *
 
 # Main script function.
 def main():
-    config = parse_args()  # Parse program arguments.
+    config = ArgumentParser.get_config(Config)  # Parse program arguments.
     fa_a_orig = config.fa_a_orig
     fa_b_orig = config.fa_b_orig
-
-    A_larger = True if len(fa_a_orig.states) > len(fa_b_orig.states) else False
-
 
     # Add one unified final state
     abstract_final_symbol = 'abstract_final_symbol'
     abstract_final_state = 'abstract_final_state'
 
-    fa_a_orig.alphabet.add(abstract_final_symbol)
-    fa_b_orig.alphabet.add(abstract_final_symbol)
-
-    fa_a_orig.states.add(abstract_final_state)
-    for final_state in fa_a_orig.final:
-        if final_state not in fa_a_orig.transitions.keys():
-            fa_a_orig.transitions[final_state] = {}
-        fa_a_orig.transitions[final_state][abstract_final_symbol] = [abstract_final_state]
-    fa_a_orig.final = set([abstract_final_state])
-
-    fa_b_orig.states.add(abstract_final_state)
-    for final_state in fa_b_orig.final:
-        if final_state not in fa_b_orig.transitions.keys():
-            fa_b_orig.transitions[final_state] = {}
-        fa_b_orig.transitions[final_state][abstract_final_symbol] = [abstract_final_state]
-    fa_b_orig.final = set([abstract_final_state])
+    fa_a_orig.add_abstract_final_state(abstract_final_state, abstract_final_symbol)
+    fa_b_orig.add_abstract_final_state(abstract_final_state, abstract_final_symbol)
 
     # Run for emptiness test with break_when_final == True or
     # for full product construction with break_when_final == False.
-    processed_pair_states_cnt = 0
 
+    processed_pair_states_cnt = 0
 
     # Initialize SMT solver object.
     smt = z3.Solver()
@@ -184,100 +166,51 @@ def check_satisfiability(fa_a, fa_b, smt, config):
         #print('final')
         return True
 
-    #smt = Solver()
-    smt.push()
-
-    #smt.push()
     # Add clauses – conjunction of formulae.
-
-    # Constraints for 'u_q'.
-    for state in fa_a.states:
-        if state in fa_a.start:
-            smt.add(Int('a_u_%s' % state) == 1)
-        elif state in fa_a.final:
-            pass
-            #smt.add(Or( a_u_q[i] == -1, a_u_q[i] == 0))
-            smt.add(Int('a_u_%s' % state) == -1)
-        else:
-            smt.add(Int('a_u_%s' % state) == 0)
-
-    for state in fa_b.states:
-        if state in fa_b.start:
-            smt.add(Int('b_u_%s' % state) == 1)
-        elif state in fa_b.final:
-            pass
-            #smt.add(Or( b_u_q[i] == -1, b_u_q[i] == 0))
-            smt.add(Int('b_u_%s' % state) == -1)
-        else:
-            smt.add(Int('b_u_%s' % state) == 0)
-
-    if not config.reverse_lengths:
-        if config.use_z_constraints:
-            #"""
-            # FA A: Fourth conjunct.
-            for state in fa_a.states:
-                if state in fa_a.start:
-                    smt.add(Int('a_z_%s' % state) == 1)
-                    smt.add(And( [ Int('a_y_%s' % transition) >= 0 for transition in fa_a.get_ingoing_transitions_names(state) ] ))
-                else:
-                    smt.add(Or(And( And( Int('a_z_%s' % state) == 0 ) , And( [ Int('a_y_%s' % transition) == 0 for transition in fa_a.get_ingoing_transitions_names(state) ] ) ), Or( [ And( Int('a_y_%s' % transition) > 0 , Int('a_z_%s' % transition.split('_')[0]) > 0, Int('a_z_%s' % state) == Int('a_z_%s' % transition.split('_')[0]) + 1) for transition in fa_a.get_ingoing_transitions_names(state) ] )))
-
-            # FA B: Fourth conjunct.
-            for state in fa_b.states:
-                if state in fa_b.start:
-                    smt.add(Int('b_z_%s' % state) == 1)
-                    smt.add(And( [ Int('b_y_%s' % transition) >= 0 for transition in fa_b.get_ingoing_transitions_names(state) ] ))
-                else:
-                    smt.add(Or(And( And( Int('b_z_%s' % state) == 0 ) , And( [ Int('b_y_%s' % transition) == 0 for transition in fa_b.get_ingoing_transitions_names(state) ] ) ), Or( [ And( Int('b_y_%s' % transition) > 0 , Int('b_z_%s' % transition.split('_')[0]) > 0, Int('b_z_%s' % state) == Int('b_z_%s' % transition.split('_')[0]) + 1) for transition in fa_b.get_ingoing_transitions_names(state) ] )))
-            #"""
-
-    # Allow multiple final states.
-    #FA A: At least one of the final state is reached.
-    #smt.add( Or( [ Or( Int('a_u_%s' % state) == -1 , Int('a_u_%s' % state) == 0 ) for state in fa_a.final ] ) )
-    #smt.add( Or( [ Int('a_u_%s' % state) == -1 for state in fa_b.final ] ) )
-    # FA B: At least one of the final state is reached.
-    #smt.add( Or( [ Or( Int('b_u_%s' % state) == -1 , Int('b_u_%s' % state) == 0 ) for state in fa_b.final ] ) )
-    #smt.add( Or( [ Int('b_u_%s' % state) == -1 for state in fa_b.final ] ) )
-
-    # Allow multiple inital states.
-    # FA A: Choose only one inital state for a run.
-    #smt.add( Or( [ And( Int('a_u_%s' % state) == 1, Int('a_z_%s' % state) == 1, And( [ And( Int('a_u_%s' % other_state) == 0, Int('a_z_%s' % other_state) == 0 ) for other_state in fa_a.start if other_state != state ] ) ) for state in fa_a.start ] ) )
-
-    # FA B: Choose only one inital state for a run.
-    #smt.add( Or( [ And( Int('b_u_%s' % state) == 1, Int('b_z_%s' % state) == 1, And( [ And( Int('b_u_%s' % other_state) == 0, Int('b_z_%s' % other_state) == 0 ) for other_state in fa_b.start if other_state != state ] ) ) for state in fa_b.start ] ) )
+    smt.push()
+    add_state_specific_formulae(smt, fa_a, fa_b, config)
 
     # Check for satisfiability.
-    if smt.check() == z3.sat:
+    #print("start smt check")
+    res = smt.check()
+    #print(res)
+
+    smt.pop()
+
+    if res != z3.unsat:  # ~ res in [z3.sat, z3.unknown].
         #printnext(iter(fa_a.start)) + ',' + next(iter(fa_b.start)) + " true", end='  ')
         #print("true", end='  ')
         #print(smt.model())
-        smt.pop()
         return True
 
-    smt.pop()
     #printnext(iter(fa_a.start)) + ',' + next(iter(fa_b.start)) + " false", end='  ')
     #print("false")
     return False
 
 
-def parse_args():
-    """Parse arguments using argparse."""
+class ArgumentParser(ProgramArgumentParser):
+    def __init__(self):
+        super().__init__()
 
-    arg_parser = ArgumentParser()
-
-    arg_parser.test_for_help()
-
-    return Config(arg_parser.parse_args())
+        # Set additional arguments.
+        self.arg_parser.add_argument('--forward-lengths', '-f', action = 'store_true',
+                        help = "Compute forward lengths 'z' for Parikh image.")
+        self.arg_parser.add_argument('--no-z-constraints', '-z', action = 'store_true',
+                        help = 'Compute formulae without constraints for connectivity of automaton.')
+        self.arg_parser.add_argument('--timeout', '-t', metavar = 'TIMEOUT_MS', type = int,
+                        help = 'Set timeout after TIMEOUT_MS ms for Z3 SMT solver.')
 
 
 class Config(ProgramConfig):
     """Class for storing program configurations passed as command line arguments."""
+
     def __init__(self, args):
         super().__init__(args)
 
         self.reverse_lengths = not args.forward_lengths
         self.use_z_constraints = not args.no_z_constraints
         self.timeout = args.timeout
+
 
 if __name__ == "__main__":
     main()

@@ -11,30 +11,20 @@
 # author: David Chocholatý (xchoch08), FIT BUT
 # ====================================================
 
-import os
-import sys
 from copy import deepcopy
-import itertools
-import argparse
 from dataclasses import dataclass
-import math
 
 import z3
-from z3 import And, Int, Or, Sum
 
-import symboliclib
 from lfa import LFA
 from optifa import *
 
 
 # Main script function.
 def main():
-    config = ArgumentParser()  # Parse program arguments.
+    config = ArgumentParser.get_config(Config)  # Parse program arguments.
     fa_a_orig = config.fa_a_orig
     fa_b_orig = config.fa_b_orig
-
-    A_larger = True if len(fa_a_orig.states) > len(fa_b_orig.states) else False
-
 
     # Add one unified final state
     abstract_final_symbol = 'abstract_final_symbol'
@@ -52,6 +42,7 @@ def main():
 
     # Run for emptiness test with break_when_final == True or
     # for full product construction with break_when_final == False.
+
     processed_pair_states_cnt = 0
 
     # Initialize SMT solver object.
@@ -156,10 +147,11 @@ def main():
 
         #printlen(q_pair_states))
 
-    intersect_ab.start = set([f"{abstract_initial_state},{abstract_initial_state}"])
+    intersect_ab.start = {f"{abstract_initial_state},{abstract_initial_state}"}
     intersect_ab.remove_useless_transitions()
     intersect_ab.remove_abstract_final_state(abstract_final_symbol, abstract_final_state)
     intersect_ab.remove_abstract_initial_state(abstract_initial_symbol, abstract_initial_state)
+    # Output format: <checked> <processed> <sat> <false_cnt> <skipped>.. <intersect_states> <final_cnt>
     print_csv(len(q_checked_pairs))
     print_csv(processed_pair_states_cnt)
     print_csv(sat_cnt)
@@ -169,7 +161,7 @@ def main():
     print_csv(sat_counters.length_abstraction_unsat_states)
     print_csv(sat_counters.parikh_image_sat_states)
     print_csv(sat_counters.parikh_image_unsat_states)
-    if A_larger:
+    if len(fa_a_orig.states) > len(fa_b_orig.states):
         print_csv(len(fa_a_handle_and_loop.states))
         print_csv(len(fa_b_handle_and_loop.states))
     else:
@@ -198,48 +190,6 @@ def check_satisfiability(fa_a, fa_b, fa_a_formulae_dict, fa_b_formulae_dict, sat
     :return: True if satisfiable; False if not satisfiable.
     """
 
-    def get_only_formulae(formulae_dict):
-        only_formulae = []
-        for accept_state in formulae_dict:
-            try:
-                only_formulae.append([formulae_dict[accept_state][1], formulae_dict[accept_state][2]])
-            except IndexError:
-                only_formulae.append([formulae_dict[accept_state][1]])
-
-        return only_formulae
-
-    def solve_one_handle_longer(fa_a_id, fa_b_id):
-        fa_a_id[0] -= fa_b_id[0]
-        fa_b_id[0] = 0
-
-        if fa_a_id[1] == 0 and fa_b_id[1] == 0:  # No loops.
-            return False
-
-        elif fa_b_id[1] == 0:
-            return False
-
-        elif fa_a_id[1] == 0:
-            curr_num = 0
-            while curr_num <= fa_a_id[0]:
-                if curr_num == fa_a_id[0]:
-                    return True
-                else:
-                    curr_num += fa_b_id[1]
-            return False
-
-        else:  # Two loops:
-            gcd = math.gcd(fa_a_id[1], fa_b_id[1])
-            if gcd == 1:
-                return True
-            else:
-                y = - fa_a_id[0]
-                while y < gcd:
-                    y += fa_a_id[1]
-                if y % gcd == 0:
-                    return True
-                else:
-                    return False
-
     #! FIXME what if initial state is also a final state?
     # TMP FIX:
     #if next(iter(fa_a.start)) in fa_a.final:
@@ -253,114 +203,17 @@ def check_satisfiability(fa_a, fa_b, fa_a_formulae_dict, fa_b_formulae_dict, sat
         #print('final')
         return True
 
-    fa_a_only_formulae = get_only_formulae(fa_a_formulae_dict)
-    fa_b_only_formulae = get_only_formulae(fa_b_formulae_dict)
-
-    length_satisfiable = False
-
-    if not config.smt_free:
-        smt_length = z3.Solver()
-        fa_a_var = Int('fa_a_var')
-        fa_b_var = Int('fa_b_var')
-        smt_length.add(fa_a_var >= 0, fa_b_var >= 0)
-
-    # Check for every formulae combination.
-    for fa_a_id in fa_a_only_formulae:
-        if length_satisfiable == True:
-            break
-        for fa_b_id in fa_b_only_formulae:
-            if config.smt_free:  # Without using SMT solver.
-                # Handle legths are equal, True without the need to resolve loops.
-                if fa_a_id[0] == fa_b_id[0]:
-                    length_satisfiable = True
-                    break
-
-                # Handle lengths are distinct, further checking needed.
-                elif fa_a_id[0] > fa_b_id[0]:  # FA A handle is longer.
-                    if solve_one_handle_longer(fa_a_id, fa_b_id):
-                        length_satisfiable = True
-                        break
-
-                else:  # FA B handle is longer.
-                    if solve_one_handle_longer(fa_b_id, fa_a_id):
-                        length_satisfiable = True
-                        break
-
-            else:  # Using SMT solver.
-                smt_length.push()
-                smt_length.add(fa_a_id[0] + fa_a_id[1] * fa_a_var == fa_b_id[0] + fa_b_id[1] * fa_b_var)
-
-                if smt_length.check() != z3.unsat:
-                    length_satisfiable = True
-                    break
-                smt_length.pop()
-
-    if not length_satisfiable:
+    if not check_length_satisfiability(config, fa_a_formulae_dict, fa_b_formulae_dict):
         #print"Length abstraction not satisfiable.", end=' ')
         sat_counters.length_abstraction_unsat_states += 1
         return False
 
     #print"Length abstraction satisfiable.", end=' ')
     sat_counters.length_abstraction_sat_states += 1
-    smt.push()
 
     # Add clauses – conjunction of formulae.
-
-    # Constraints for 'u_q'.
-    for state in fa_a.states:
-        if state in fa_a.start:
-            smt.add(Int('a_u_%s' % state) == 1)
-        elif state in fa_a.final:
-            pass
-            #smt.add(Or( a_u_q[i] == -1, a_u_q[i] == 0))
-            smt.add(Int('a_u_%s' % state) == -1)
-        else:
-            smt.add(Int('a_u_%s' % state) == 0)
-
-    for state in fa_b.states:
-        if state in fa_b.start:
-            smt.add(Int('b_u_%s' % state) == 1)
-        elif state in fa_b.final:
-            pass
-            #smt.add(Or( b_u_q[i] == -1, b_u_q[i] == 0))
-            smt.add(Int('b_u_%s' % state) == -1)
-        else:
-            smt.add(Int('b_u_%s' % state) == 0)
-
-    if not config.reverse_lengths:
-        if config.use_z_constraints:
-            #"""
-            # FA A: Fourth conjunct.
-            for state in fa_a.states:
-                if state in fa_a.start:
-                    smt.add(Int('a_z_%s' % state) == 1)
-                    smt.add(And( [ Int('a_y_%s' % transition) >= 0 for transition in fa_a.get_ingoing_transitions_names(state) ] ))
-                else:
-                    smt.add(Or(And( And( Int('a_z_%s' % state) == 0 ) , And( [ Int('a_y_%s' % transition) == 0 for transition in fa_a.get_ingoing_transitions_names(state) ] ) ), Or( [ And( Int('a_y_%s' % transition) > 0 , Int('a_z_%s' % transition.split('_')[0]) > 0, Int('a_z_%s' % state) == Int('a_z_%s' % transition.split('_')[0]) + 1) for transition in fa_a.get_ingoing_transitions_names(state) ] )))
-
-            # FA B: Fourth conjunct.
-            for state in fa_b.states:
-                if state in fa_b.start:
-                    smt.add(Int('b_z_%s' % state) == 1)
-                    smt.add(And( [ Int('b_y_%s' % transition) >= 0 for transition in fa_b.get_ingoing_transitions_names(state) ] ))
-                else:
-                    smt.add(Or(And( And( Int('b_z_%s' % state) == 0 ) , And( [ Int('b_y_%s' % transition) == 0 for transition in fa_b.get_ingoing_transitions_names(state) ] ) ), Or( [ And( Int('b_y_%s' % transition) > 0 , Int('b_z_%s' % transition.split('_')[0]) > 0, Int('b_z_%s' % state) == Int('b_z_%s' % transition.split('_')[0]) + 1) for transition in fa_b.get_ingoing_transitions_names(state) ] )))
-            #"""
-
-    # Allow multiple final states.
-    #FA A: At least one of the final state is reached.
-    #smt.add( Or( [ Or( Int('a_u_%s' % state) == -1 , Int('a_u_%s' % state) == 0 ) for state in fa_a.final ] ) )
-    #smt.add( Or( [ Int('a_u_%s' % state) == -1 for state in fa_b.final ] ) )
-    # FA B: At least one of the final state is reached.
-    #smt.add( Or( [ Or( Int('b_u_%s' % state) == -1 , Int('b_u_%s' % state) == 0 ) for state in fa_b.final ] ) )
-    #smt.add( Or( [ Int('b_u_%s' % state) == -1 for state in fa_b.final ] ) )
-
-    # Allow multiple inital states.
-    # FA A: Choose only one inital state for a run.
-    #smt.add( Or( [ And( Int('a_u_%s' % state) == 1, Int('a_z_%s' % state) == 1, And( [ And( Int('a_u_%s' % other_state) == 0, Int('a_z_%s' % other_state) == 0 ) for other_state in fa_a.start if other_state != state ] ) ) for state in fa_a.start ] ) )
-
-    # FA B: Choose only one inital state for a run.
-    #smt.add( Or( [ And( Int('b_u_%s' % state) == 1, Int('b_z_%s' % state) == 1, And( [ And( Int('b_u_%s' % other_state) == 0, Int('b_z_%s' % other_state) == 0 ) for other_state in fa_b.start if other_state != state ] ) ) for state in fa_b.start ] ) )
+    smt.push()
+    add_state_specific_formulae(smt, fa_a, fa_b, config)
 
     # Check for satisfiability.
     #print("start smt check")
@@ -369,7 +222,7 @@ def check_satisfiability(fa_a, fa_b, fa_a_formulae_dict, fa_b_formulae_dict, sat
 
     smt.pop()
 
-    if res != z3.unsat:  # ~ in [z3.sat, z3.unknown]
+    if res != z3.unsat:  # ~ res in [z3.sat, z3.unknown].
         #printnext(iter(fa_a.start)) + ',' + next(iter(fa_b.start)) + " true", end='  ')
         #print("true", end='  ')
         #print(smt.model())
@@ -386,25 +239,21 @@ class ArgumentParser(ProgramArgumentParser):
     def __init__(self):
         super().__init__()
 
-        # Add additional arguments.
+        # Set additional arguments.
         self.arg_parser.add_argument('--smt', '-s', action = 'store_true',
                         help = 'Use SMT solver Z3 to check for satisfiability of formulae.')
         self.arg_parser.add_argument('--forward-lengths', '-f', action = 'store_true',
                         help = "Compute forward lengths 'z' for Parikh image.")
         self.arg_parser.add_argument('--no-z-constraints', '-z', action = 'store_true',
                         help = 'Compute formulae without constraints for connectivity of automaton.')
-        self.arg_parser.add_argument('--store-product', '-o', metavar = 'PRODUCT_FILE', type = str,
-                        help = 'Store generated product into a file PRODUCT_FILE.')
         self.arg_parser.add_argument('--timeout', '-t', metavar = 'TIMEOUT_MS', type = int,
                         help = 'Set timeout after TIMEOUT_MS ms for Z3 SMT solver.')
-
-        # Create Config from the command line arguments.
-        return Config(self.parse_args())
 
 
 @dataclass
 class SatCounters:
     """Counters for various satisfiability combinations."""
+
     length_abstraction_sat_states: int = 0  # Length abstraction satisfiable, test for Parikh image satisfiability.
     length_abstraction_unsat_states: int = 0  # Length abstraction unsatisfiable.
     parikh_image_sat_states: int = 0  # Both length abstraction and Parikh image satisfiable.
@@ -413,6 +262,7 @@ class SatCounters:
 
 class Config(ProgramConfig):
     """Class for storing program configurations passed as command line arguments."""
+
     def __init__(self, args):
         super().__init__(args)
 

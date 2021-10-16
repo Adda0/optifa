@@ -11,12 +11,11 @@
 # author: David Chocholatý (xchoch08), FIT BUT
 # ====================================================
 
-#import os
 import sys
 from collections import deque
 import itertools
-#from copy import deepcopy
 import argparse
+import math
 
 import pickle
 import z3
@@ -35,6 +34,9 @@ def print_csv(message):
 
 class Optifa_a:
     """Optimizing Automata Product Construction and Emptiness Test base class"""
+
+    def __init__(self):
+        pass
 
     @staticmethod
     def print_error(message, err_code=1):
@@ -97,6 +99,7 @@ def enqueue_next_states(q_states, fa_orig, curr_state):
         for state_dict_elem in transitions[trans_symbol]:
             for state in state_dict_elem.split(','):
                 q_states.append(state)
+
 
 def add_persistent_formulae(smt, fa_a_orig, fa_b_orig, config):
     # Add persistent formulae valid for every product-state.
@@ -206,5 +209,155 @@ class ProgramArgumentParser:
         self.test_for_help()
         return self.arg_parser.parse_args()
 
+    @classmethod
+    def get_config(cls, config_class):
+        arg_parser = cls()
+
+        # Create Config from the command line arguments.
+        return config_class(arg_parser.parse_args())
+
+
+def add_state_specific_formulae(smt, fa_a, fa_b, config):
+    # Constraints for 'u_q'.
+    for state in fa_a.states:
+        if state in fa_a.start:
+            smt.add(Int('a_u_%s' % state) == 1)
+        elif state in fa_a.final:
+            pass
+            #smt.add(Or( a_u_q[i] == -1, a_u_q[i] == 0))
+            smt.add(Int('a_u_%s' % state) == -1)
+        else:
+            smt.add(Int('a_u_%s' % state) == 0)
+
+    for state in fa_b.states:
+        if state in fa_b.start:
+            smt.add(Int('b_u_%s' % state) == 1)
+        elif state in fa_b.final:
+            pass
+            #smt.add(Or( b_u_q[i] == -1, b_u_q[i] == 0))
+            smt.add(Int('b_u_%s' % state) == -1)
+        else:
+            smt.add(Int('b_u_%s' % state) == 0)
+
+    if not config.reverse_lengths:
+        if config.use_z_constraints:
+            # FA A: Fourth conjunct.
+            for state in fa_a.states:
+                if state in fa_a.start:
+                    smt.add(Int('a_z_%s' % state) == 1)
+                    smt.add(And( [ Int('a_y_%s' % transition) >= 0 for transition in fa_a.get_ingoing_transitions_names(state) ] ))
+                else:
+                    smt.add(Or(And( And( Int('a_z_%s' % state) == 0 ) , And( [ Int('a_y_%s' % transition) == 0 for transition in fa_a.get_ingoing_transitions_names(state) ] ) ), Or( [ And( Int('a_y_%s' % transition) > 0 , Int('a_z_%s' % transition.split('_')[0]) > 0, Int('a_z_%s' % state) == Int('a_z_%s' % transition.split('_')[0]) + 1) for transition in fa_a.get_ingoing_transitions_names(state) ] )))
+
+            # FA B: Fourth conjunct.
+            for state in fa_b.states:
+                if state in fa_b.start:
+                    smt.add(Int('b_z_%s' % state) == 1)
+                    smt.add(And( [ Int('b_y_%s' % transition) >= 0 for transition in fa_b.get_ingoing_transitions_names(state) ] ))
+                else:
+                    smt.add(Or(And( And( Int('b_z_%s' % state) == 0 ) , And( [ Int('b_y_%s' % transition) == 0 for transition in fa_b.get_ingoing_transitions_names(state) ] ) ), Or( [ And( Int('b_y_%s' % transition) > 0 , Int('b_z_%s' % transition.split('_')[0]) > 0, Int('b_z_%s' % state) == Int('b_z_%s' % transition.split('_')[0]) + 1) for transition in fa_b.get_ingoing_transitions_names(state) ] )))
+
+
+    # Allow multiple final states.
+    #FA A: At least one of the final state is reached.
+    #smt.add( Or( [ Or( Int('a_u_%s' % state) == -1 , Int('a_u_%s' % state) == 0 ) for state in fa_a.final ] ) )
+    #smt.add( Or( [ Int('a_u_%s' % state) == -1 for state in fa_b.final ] ) )
+    # FA B: At least one of the final state is reached.
+    #smt.add( Or( [ Or( Int('b_u_%s' % state) == -1 , Int('b_u_%s' % state) == 0 ) for state in fa_b.final ] ) )
+    #smt.add( Or( [ Int('b_u_%s' % state) == -1 for state in fa_b.final ] ) )
+
+    # Allow multiple inital states.
+    # FA A: Choose only one inital state for a run.
+    #smt.add( Or( [ And( Int('a_u_%s' % state) == 1, Int('a_z_%s' % state) == 1, And( [ And( Int('a_u_%s' % other_state) == 0, Int('a_z_%s' % other_state) == 0 ) for other_state in fa_a.start if other_state != state ] ) ) for state in fa_a.start ] ) )
+
+    # FA B: Choose only one inital state for a run.
+    #smt.add( Or( [ And( Int('b_u_%s' % state) == 1, Int('b_z_%s' % state) == 1, And( [ And( Int('b_u_%s' % other_state) == 0, Int('b_z_%s' % other_state) == 0 ) for other_state in fa_b.start if other_state != state ] ) ) for state in fa_b.start ] ) )
+
+
+def check_length_satisfiability(config, fa_a_formulae_dict, fa_b_formulae_dict):
+    """
+    Check satisfiability for length abstraction formulae using SMT solver Z3.
+    :param fa_a_formulae_dict: Dictionary with formulae for FA A.
+    :param fa_b_formulae_dict: Dictionary with formulae for FA B.
+    :return: True if satisfiable; False if not satisfiable.
+    """
+
+    if not config.smt_free:
+        smt_length = z3.Solver()
+        fa_a_var = Int('fa_a_var')
+        fa_b_var = Int('fa_b_var')
+        smt_length.add(fa_a_var >= 0, fa_b_var >= 0)
+
+    # Check for every formulae combination.
+    for fa_a_id in get_only_formulae(fa_a_formulae_dict):
+        for fa_b_id in get_only_formulae(fa_b_formulae_dict):
+            if config.smt_free:  # Without using SMT solver.
+                # Handle legths are equal, True without the need to resolve loops.
+                if fa_a_id[0] == fa_b_id[0]:
+                    return True
+
+                # Handle lengths are distinct, further checking needed.
+                elif fa_a_id[0] > fa_b_id[0]:  # FA A handle is longer.
+                    if solve_one_handle_longer(fa_a_id, fa_b_id):
+                        return True
+
+                else:  # FA B handle is longer.
+                    if solve_one_handle_longer(fa_b_id, fa_a_id):
+                        return True
+
+            else:  # Using SMT solver.
+                smt_length.push()
+                smt_length.add(fa_a_id[0] + fa_a_id[1] * fa_a_var == fa_b_id[0] + fa_b_id[1] * fa_b_var)
+
+                if smt_length.check() != z3.unsat:
+                    return True
+
+                smt_length.pop()
+
+    return False
+
+
+def get_only_formulae(formulae_dict):
+    only_formulae = []
+    for accept_state in formulae_dict:
+        try:
+            only_formulae.append([formulae_dict[accept_state][1], formulae_dict[accept_state][2]])
+        except IndexError:
+            only_formulae.append([formulae_dict[accept_state][1]])
+
+    return only_formulae
+
+
+def solve_one_handle_longer(fa_a_id, fa_b_id):
+    fa_a_id[0] -= fa_b_id[0]
+    fa_b_id[0] = 0
+
+    if fa_a_id[1] == 0 and fa_b_id[1] == 0:  # No loops.
+        return False
+
+    elif fa_b_id[1] == 0:
+        return False
+
+    elif fa_a_id[1] == 0:
+        curr_num = 0
+        while curr_num <= fa_a_id[0]:
+            if curr_num == fa_a_id[0]:
+                return True
+            else:
+                curr_num += fa_b_id[1]
+        return False
+
+    else:  # Two loops:
+        gcd = math.gcd(fa_a_id[1], fa_b_id[1])
+        if gcd == 1:
+            return True
+        else:
+            y = - fa_a_id[0]
+            while y < gcd:
+                y += fa_a_id[1]
+            if y % gcd == 0:
+                return True
+            else:
+                return False
 
 # End of file.
