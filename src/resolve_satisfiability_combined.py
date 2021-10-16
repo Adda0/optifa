@@ -19,7 +19,6 @@ import argparse
 from dataclasses import dataclass
 import math
 
-import pickle
 import z3
 from z3 import And, Int, Or, Sum
 
@@ -30,7 +29,7 @@ from optifa import *
 
 # Main script function.
 def main():
-    config = parse_args()  # Parse program arguments.
+    config = ArgumentParser()  # Parse program arguments.
     fa_a_orig = config.fa_a_orig
     fa_b_orig = config.fa_b_orig
 
@@ -383,50 +382,24 @@ def check_satisfiability(fa_a, fa_b, fa_a_formulae_dict, fa_b_formulae_dict, sat
     return False
 
 
-def parse_args():
-    """Parse arguments using argparse."""
-    arg_parser = argparse.ArgumentParser(
-        description = 'Construct product (intersection) of two finite automata using abstraction optimization techniques.'
-    )
+class ArgumentParser(ProgramArgumentParser):
+    def __init__(self):
+        super().__init__()
 
-    automata_format_group = arg_parser.add_mutually_exclusive_group(required = True)
-    automata_format_group.add_argument('--loaded', '-l', action = 'store_true',
-                    help = 'Read the automata files as a loaded Python objects parsed by Symboliclib.')
-    automata_format_group.add_argument('--path', '-p', action = 'store_true',
-                    help = 'Read the automata files as a Timbuk format files ready to be parsed by Symboliclib.')
+        # Add additional arguments.
+        self.arg_parser.add_argument('--smt', '-s', action = 'store_true',
+                        help = 'Use SMT solver Z3 to check for satisfiability of formulae.')
+        self.arg_parser.add_argument('--forward-lengths', '-f', action = 'store_true',
+                        help = "Compute forward lengths 'z' for Parikh image.")
+        self.arg_parser.add_argument('--no-z-constraints', '-z', action = 'store_true',
+                        help = 'Compute formulae without constraints for connectivity of automaton.')
+        self.arg_parser.add_argument('--store-product', '-o', metavar = 'PRODUCT_FILE', type = str,
+                        help = 'Store generated product into a file PRODUCT_FILE.')
+        self.arg_parser.add_argument('--timeout', '-t', metavar = 'TIMEOUT_MS', type = int,
+                        help = 'Set timeout after TIMEOUT_MS ms for Z3 SMT solver.')
 
-    automata_path_group = arg_parser.add_argument_group(title = "Automata to work with", description = "The automata paths for automata to generate product from.")
-    automata_path_group.add_argument('--fa-a', '-a', metavar = 'AUTOMATON_A', type = str, required = True,
-                    help = 'Automaton A to generate product from.')
-    automata_path_group.add_argument('--fa-b', '-b', metavar = 'AUTOMATON_B', type = str, required = True,
-                    help = 'Automaton B to generate product from.')
-
-    arg_parser.add_argument('--break-when-final', '-r', action = 'store_true',
-                    help = 'Break when final state is encountered to execute emptiness test.')
-    arg_parser.add_argument('--smt', '-s', action = 'store_true',
-                    help = 'Use SMT solver Z3 to check for satisfiability of formulae.')
-    arg_parser.add_argument('--forward-lengths', '-f', action = 'store_true',
-                    help = "Compute forward lengths 'z' for Parikh image.")
-    arg_parser.add_argument('--no-z-constraints', '-z', action = 'store_true',
-                    help = 'Compute formulae without constraints for connectivity of automaton.')
-    arg_parser.add_argument('--store-product', '-o', metavar = 'PRODUCT_FILE', type = str,
-                    help = 'Store generated product into a file PRODUCT_FILE.')
-    arg_parser.add_argument('--timeout', '-t', metavar = 'TIMEOUT_MS', type = int,
-                    help = 'Set timeout after TIMEOUT_MS ms for Z3 SMT solver.')
-
-    # Test for '--help' argument.
-    if '--help' in sys.argv or '-h' in sys.argv:
-        arg_parser.print_help()
-        sys.exit(0)
-
-    #try:
-    args = arg_parser.parse_args()
-    #except OSError as exception:
-    #    print_error(f"{exception.strerror}: {exception.filename}")
-    #except:
-    #    print_error("Got invalid arguments.")
-
-    return Config(args)
+        # Create Config from the command line arguments.
+        return Config(self.parse_args())
 
 
 @dataclass
@@ -438,24 +411,14 @@ class SatCounters:
     parikh_image_unsat_states: int = 0  # Length abstraction satisfiable, Parikh image unsatisfiable.
 
 
-class Config:
+class Config(ProgramConfig):
     """Class for storing program configurations passed as command line arguments."""
     def __init__(self, args):
-        if args.loaded:
-            with open(args.fa_a, 'rb') as fa_a, open(args.fa_b, 'rb') as fa_b:
-                self.fa_a_orig = pickle.load(fa_a)
-                self.fa_b_orig = pickle.load(fa_b)
-        elif args.path:
-            self.fa_a_orig = symboliclib.parse(args.fa_a)
-            self.fa_b_orig = symboliclib.parse(args.fa_b)
-        else:
-            raise ValueError("missing automata arguments or their wrong combination")
+        super().__init__(args)
 
-        self.break_when_final = args.break_when_final
         self.smt_free = not args.smt
         self.reverse_lengths = not args.forward_lengths
         self.use_z_constraints = not args.no_z_constraints
-        self.store_product = args.store_product
         self.timeout = args.timeout
 
 

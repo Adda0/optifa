@@ -16,8 +16,9 @@ import sys
 from collections import deque
 import itertools
 #from copy import deepcopy
-#import argparse
+import argparse
 
+import pickle
 import z3
 from z3 import And, Int, Or, Sum
 
@@ -143,5 +144,67 @@ def add_persistent_formulae(smt, fa_a_orig, fa_b_orig, config):
                     smt.add(Or(And( And( Int('bz_%s' % state) == 0 ) , And( [ Int('b_y_%s' % transition) == 0 for transition in fa_b_orig.get_ingoing_transitions_names(state) ] ) ), Or( [ And( Int('b_y_%s' % transition) >= 0 , Int('b_z_%s' % transition.split('_')[0]) > 0, Int('b_z_%s' % state) == Int('b_z_%s' % transition.split('_')[0]) - 1) for transition in fa_b_orig.get_ingoing_transitions_names(state) ] )))
 
     # End of SMT formulae initialization.
+
+
+class ProgramConfig:
+    """Class for storing program configurations passed as command line arguments."""
+    def __init__(self, args):
+        if args.loaded:
+            with open(args.fa_a, 'rb') as fa_a, open(args.fa_b, 'rb') as fa_b:
+                self.fa_a_orig = pickle.load(fa_a)
+                self.fa_b_orig = pickle.load(fa_b)
+        elif args.path:
+            self.fa_a_orig = symboliclib.parse(args.fa_a)
+            self.fa_b_orig = symboliclib.parse(args.fa_b)
+        else:
+            raise ValueError("missing automata arguments or their wrong combination")
+
+        self.break_when_final = args.break_when_final
+        self.store_product = args.store_product
+
+
+class ProgramArgumentParser:
+    """Class parsing arguments using argparse."""
+
+    def __init__(self):
+        self.arg_parser = argparse.ArgumentParser(
+            description = 'Construct product (intersection) of two finite automata using abstraction optimization techniques.'
+        )
+
+        automata_format_group = self.arg_parser.add_mutually_exclusive_group(required = True)
+        automata_format_group.add_argument('--loaded', '-l', action = 'store_true',
+                        help = 'Read the automata files as a loaded Python objects parsed by Symboliclib.')
+        automata_format_group.add_argument('--path', '-p', action = 'store_true',
+                        help = 'Read the automata files as a Timbuk format files ready to be parsed by Symboliclib.')
+
+        automata_path_group = self.arg_parser.add_argument_group(title = "Automata to work with", description = "The automata paths for automata to generate product from.")
+        automata_path_group.add_argument('--fa-a', '-a', metavar = 'AUTOMATON_A', type = str, required = True,
+                        help = 'Automaton A to generate product from.')
+        automata_path_group.add_argument('--fa-b', '-b', metavar = 'AUTOMATON_B', type = str, required = True,
+                        help = 'Automaton B to generate product from.')
+
+        self.arg_parser.add_argument('--break-when-final', '-r', action = 'store_true',
+                        help = 'Break when final state is encountered to execute emptiness test.')
+        self.arg_parser.add_argument('--store-product', '-o', metavar = 'PRODUCT_FILE', type = str,
+                        help = 'Store generated product into a file PRODUCT_FILE.')
+
+    def test_for_help(self):
+        """Test for '--help' argument and print argparse help message when present."""
+        if '--help' in sys.argv or '-h' in sys.argv:
+            self.arg_parser.print_help()
+            sys.exit(0)
+
+    def parse_args(self):
+        """Parse program command line arguments."""
+        #try:
+        args = self.arg_parser.parse_args()
+        #except OSError as exception:
+        #    print_error(f"{exception.strerror}: {exception.filename}")
+        #except:
+        #    print_error("Got invalid arguments.")
+
+        self.test_for_help()
+        return self.arg_parser.parse_args()
+
 
 # End of file.

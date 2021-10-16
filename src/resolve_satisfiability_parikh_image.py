@@ -19,7 +19,6 @@ import itertools
 import argparse
 import math
 
-import pickle
 import z3
 from z3 import And, Int, Or, Sum
 
@@ -263,60 +262,21 @@ def check_satisfiability(fa_a, fa_b, smt, config):
 
 def parse_args():
     """Parse arguments using argparse."""
-    arg_parser = argparse.ArgumentParser(
-        description = 'Construct product (intersection) of two finite automata using abstraction optimization techniques.'
-    )
 
-    automata_format_group = arg_parser.add_mutually_exclusive_group(required = True)
-    automata_format_group.add_argument('--loaded', '-l', action = 'store_true',
-                    help = 'Read the automata files as a loaded Python objects parsed by Symboliclib.')
-    automata_format_group.add_argument('--path', '-p', action = 'store_true',
-                    help = 'Read the automata files as a Timbuk format files ready to be parsed by Symboliclib.')
+    arg_parser = ArgumentParser()
 
-    automata_path_group = arg_parser.add_argument_group(title = "Automata to work with", description = "The automata paths for automata to generate product from.")
-    automata_path_group.add_argument('--fa-a', '-a', metavar = 'AUTOMATON_A', type = str, required = True,
-                    help = 'Automaton A to generate product from.')
-    automata_path_group.add_argument('--fa-b', '-b', metavar = 'AUTOMATON_B', type = str, required = True,
-                    help = 'Automaton B to generate product from.')
+    arg_parser.test_for_help()
 
-    arg_parser.add_argument('--break-when-final', '-r', action = 'store_true',
-                    help = 'Break when final state is encountered to execute emptiness test.')
-    arg_parser.add_argument('--forward-lengths', '-f', action = 'store_true',
-                    help = "Compute forward lengths 'z' for Parikh image.")
-    arg_parser.add_argument('--no-z-constraints', '-z', action = 'store_true',
-                    help = 'Compute formulae without constraints for connectivity of automaton.')
-    arg_parser.add_argument('--store-product', '-o', metavar = 'PRODUCT_FILE', type = str,
-                    help = 'Store generated product into a file PRODUCT_FILE.')
-    arg_parser.add_argument('--timeout', '-t', metavar = 'TIMEOUT_MS', type = int,
-                    help = 'Set timeout after TIMEOUT_MS ms for Z3 SMT solver.')
-
-    # Test for '--help' argument.
-    if '--help' in sys.argv or '-h' in sys.argv:
-        arg_parser.print_help()
-        sys.exit(0)
-
-    args = arg_parser.parse_args()
-
-    return Config(args)
+    return Config(arg_parser.parse_args())
 
 
-class Config:
+class Config(ProgramConfig):
     """Class for storing program configurations passed as command line arguments."""
     def __init__(self, args):
-        if args.loaded:
-            with open(args.fa_a, 'rb') as fa_a, open(args.fa_b, 'rb') as fa_b:
-                self.fa_a_orig = pickle.load(fa_a)
-                self.fa_b_orig = pickle.load(fa_b)
-        elif args.path:
-            self.fa_a_orig = symboliclib.parse(args.fa_a)
-            self.fa_b_orig = symboliclib.parse(args.fa_b)
-        else:
-            raise ValueError("missing automata arguments or their wrong combination")
+        super().__init__(args)
 
-        self.break_when_final = args.break_when_final
         self.reverse_lengths = not args.forward_lengths
         self.use_z_constraints = not args.no_z_constraints
-        self.store_product = args.store_product
         self.timeout = args.timeout
 
 if __name__ == "__main__":
