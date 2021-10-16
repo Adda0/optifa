@@ -34,9 +34,12 @@ F_FA_A_LOADED="tmp_automaton_a"
 F_FA_B_LOADED="tmp_automaton_b"
 F_TESTED_COMBINATIONS="tested_combinations"
 
+SYMBOLS=()
+SYMBOLS_MODE=""
+
 # handle given arguments
 # ./run.sh [-a finite_automaton_A] [-b finite_automaton_B] [-o output]"
-while getopts :a:b:o:t:h o; do
+while getopts :a:b:o:t:u:k:h o; do
     case "$o" in
     # input files
     a) # finite_automaton_A file
@@ -74,12 +77,33 @@ while getopts :a:b:o:t:h o; do
             F_OUTPUT="$OPTARG"
         fi
         ;;
-    t) # Tested combinations
+    t) # Tested combinations.
         if [ -z "$OPTARG" ]; then # Parameter -t without given output file following '-t'.
             print_stderr "Invalid flag: -t <tested_combinations_file>."
             exit 1;
         else
             F_TESTED_COMBINATIONS="$OPTARG"
+        fi
+        ;;
+
+    # Unify symbols.
+    u) # Which symbols to unify.
+        if [ -z "$OPTARG" ]; then # Parameter -u without given symbol to be unified.
+            print_stderr "Invalid flag: -u <symbol_to_be_unified>."
+            exit 1;
+        else
+            SYMBOLS+=("$OPTARG")
+            SYMBOLS_MODE="--unify-symbols"
+        fi
+        ;;
+
+    k) # Which symbols to keep.
+        if [ -z "$OPTARG" ]; then # Parameter -k without given symbol to be kept.
+            print_stderr "Invalid flag: -k <symbol_to_be_kept>."
+            exit 1;
+        else
+            SYMBOLS+=("$OPTARG")
+            SYMBOLS_MODE="--keep-symbols"
         fi
         ;;
     h) # help #TODO
@@ -118,7 +142,9 @@ if [ ! -f "$F_OUTPUT" ]; then
     echo -n "FP.P.backward.checked,FP.P.backward.processed,FP.P.backward.sat,FP.P.backward.false,FP.P.backward.skipped,FP.P.backward.states,FP.P.backward.final,FP.P.backward.mean,FP.P.backward.stddev,FP.P.backward.median,FP.P.backward.user,FP.P.backward.system,FP.P.backward.min,FP.P.backward.max," >> "$F_OUTPUT";
     echo -n "FP.P.no_lengths.checked,FP.P.no_lengths.processed,FP.P.no_lengths.sat,FP.P.no_lengths.false,FP.P.no_lengths.skipped,FP.P.no_lengths.states,FP.P.no_lengths.final,FP.P.no_lengths.mean,FP.P.no_lengths.stddev,FP.P.no_lengths.median,FP.P.no_lengths.user,FP.P.no_lengths.system,FP.P.no_lengths.min,FP.P.no_lengths.max," >> "$F_OUTPUT";
     echo -n "FP.C.checked,FP.C.processed,FP.C.sat,FP.C.false,FP.C.skipped,FP.C.len.sat,FP.C.len.unsat,FP.C.par.sat,FP.C.par.unsat,FP.C.l.lasso,FP.C.s.lasso,FP.C.states,FP.C.final,FP.C.mean,FP.C.stddev,FP.C.median,FP.C.user,FP.C.system,FP.C.min,FP.C.max," >> "$F_OUTPUT";
+    echo -n "FP.C.variable.checked,FP.C.variable.processed,FP.C.variable.sat,FP.C.variable.false,FP.C.variable.skipped,FP.C.variable.states,FP.C.variable.final,FP.C.variable.mean,FP.C.variable.stddev,FP.C.variable.median,FP.C.variable.user,FP.C.variable.system,FP.C.variable.min,FP.C.variable.max," >> "$F_OUTPUT";
 fi
+
 
 if [ ! -f "$F_TESTED_COMBINATIONS" ]; then
     touch "$F_TESTED_COMBINATIONS";
@@ -141,74 +167,98 @@ F_DATA_OUT="tmp_data_out_"$OUT_FILENAME""
 F_FA_A_LOADED="tmp_automaton_a_"$OUT_FILENAME""
 F_FA_B_LOADED="tmp_automaton_b_"$OUT_FILENAME""
 
-# Load automata to a Python object.
-load_automata.py -a "$F_FA_A_ORIG" -b "$F_FA_B_ORIG" --out_a "$F_FA_A_LOADED" --out_b "$F_FA_B_LOADED";
+# Load automata to a Python object with optional unifying of transition symbols.
+#if ! [ $UNIFY ]; then
+    load_automata.py -a "$F_FA_A_ORIG" -b "$F_FA_B_ORIG" --out_a "$F_FA_A_LOADED" --out_b "$F_FA_B_LOADED";
+#elif [ ${#KEEP_SYMBOLS[@]} -ne 0 ]; then
+#    load_automata.py -a "$F_FA_A_ORIG" -b "$F_FA_B_ORIG" --out_a "$F_FA_A_LOADED" --out_b "$F_FA_B_LOADED" -k "$KEEP_SYMBOLS";
+#elif [ ${#UNIFY_SYMBOLS[@]} -ne 0 ]; then
+#    load_automata.py -a "$F_FA_A_ORIG" -b "$F_FA_B_ORIG" --out_a "$F_FA_A_LOADED" --out_b "$F_FA_B_LOADED" -u "$UNIFY_SYMBOLS";
+#fi
 
 # Run every algorithm version:
 ## Emptiness tests:
 ### Basic algorithm:
-hyperfine "python3 generate_basic_product.py --break-when-final --fa-a-loaded "$F_FA_A_LOADED" --fa-b-loaded "$F_FA_B_LOADED" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
+hyperfine "python3 generate_basic_product.py --break-when-final --loaded --fa-a "$F_FA_A_LOADED" --fa-b "$F_FA_B_LOADED" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
 append_output;
 
 ### Length abstraction:
 # - With SMT solver:
-hyperfine "python3 resolve_satisfiability_length_abstraction.py --smt --break-when-final --fa-a-loaded "$F_FA_A_LOADED" --fa-b-loaded "$F_FA_B_LOADED" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
+hyperfine "python3 resolve_satisfiability_length_abstraction.py --smt --break-when-final --loaded --fa-a "$F_FA_A_LOADED" --fa-b "$F_FA_B_LOADED" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
 append_output;
 
 # - Without SMT solver:
-hyperfine "python3 resolve_satisfiability_length_abstraction.py --break-when-final --fa-a-loaded "$F_FA_A_LOADED" --fa-b-loaded "$F_FA_B_LOADED" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
+hyperfine "python3 resolve_satisfiability_length_abstraction.py --break-when-final --loaded --fa-a "$F_FA_A_LOADED" --fa-b "$F_FA_B_LOADED" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
 append_output;
 
 ### Parikh image:
 # - Forward lengths computation:
-#hyperfine "python3 resolve_satisfiability_parikh_image.py --forward_lengths --break-when-final --fa-a-loaded "$F_FA_A_LOADED" --fa-b-loaded "$F_FA_B_LOADED" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
+#hyperfine "python3 resolve_satisfiability_parikh_image.py --forward_lengths --break-when-final --loaded --fa-a "$F_FA_A_LOADED" --fa-b "$F_FA_B_LOADED" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
 #append_output;
 echo -n ",,,,,,,,,,,,,," >> "$F_OUTPUT";
 
 # - Backward lengths computation:
-#hyperfine "python3 resolve_satisfiability_parikh_image.py --break-when-final --fa-a-loaded "$F_FA_A_LOADED" --fa-b-loaded "$F_FA_B_LOADED" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
+#hyperfine "python3 resolve_satisfiability_parikh_image.py --break-when-final --loaded --fa-a "$F_FA_A_LOADED" --fa-b "$F_FA_B_LOADED" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
 #append_output;
 echo -n ",,,,,,,,,,,,,," >> "$F_OUTPUT";
 
 # - Without legths computation:
-hyperfine "python3 resolve_satisfiability_parikh_image.py --no-z-constraints --break-when-final --fa-a-loaded "$F_FA_A_LOADED" --fa-b-loaded "$F_FA_B_LOADED" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
+hyperfine "python3 resolve_satisfiability_parikh_image.py --no-z-constraints --break-when-final --loaded --fa-a "$F_FA_A_LOADED" --fa-b "$F_FA_B_LOADED" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
 append_output;
 
 ### Combined algorithms:
-hyperfine "python3 resolve_satisfiability_combined.py --no-z-constraints --break-when-final --fa-a-loaded "$F_FA_A_LOADED" --fa-b-loaded "$F_FA_B_LOADED" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
+hyperfine "python3 resolve_satisfiability_combined.py --no-z-constraints --break-when-final --loaded --fa-a "$F_FA_A_LOADED" --fa-b "$F_FA_B_LOADED" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
 append_output;
+
+# - Variable length abstraction computation:
+if ! [ -z $SYMBOLS_MODE ]; then
+    hyperfine "python3 resolve_satisfiability_variable_length_abstraction.py --no-z-constraints --break-when-final --loaded --fa-a "$F_FA_A_LOADED" --fa-b "$F_FA_B_LOADED" "$SYMBOLS_MODE" "$SYMBOLS" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
+    append_output;
+else
+    echo -n ",,,,,,,,,,,,,," >> "$F_OUTPUT";
+fi
 
 ## Full product generation:
 ### Basic algorithm:
-hyperfine "python3 generate_basic_product.py --fa-a-loaded "$F_FA_A_LOADED" --fa-b-loaded "$F_FA_B_LOADED" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
+hyperfine "python3 generate_basic_product.py --loaded --fa-a "$F_FA_A_LOADED" --fa-b "$F_FA_B_LOADED" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
 append_output;
 
 ### Length abstraction:
 # - With SMT solver:
-hyperfine "python3 resolve_satisfiability_length_abstraction.py --smt --fa-a-loaded "$F_FA_A_LOADED" --fa-b-loaded "$F_FA_B_LOADED" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
+hyperfine "python3 resolve_satisfiability_length_abstraction.py --smt --loaded --fa-a "$F_FA_A_LOADED" --fa-b "$F_FA_B_LOADED" > ""$F_DATA_OUT""" --export-csv "$F_TIME_CSV" -u second -r 2;
 append_output;
 
 # - Without SMT solver:
-hyperfine "python3 resolve_satisfiability_length_abstraction.py --fa-a-loaded "$F_FA_A_LOADED" --fa-b-loaded "$F_FA_B_LOADED" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
+hyperfine "python3 resolve_satisfiability_length_abstraction.py --loaded --fa-a ""$F_FA_A_LOADED"" --fa-b ""$F_FA_B_LOADED"" > ""$F_DATA_OUT""" --export-csv "$F_TIME_CSV" -u second -r 2;
 append_output;
 
 ### Parikh image:
 # - Forward lengths computation:
-#hyperfine "python3 resolve_satisfiability_parikh_image.py --forward-lengths --fa-a-loaded "$F_FA_A_LOADED" --fa-b-loaded "$F_FA_B_LOADED" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
+#hyperfine "python3 resolve_satisfiability_parikh_image.py --forward-lengths --loaded --fa-a "$F_FA_A_LOADED" --fa-b "$F_FA_B_LOADED" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
 #append_output;
 echo -n ",,,,,,,,,,,,,," >> "$F_OUTPUT";
 
 # - Backward lengths computation:
-#hyperfine "python3 resolve_satisfiability_parikh_image.py --fa-a-loaded "$F_FA_A_LOADED" --fa-b-loaded "$F_FA_B_LOADED" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
+#hyperfine "python3 resolve_satisfiability_parikh_image.py --loaded --fa-a "$F_FA_A_LOADED" --fa-b "$F_FA_B_LOADED" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
 #append_output;
 echo -n ",,,,,,,,,,,,,," >> "$F_OUTPUT";
 
 # - Without legths computation:
-hyperfine "python3 resolve_satisfiability_parikh_image.py --no-z-constraints --fa-a-loaded "$F_FA_A_LOADED" --fa-b-loaded "$F_FA_B_LOADED" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
+hyperfine "python3 resolve_satisfiability_parikh_image.py --no-z-constraints --loaded --fa-a "$F_FA_A_LOADED" --fa-b "$F_FA_B_LOADED" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
 append_output;
 
 ### Combined algorithms:
-hyperfine "python3 resolve_satisfiability_combined.py --no-z-constraints --fa-a-loaded "$F_FA_A_LOADED" --fa-b-loaded "$F_FA_B_LOADED" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
+hyperfine "python3 resolve_satisfiability_combined.py --no-z-constraints --loaded --fa-a "$F_FA_A_LOADED" --fa-b "$F_FA_B_LOADED" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
 append_output;
+
+### Combined algorithms:
+# - Variable length abstraction computation:
+if ! [ -z $SYMBOLS_MODE ]; then
+    hyperfine "python3 resolve_satisfiability_variable_length_abstraction.py --no-z-constraints --loaded --fa-a "$F_FA_A_LOADED" --fa-b "$F_FA_B_LOADED" "$SYMBOLS_MODE" "$SYMBOLS" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
+    append_output;
+else
+    echo -n ",,,,,,,,,,,,,," >> "$F_OUTPUT";
+fi
+
 
 # End of file.
