@@ -27,7 +27,7 @@ from optifa import *
 
 # Main script function
 def main():
-    config = ProgramArgumentParser.get_config(ProgramConfig)  # Parse program arguments.
+    config = ProgramArgumentsParser.get_config(ProgramConfig)  # Parse program arguments.
 
     # Run for emptiness test with break_when_final == True or
     # for full product construction with break_when_final == False.

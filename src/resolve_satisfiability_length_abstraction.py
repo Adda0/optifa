@@ -21,7 +21,7 @@ from optifa import *
 
 # Main script function.
 def main():
-    config = ArgumentParser.get_config(Config)  # Parse program arguments.
+    config = ArgumentsParser.get_config(Config)  # Parse program arguments.
     fa_a_orig = config.fa_a_orig
     fa_b_orig = config.fa_b_orig
 
@@ -135,7 +135,7 @@ def main():
     #print(intersect_ab.final)
 
 
-class ArgumentParser(ProgramArgumentParser):
+class ArgumentsParser(ProgramArgumentsParser):
     def __init__(self):
         super().__init__()
 

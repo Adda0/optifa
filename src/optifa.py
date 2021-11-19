@@ -11,6 +11,7 @@
 # author: David Chocholatý (xchoch08), FIT BUT
 # ====================================================
 
+import os
 import sys
 from collections import deque
 import itertools
@@ -21,8 +22,8 @@ import pickle
 import z3
 from z3 import And, Int, Or, Sum
 
-#import symboliclib
-#from lfa import LFA
+import symboliclib
+from lfa import LFA
 
 
 def print_csv(message):
@@ -32,24 +33,18 @@ def print_csv(message):
     """
     print(message, end=',')
 
-class Optifa_a:
-    """Optimizing Automata Product Construction and Emptiness Test base class"""
 
-    def __init__(self):
-        pass
-
-    @staticmethod
-    def print_error(message, err_code=1):
-        """
-        Print error message and end the program.
-        :param message: Error message to be printed.
-        :param err_code: Error code to end the program with.
-        """
-        print('ERROR: ' + __file__ + ': ' + message, file=sys.stderr)
-        sys.exit(err_code)
+def print_error(message, err_code=1):
+    """
+    Print error message and end the program.
+    :param message: Error message to be printed.
+    :param err_code: Error code to end the program with.
+    """
+    print(os.path.basename(__file__) + ": error: " + message, file=sys.stderr)
+    sys.exit(err_code)
 
 
-def make_pairs(fa_a_orig, fa_b_orig, q_pair_states, q_checked_pairs, intersect, curr_state, single_pair = False):
+def make_pairs(fa_a_orig, fa_b_orig, q_pair_states, q_checked_pairs, intersect, curr_state, single_pair=False):
     a_state = curr_state[0]
     b_state = curr_state[1]
     product_state_name = a_state + ',' + b_state
@@ -60,7 +55,8 @@ def make_pairs(fa_a_orig, fa_b_orig, q_pair_states, q_checked_pairs, intersect, 
     if a_state in fa_a_orig.transitions and b_state in fa_b_orig.transitions:
         for label in fa_a_orig.transitions[a_state]:
             if label in fa_b_orig.transitions[b_state]:
-                endstates = itertools.product(fa_a_orig.transitions[a_state][label], fa_b_orig.transitions[b_state][label])
+                endstates = itertools.product(fa_a_orig.transitions[a_state][label],
+                                              fa_b_orig.transitions[b_state][label])
                 for endstate in endstates:
                     endstate_str = endstate[0] + "," + endstate[1]
 
@@ -106,25 +102,31 @@ def add_persistent_formulae(smt, fa_a_orig, fa_b_orig, config):
 
     # FA A: First conjunct.
     for state in fa_a_orig.states:
-        smt.add(Int('a_u_%s' % state) + Sum([Int('a_y_%s' % transition) for transition in fa_a_orig.get_ingoing_transitions_names(state)]) - Sum([Int('a_y_%s' % transition) for transition in fa_a_orig.get_outgoing_transitions_names(state)]) == 0)
+        smt.add(Int('a_u_%s' % state) + Sum(
+            [Int('a_y_%s' % transition) for transition in fa_a_orig.get_ingoing_transitions_names(state)]) - Sum(
+            [Int('a_y_%s' % transition) for transition in fa_a_orig.get_outgoing_transitions_names(state)]) == 0)
 
     # FA B: First conjunct.
     for state in fa_b_orig.states:
-        smt.add(Int('b_u_%s' % state) + Sum([Int('b_y_%s' % transition) for transition in fa_b_orig.get_ingoing_transitions_names(state)]) - Sum([Int('b_y_%s' % transition) for transition in fa_b_orig.get_outgoing_transitions_names(state)]) == 0)
+        smt.add(Int('b_u_%s' % state) + Sum(
+            [Int('b_y_%s' % transition) for transition in fa_b_orig.get_ingoing_transitions_names(state)]) - Sum(
+            [Int('b_y_%s' % transition) for transition in fa_b_orig.get_outgoing_transitions_names(state)]) == 0)
 
     # FA A: Second conjunct.
-    smt.add( And( [ Int('a_y_%s' % transition) >= 0 for transition in fa_a_orig.get_transitions_names() ] ))
+    smt.add(And([Int('a_y_%s' % transition) >= 0 for transition in fa_a_orig.get_transitions_names()]))
 
     # FA B: Second conjunct.
-    smt.add( And( [ Int('b_y_%s' % transition) >= 0 for transition in fa_b_orig.get_transitions_names() ] ))
+    smt.add(And([Int('b_y_%s' % transition) >= 0 for transition in fa_b_orig.get_transitions_names()]))
 
     # FA A: Third conjunct.
     for symbol in fa_a_orig.alphabet:
-        smt.add(Int('hash_%s' % symbol) == Sum([Int('a_y_%s' % transition) for transition in fa_a_orig.get_transitions_names_with_symbol(symbol)]))
+        smt.add(Int('hash_%s' % symbol) == Sum(
+            [Int('a_y_%s' % transition) for transition in fa_a_orig.get_transitions_names_with_symbol(symbol)]))
 
     # FA B: Third conjunct.
     for symbol in fa_b_orig.alphabet:
-        smt.add(Int('hash_%s' % symbol) == Sum([Int('b_y_%s' % transition) for transition in fa_b_orig.get_transitions_names_with_symbol(symbol)]))
+        smt.add(Int('hash_%s' % symbol) == Sum(
+            [Int('b_y_%s' % transition) for transition in fa_b_orig.get_transitions_names_with_symbol(symbol)]))
 
     if config.reverse_lengths:
         if config.use_z_constraints:
@@ -132,25 +134,48 @@ def add_persistent_formulae(smt, fa_a_orig, fa_b_orig, config):
             for state in fa_a_orig.states:
                 if state in fa_a_orig.final:
                     smt.add(Int('a_z_%s' % state) == 1)
-                    smt.add(And( [ Int('a_y_%s' % transition) >= 0 for transition in fa_a_orig.get_outgoing_transitions_names(state) ] ))
+                    smt.add(And([Int('a_y_%s' % transition) >= 0 for transition in
+                                 fa_a_orig.get_outgoing_transitions_names(state)]))
 
                 if state not in fa_a_orig.start and state not in fa_a_orig.final:
-                    smt.add(Or(And( And( Int('a_z_%s' % state) == 0 ) , And( [ Int('a_y_%s' % transition) == 0 for transition in fa_a_orig.get_ingoing_transitions_names(state) ] ) ), Or( [ And( Int('a_y_%s' % transition) >= 0 , Int('a_z_%s' % transition.split('_')[0]) > 0, Int('a_z_%s' % state) == Int('a_z_%s' % transition.split('_')[0]) - 1) for transition in fa_a_orig.get_ingoing_transitions_names(state) ] )))
+                    smt.add(Or(And(And(Int('a_z_%s' % state) == 0),
+                                   And([Int('a_y_%s' % transition) == 0 for transition in
+                                        fa_a_orig.get_ingoing_transitions_names(state)])), Or([And(Int(
+                        'a_y_%s' % transition) >= 0, Int('a_z_%s' % transition.split('_')[0]) > 0,
+                                                                                                   Int('a_z_%s' % state) == Int(
+                                                                                                       'a_z_%s' %
+                                                                                                       transition.split(
+                                                                                                           '_')[0]) - 1)
+                                                                                               for transition in
+                                                                                               fa_a_orig.get_ingoing_transitions_names(
+                                                                                                   state)])))
 
             # FA B: Fourth conjunct.
             for state in fa_b_orig.states:
                 if state in fa_b_orig.final:
                     smt.add(Int('b_z_%s' % state) == 1)
-                    smt.add(And( [ Int('b_y_%s' % transition) >= 0 for transition in fa_b_orig.get_outgoing_transitions_names(state) ] ))
+                    smt.add(And([Int('b_y_%s' % transition) >= 0 for transition in
+                                 fa_b_orig.get_outgoing_transitions_names(state)]))
 
                 if state not in fa_b_orig.start and state not in fa_a_orig.final:
-                    smt.add(Or(And( And( Int('bz_%s' % state) == 0 ) , And( [ Int('b_y_%s' % transition) == 0 for transition in fa_b_orig.get_ingoing_transitions_names(state) ] ) ), Or( [ And( Int('b_y_%s' % transition) >= 0 , Int('b_z_%s' % transition.split('_')[0]) > 0, Int('b_z_%s' % state) == Int('b_z_%s' % transition.split('_')[0]) - 1) for transition in fa_b_orig.get_ingoing_transitions_names(state) ] )))
+                    smt.add(Or(And(And(Int('bz_%s' % state) == 0),
+                                   And([Int('b_y_%s' % transition) == 0 for transition in
+                                        fa_b_orig.get_ingoing_transitions_names(state)])), Or([And(Int(
+                        'b_y_%s' % transition) >= 0, Int('b_z_%s' % transition.split('_')[0]) > 0,
+                                                                                                   Int('b_z_%s' % state) == Int(
+                                                                                                       'b_z_%s' %
+                                                                                                       transition.split(
+                                                                                                           '_')[0]) - 1)
+                                                                                               for transition in
+                                                                                               fa_b_orig.get_ingoing_transitions_names(
+                                                                                                   state)])))
 
     # End of SMT formulae initialization.
 
 
 class ProgramConfig:
     """Class for storing program configurations passed as command line arguments."""
+
     def __init__(self, args):
         if args.loaded:
             with open(args.fa_a, 'rb') as fa_a, open(args.fa_b, 'rb') as fa_b:
@@ -163,51 +188,43 @@ class ProgramConfig:
             raise ValueError("missing automata arguments or their wrong combination")
 
         self.break_when_final = args.break_when_final
-        self.store_product = args.store_product
+        self.store_result = args.store_result
 
 
-class ProgramArgumentParser:
-    """Class parsing arguments using argparse."""
+class ProgramArgumentsParser:
+    """Class parsing program arguments using argparse."""
 
     def __init__(self):
         self.arg_parser = argparse.ArgumentParser(
-            description = 'Construct product (intersection) of two finite automata using abstraction optimization techniques.'
+            description='Construct product (intersection) of two finite automata using abstraction optimization '
+                        'techniques. '
         )
 
-        automata_format_group = self.arg_parser.add_mutually_exclusive_group(required = True)
-        automata_format_group.add_argument('--loaded', '-l', action = 'store_true',
-                        help = 'Read the automata files as a loaded Python objects parsed by Symboliclib.')
-        automata_format_group.add_argument('--path', '-p', action = 'store_true',
-                        help = 'Read the automata files as a Timbuk format files ready to be parsed by Symboliclib.')
+        automata_format_group = self.arg_parser.add_mutually_exclusive_group(required=True)
+        automata_format_group.add_argument('--loaded', '-l', action='store_true',
+                                           help='Read the automata files as a loaded Python objects parsed by '
+                                                'Symboliclib.')
+        automata_format_group.add_argument('--path', '-p', action='store_true',
+                                           help='Read the automata files as a Timbuk format files ready to be parsed '
+                                                'by Symboliclib.')
 
-        automata_path_group = self.arg_parser.add_argument_group(title = "Automata to work with", description = "The automata paths for automata to generate product from.")
-        automata_path_group.add_argument('--fa-a', '-a', metavar = 'AUTOMATON_A', type = str, required = True,
-                        help = 'Automaton A to generate product from.')
-        automata_path_group.add_argument('--fa-b', '-b', metavar = 'AUTOMATON_B', type = str, required = True,
-                        help = 'Automaton B to generate product from.')
+        automata_path_group = self.arg_parser.add_argument_group(title="Automata to work with",
+                                                                 description="The automata paths for automata to "
+                                                                             "generate product from.")
+        automata_path_group.add_argument('--fa-a', '-a', metavar='AUTOMATON_A', type=str, required=True,
+                                         help='Automaton A to generate product from.')
+        automata_path_group.add_argument('--fa-b', '-b', metavar='AUTOMATON_B', type=str, required=True,
+                                         help='Automaton B to generate product from.')
 
-        self.arg_parser.add_argument('--break-when-final', '-r', action = 'store_true',
-                        help = 'Break when final state is encountered to execute emptiness test.')
-        self.arg_parser.add_argument('--store-product', '-o', metavar = 'PRODUCT_FILE', type = str,
-                        help = 'Store generated product into a file PRODUCT_FILE.')
-
-    def test_for_help(self):
-        """Test for '--help' argument and print argparse help message when present."""
-        if '--help' in sys.argv or '-h' in sys.argv:
-            self.arg_parser.print_help()
-            sys.exit(0)
+        self.arg_parser.add_argument('--break-when-final', '-r', action='store_true',
+                                     help='Break when final state is encountered to execute emptiness test.')
+        self.arg_parser.add_argument('--store-result', '-o', metavar='RESULT_FILE', type=str,
+                                     help='Store result into a file.')
 
     def parse_args(self):
         """Parse program command line arguments."""
-        #try:
         args = self.arg_parser.parse_args()
-        #except OSError as exception:
-        #    print_error(f"{exception.strerror}: {exception.filename}")
-        #except:
-        #    print_error("Got invalid arguments.")
-
-        self.test_for_help()
-        return self.arg_parser.parse_args()
+        return args
 
     @classmethod
     def get_config(cls, config_class):
@@ -224,7 +241,7 @@ def add_state_specific_formulae(smt, fa_a, fa_b, config):
             smt.add(Int('a_u_%s' % state) == 1)
         elif state in fa_a.final:
             pass
-            #smt.add(Or( a_u_q[i] == -1, a_u_q[i] == 0))
+            # smt.add(Or( a_u_q[i] == -1, a_u_q[i] == 0))
             smt.add(Int('a_u_%s' % state) == -1)
         else:
             smt.add(Int('a_u_%s' % state) == 0)
@@ -234,7 +251,7 @@ def add_state_specific_formulae(smt, fa_a, fa_b, config):
             smt.add(Int('b_u_%s' % state) == 1)
         elif state in fa_b.final:
             pass
-            #smt.add(Or( b_u_q[i] == -1, b_u_q[i] == 0))
+            # smt.add(Or( b_u_q[i] == -1, b_u_q[i] == 0))
             smt.add(Int('b_u_%s' % state) == -1)
         else:
             smt.add(Int('b_u_%s' % state) == 0)
@@ -245,33 +262,54 @@ def add_state_specific_formulae(smt, fa_a, fa_b, config):
             for state in fa_a.states:
                 if state in fa_a.start:
                     smt.add(Int('a_z_%s' % state) == 1)
-                    smt.add(And( [ Int('a_y_%s' % transition) >= 0 for transition in fa_a.get_ingoing_transitions_names(state) ] ))
+                    smt.add(And([Int('a_y_%s' % transition) >= 0 for transition in
+                                 fa_a.get_ingoing_transitions_names(state)]))
                 else:
-                    smt.add(Or(And( And( Int('a_z_%s' % state) == 0 ) , And( [ Int('a_y_%s' % transition) == 0 for transition in fa_a.get_ingoing_transitions_names(state) ] ) ), Or( [ And( Int('a_y_%s' % transition) > 0 , Int('a_z_%s' % transition.split('_')[0]) > 0, Int('a_z_%s' % state) == Int('a_z_%s' % transition.split('_')[0]) + 1) for transition in fa_a.get_ingoing_transitions_names(state) ] )))
+                    smt.add(Or(And(And(Int('a_z_%s' % state) == 0),
+                                   And([Int('a_y_%s' % transition) == 0 for transition in
+                                        fa_a.get_ingoing_transitions_names(state)])), Or([And(Int(
+                        'a_y_%s' % transition) > 0, Int('a_z_%s' % transition.split('_')[0]) > 0,
+                                                                                              Int('a_z_%s' % state) == Int(
+                                                                                                  'a_z_%s' %
+                                                                                                  transition.split('_')[
+                                                                                                      0]) + 1) for
+                                                                                          transition in
+                                                                                          fa_a.get_ingoing_transitions_names(
+                                                                                              state)])))
 
             # FA B: Fourth conjunct.
             for state in fa_b.states:
                 if state in fa_b.start:
                     smt.add(Int('b_z_%s' % state) == 1)
-                    smt.add(And( [ Int('b_y_%s' % transition) >= 0 for transition in fa_b.get_ingoing_transitions_names(state) ] ))
+                    smt.add(And([Int('b_y_%s' % transition) >= 0 for transition in
+                                 fa_b.get_ingoing_transitions_names(state)]))
                 else:
-                    smt.add(Or(And( And( Int('b_z_%s' % state) == 0 ) , And( [ Int('b_y_%s' % transition) == 0 for transition in fa_b.get_ingoing_transitions_names(state) ] ) ), Or( [ And( Int('b_y_%s' % transition) > 0 , Int('b_z_%s' % transition.split('_')[0]) > 0, Int('b_z_%s' % state) == Int('b_z_%s' % transition.split('_')[0]) + 1) for transition in fa_b.get_ingoing_transitions_names(state) ] )))
-
+                    smt.add(Or(And(And(Int('b_z_%s' % state) == 0),
+                                   And([Int('b_y_%s' % transition) == 0 for transition in
+                                        fa_b.get_ingoing_transitions_names(state)])), Or([And(Int(
+                        'b_y_%s' % transition) > 0, Int('b_z_%s' % transition.split('_')[0]) > 0,
+                                                                                              Int('b_z_%s' % state) == Int(
+                                                                                                  'b_z_%s' %
+                                                                                                  transition.split('_')[
+                                                                                                      0]) + 1) for
+                                                                                          transition in
+                                                                                          fa_b.get_ingoing_transitions_names(
+                                                                                              state)])))
 
     # Allow multiple final states.
-    #FA A: At least one of the final state is reached.
-    #smt.add( Or( [ Or( Int('a_u_%s' % state) == -1 , Int('a_u_%s' % state) == 0 ) for state in fa_a.final ] ) )
-    #smt.add( Or( [ Int('a_u_%s' % state) == -1 for state in fa_b.final ] ) )
+    # FA A: At least one of the final state is reached.
+    # smt.add( Or( [ Or( Int('a_u_%s' % state) == -1 , Int('a_u_%s' % state) == 0 ) for state in fa_a.final ] ) )
+    # smt.add( Or( [ Int('a_u_%s' % state) == -1 for state in fa_b.final ] ) )
     # FA B: At least one of the final state is reached.
-    #smt.add( Or( [ Or( Int('b_u_%s' % state) == -1 , Int('b_u_%s' % state) == 0 ) for state in fa_b.final ] ) )
-    #smt.add( Or( [ Int('b_u_%s' % state) == -1 for state in fa_b.final ] ) )
+    # smt.add( Or( [ Or( Int('b_u_%s' % state) == -1 , Int('b_u_%s' % state) == 0 ) for state in fa_b.final ] ) )
+    # smt.add( Or( [ Int('b_u_%s' % state) == -1 for state in fa_b.final ] ) )
 
     # Allow multiple inital states.
     # FA A: Choose only one inital state for a run.
-    #smt.add( Or( [ And( Int('a_u_%s' % state) == 1, Int('a_z_%s' % state) == 1, And( [ And( Int('a_u_%s' % other_state) == 0, Int('a_z_%s' % other_state) == 0 ) for other_state in fa_a.start if other_state != state ] ) ) for state in fa_a.start ] ) )
+    # smt.add( Or( [ And( Int('a_u_%s' % state) == 1, Int('a_z_%s' % state) == 1, And( [ And( Int('a_u_%s' % other_state) == 0, Int('a_z_%s' % other_state) == 0 ) for other_state in fa_a.start if other_state != state ] ) ) for state in fa_a.start ] ) )
 
     # FA B: Choose only one inital state for a run.
-    #smt.add( Or( [ And( Int('b_u_%s' % state) == 1, Int('b_z_%s' % state) == 1, And( [ And( Int('b_u_%s' % other_state) == 0, Int('b_z_%s' % other_state) == 0 ) for other_state in fa_b.start if other_state != state ] ) ) for state in fa_b.start ] ) )
+    # smt.add( Or( [ And( Int('b_u_%s' % state) == 1, Int('b_z_%s' % state) == 1, And( [ And( Int('b_u_%s' % other_state) == 0, Int('b_z_%s' % other_state) == 0 ) for other_state in fa_b.start if other_state != state ] ) ) for state in fa_b.start ] ) )
 
 
 def check_length_satisfiability(config, fa_a_formulae_dict, fa_b_formulae_dict):

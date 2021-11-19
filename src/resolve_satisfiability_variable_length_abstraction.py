@@ -28,7 +28,7 @@ from optifa import *
 
 # Main script function.
 def main():
-    config = ArgumentParser.get_config(Config)  # Parse program arguments.
+    config = ArgumentsParser.get_config(Config)  # Parse program arguments.
     fa_a_orig = config.fa_a_orig
     fa_b_orig = config.fa_b_orig
 
@@ -142,7 +142,7 @@ def main():
 
         # printlen(q_pair_states))
 
-    intersect_ab.start = set([f"{abstract_initial_state},{abstract_initial_state}"])
+    intersect_ab.start = {f"{abstract_initial_state},{abstract_initial_state}"}
     intersect_ab.remove_useless_transitions()
     intersect_ab.remove_abstract_final_state(abstract_final_symbol, abstract_final_state)
     intersect_ab.remove_abstract_initial_state(abstract_initial_symbol, abstract_initial_state)
@@ -201,7 +201,7 @@ def check_satisfiability(fa_a, fa_b, smt, config):
     return False
 
 
-class ArgumentParser(ProgramArgumentParser):
+class ArgumentsParser(ProgramArgumentsParser):
     def __init__(self):
         super().__init__()
 

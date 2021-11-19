@@ -22,7 +22,7 @@ from optifa import *
 
 # Main script function.
 def main():
-    config = ArgumentParser.get_config(Config)  # Parse program arguments.
+    config = ArgumentsParser.get_config(Config)  # Parse program arguments.
     fa_a_orig = config.fa_a_orig
     fa_b_orig = config.fa_b_orig
 
@@ -235,7 +235,7 @@ def check_satisfiability(fa_a, fa_b, fa_a_formulae_dict, fa_b_formulae_dict, sat
     return False
 
 
-class ArgumentParser(ProgramArgumentParser):
+class ArgumentsParser(ProgramArgumentsParser):
     def __init__(self):
         super().__init__()
 
