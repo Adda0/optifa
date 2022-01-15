@@ -36,19 +36,15 @@ def main():
     print(len(fa_a_sets))
     print(len(fa_b_sets))
     print(fa_a_sets)
-    complete_set = set()
-    complete_set.update(fa_a_sets)
-    complete_set.update(fa_b_sets)
-    print(len(complete_set))
+    transitions_set = set()
+    transitions_set.update(fa_a_sets)
+    transitions_set.update(fa_b_sets)
+    print(len(transitions_set))
 
+    alphabet = config.fa_a_orig.alphabet.union(config.fa_b_orig.alphabet)
 
-    for set in complete_set:
-
-
-
-
-
-
+    minterm_tree = MintermTree.compute_minterm_tree(alphabet, transitions_set)
+    print(minterm_tree)
 
     # Store minterms.
     if config.store_result:
@@ -67,17 +63,23 @@ class MintermTreeNode:
         self.parent = parent
 
     def refine_leaf(self, new_set, not_new_set):
+        leaves = []
         if not self.intersect.isdisjoint(new_set):
-            self.insert_left(self.intersect.intersection(new_set))
+            leaves.append(self.insert_left(self.intersect.intersection(new_set)))
 
         if not self.intersect.isdisjoint(not_new_set):
-            self.insert_right(self.intersect.intersection(not_new_set))
+            leaves.append(self.insert_right(self.intersect.intersection(not_new_set)))
+
+        return leaves
 
     def insert_left(self, new_set):
         self.left = MintermTreeNode(new_set, self)
+        return self.left
 
     def insert_right(self, new_set):
         self.right = MintermTreeNode(new_set, self)
+        return self.right
+
 
 class MintermTree:
     """
@@ -85,14 +87,13 @@ class MintermTree:
     """
 
     def __init__(self, alphabet, transitions_set):
-        self.leaves = []
         self.alphabet = alphabet
-        self.left = None
-        self.right = None
-
+        self.transitions_set = transitions_set
+        self.root = MintermTreeNode(alphabet)
+        self.leaves = [self.root]
 
     @classmethod
-    def get_minterm_tree(cls, alphabet, transitions_set):
+    def compute_minterm_tree(cls, alphabet, transitions_set):
         minterm_tree = cls(alphabet, transitions_set)
         for transition_set in transitions_set:
             minterm_tree.refine(transition_set)
@@ -104,9 +105,12 @@ class MintermTree:
         not_new_set = self.alphabet.difference(new_set)
 
         for leaf in self.leaves:
-            new_leaves.append(leaf.refine_leaf(new_set, not_new_set))
+            new_leaves.extend(leaf.refine_leaf(new_set, not_new_set))
 
         self.leaves = new_leaves
+
+        for leaf in self.leaves:
+            print(leaf.intersect)
 
 
 if __name__ == "__main__":
