@@ -20,7 +20,6 @@ import math
 
 import pickle
 import z3
-from z3 import And, Int, Or, Sum
 
 import symboliclib
 from lfa import LFA
@@ -102,47 +101,47 @@ def add_persistent_formulae(smt, fa_a_orig, fa_b_orig, config):
 
     # FA A: First conjunct.
     for state in fa_a_orig.states:
-        smt.add(Int('a_u_%s' % state) + Sum(
-            [Int('a_y_%s' % transition) for transition in fa_a_orig.get_ingoing_transitions_names(state)]) - Sum(
-            [Int('a_y_%s' % transition) for transition in fa_a_orig.get_outgoing_transitions_names(state)]) == 0)
+        smt.add(z3.Int('a_u_%s' % state) + z3.Sum(
+            [z3.Int('a_y_%s' % transition) for transition in fa_a_orig.get_ingoing_transitions_names(state)]) - z3.Sum(
+            [z3.Int('a_y_%s' % transition) for transition in fa_a_orig.get_outgoing_transitions_names(state)]) == 0)
 
     # FA B: First conjunct.
     for state in fa_b_orig.states:
-        smt.add(Int('b_u_%s' % state) + Sum(
-            [Int('b_y_%s' % transition) for transition in fa_b_orig.get_ingoing_transitions_names(state)]) - Sum(
-            [Int('b_y_%s' % transition) for transition in fa_b_orig.get_outgoing_transitions_names(state)]) == 0)
+        smt.add(z3.Int('b_u_%s' % state) + z3.Sum(
+            [z3.Int('b_y_%s' % transition) for transition in fa_b_orig.get_ingoing_transitions_names(state)]) - z3.Sum(
+            [z3.Int('b_y_%s' % transition) for transition in fa_b_orig.get_outgoing_transitions_names(state)]) == 0)
 
     # FA A: Second conjunct.
-    smt.add(And([Int('a_y_%s' % transition) >= 0 for transition in fa_a_orig.get_transitions_names()]))
+    smt.add(z3.And([z3.Int('a_y_%s' % transition) >= 0 for transition in fa_a_orig.get_transitions_names()]))
 
     # FA B: Second conjunct.
-    smt.add(And([Int('b_y_%s' % transition) >= 0 for transition in fa_b_orig.get_transitions_names()]))
+    smt.add(z3.And([z3.Int('b_y_%s' % transition) >= 0 for transition in fa_b_orig.get_transitions_names()]))
 
     # FA A: Third conjunct.
     for symbol in fa_a_orig.alphabet:
-        smt.add(Int('hash_%s' % symbol) == Sum(
-            [Int('a_y_%s' % transition) for transition in fa_a_orig.get_transitions_names_with_symbol(symbol)]))
+        smt.add(z3.Int('hash_%s' % symbol) == z3.Sum(
+            [z3.Int('a_y_%s' % transition) for transition in fa_a_orig.get_transitions_names_with_symbol(symbol)]))
 
     # FA B: Third conjunct.
     for symbol in fa_b_orig.alphabet:
-        smt.add(Int('hash_%s' % symbol) == Sum(
-            [Int('b_y_%s' % transition) for transition in fa_b_orig.get_transitions_names_with_symbol(symbol)]))
+        smt.add(z3.Int('hash_%s' % symbol) == z3.Sum(
+            [z3.Int('b_y_%s' % transition) for transition in fa_b_orig.get_transitions_names_with_symbol(symbol)]))
 
     if config.reverse_lengths:
         if config.use_z_constraints:
             # FA A: Fourth conjunct.
             for state in fa_a_orig.states:
                 if state in fa_a_orig.final:
-                    smt.add(Int('a_z_%s' % state) == 1)
-                    smt.add(And([Int('a_y_%s' % transition) >= 0 for transition in
+                    smt.add(z3.Int('a_z_%s' % state) == 1)
+                    smt.add(z3.And([z3.Int('a_y_%s' % transition) >= 0 for transition in
                                  fa_a_orig.get_outgoing_transitions_names(state)]))
 
                 if state not in fa_a_orig.start and state not in fa_a_orig.final:
-                    smt.add(Or(And(And(Int('a_z_%s' % state) == 0),
-                                   And([Int('a_y_%s' % transition) == 0 for transition in
-                                        fa_a_orig.get_ingoing_transitions_names(state)])), Or([And(Int(
-                        'a_y_%s' % transition) >= 0, Int('a_z_%s' % transition.split('_')[0]) > 0,
-                                                                                                   Int('a_z_%s' % state) == Int(
+                    smt.add(z3.Or(z3.And(z3.And(z3.Int('a_z_%s' % state) == 0),
+                                   z3.And([z3.Int('a_y_%s' % transition) == 0 for transition in
+                                        fa_a_orig.get_ingoing_transitions_names(state)])), z3.Or([z3.And(z3.Int(
+                        'a_y_%s' % transition) >= 0, z3.Int('a_z_%s' % transition.split('_')[0]) > 0,
+                                                                                                   z3.Int('a_z_%s' % state) == z3.Int(
                                                                                                        'a_z_%s' %
                                                                                                        transition.split(
                                                                                                            '_')[0]) - 1)
@@ -153,16 +152,16 @@ def add_persistent_formulae(smt, fa_a_orig, fa_b_orig, config):
             # FA B: Fourth conjunct.
             for state in fa_b_orig.states:
                 if state in fa_b_orig.final:
-                    smt.add(Int('b_z_%s' % state) == 1)
-                    smt.add(And([Int('b_y_%s' % transition) >= 0 for transition in
+                    smt.add(z3.Int('b_z_%s' % state) == 1)
+                    smt.add(z3.And([z3.Int('b_y_%s' % transition) >= 0 for transition in
                                  fa_b_orig.get_outgoing_transitions_names(state)]))
 
                 if state not in fa_b_orig.start and state not in fa_a_orig.final:
-                    smt.add(Or(And(And(Int('bz_%s' % state) == 0),
-                                   And([Int('b_y_%s' % transition) == 0 for transition in
-                                        fa_b_orig.get_ingoing_transitions_names(state)])), Or([And(Int(
-                        'b_y_%s' % transition) >= 0, Int('b_z_%s' % transition.split('_')[0]) > 0,
-                                                                                                   Int('b_z_%s' % state) == Int(
+                    smt.add(z3.Or(z3.And(z3.And(z3.Int('bz_%s' % state) == 0),
+                                   z3.And([z3.Int('b_y_%s' % transition) == 0 for transition in
+                                        fa_b_orig.get_ingoing_transitions_names(state)])), z3.Or([z3.And(z3.Int(
+                        'b_y_%s' % transition) >= 0, z3.Int('b_z_%s' % transition.split('_')[0]) > 0,
+                                                                                                   z3.Int('b_z_%s' % state) == z3.Int(
                                                                                                        'b_z_%s' %
                                                                                                        transition.split(
                                                                                                            '_')[0]) - 1)
@@ -238,38 +237,38 @@ def add_state_specific_formulae(smt, fa_a, fa_b, config):
     # Constraints for 'u_q'.
     for state in fa_a.states:
         if state in fa_a.start:
-            smt.add(Int('a_u_%s' % state) == 1)
+            smt.add(z3.Int('a_u_%s' % state) == 1)
         elif state in fa_a.final:
             pass
-            # smt.add(Or( a_u_q[i] == -1, a_u_q[i] == 0))
-            smt.add(Int('a_u_%s' % state) == -1)
+            # smt.add(z3.Or( a_u_q[i] == -1, a_u_q[i] == 0))
+            smt.add(z3.Int('a_u_%s' % state) == -1)
         else:
-            smt.add(Int('a_u_%s' % state) == 0)
+            smt.add(z3.Int('a_u_%s' % state) == 0)
 
     for state in fa_b.states:
         if state in fa_b.start:
-            smt.add(Int('b_u_%s' % state) == 1)
+            smt.add(z3.Int('b_u_%s' % state) == 1)
         elif state in fa_b.final:
             pass
-            # smt.add(Or( b_u_q[i] == -1, b_u_q[i] == 0))
-            smt.add(Int('b_u_%s' % state) == -1)
+            # smt.add(z3.Or( b_u_q[i] == -1, b_u_q[i] == 0))
+            smt.add(z3.Int('b_u_%s' % state) == -1)
         else:
-            smt.add(Int('b_u_%s' % state) == 0)
+            smt.add(z3.Int('b_u_%s' % state) == 0)
 
     if not config.reverse_lengths:
         if config.use_z_constraints:
             # FA A: Fourth conjunct.
             for state in fa_a.states:
                 if state in fa_a.start:
-                    smt.add(Int('a_z_%s' % state) == 1)
-                    smt.add(And([Int('a_y_%s' % transition) >= 0 for transition in
+                    smt.add(z3.Int('a_z_%s' % state) == 1)
+                    smt.add(z3.And([z3.Int('a_y_%s' % transition) >= 0 for transition in
                                  fa_a.get_ingoing_transitions_names(state)]))
                 else:
-                    smt.add(Or(And(And(Int('a_z_%s' % state) == 0),
-                                   And([Int('a_y_%s' % transition) == 0 for transition in
-                                        fa_a.get_ingoing_transitions_names(state)])), Or([And(Int(
-                        'a_y_%s' % transition) > 0, Int('a_z_%s' % transition.split('_')[0]) > 0,
-                                                                                              Int('a_z_%s' % state) == Int(
+                    smt.add(z3.Or(z3.And(z3.And(z3.Int('a_z_%s' % state) == 0),
+                                   z3.And([z3.Int('a_y_%s' % transition) == 0 for transition in
+                                        fa_a.get_ingoing_transitions_names(state)])), z3.Or([z3.And(z3.Int(
+                        'a_y_%s' % transition) > 0, z3.Int('a_z_%s' % transition.split('_')[0]) > 0,
+                                                                                              z3.Int('a_z_%s' % state) == z3.Int(
                                                                                                   'a_z_%s' %
                                                                                                   transition.split('_')[
                                                                                                       0]) + 1) for
@@ -280,15 +279,15 @@ def add_state_specific_formulae(smt, fa_a, fa_b, config):
             # FA B: Fourth conjunct.
             for state in fa_b.states:
                 if state in fa_b.start:
-                    smt.add(Int('b_z_%s' % state) == 1)
-                    smt.add(And([Int('b_y_%s' % transition) >= 0 for transition in
+                    smt.add(z3.Int('b_z_%s' % state) == 1)
+                    smt.add(z3.And([z3.Int('b_y_%s' % transition) >= 0 for transition in
                                  fa_b.get_ingoing_transitions_names(state)]))
                 else:
-                    smt.add(Or(And(And(Int('b_z_%s' % state) == 0),
-                                   And([Int('b_y_%s' % transition) == 0 for transition in
-                                        fa_b.get_ingoing_transitions_names(state)])), Or([And(Int(
-                        'b_y_%s' % transition) > 0, Int('b_z_%s' % transition.split('_')[0]) > 0,
-                                                                                              Int('b_z_%s' % state) == Int(
+                    smt.add(z3.Or(z3.And(z3.And(z3.Int('b_z_%s' % state) == 0),
+                                   z3.And([z3.Int('b_y_%s' % transition) == 0 for transition in
+                                        fa_b.get_ingoing_transitions_names(state)])), z3.Or([z3.And(z3.Int(
+                        'b_y_%s' % transition) > 0, z3.Int('b_z_%s' % transition.split('_')[0]) > 0,
+                                                                                              z3.Int('b_z_%s' % state) == z3.Int(
                                                                                                   'b_z_%s' %
                                                                                                   transition.split('_')[
                                                                                                       0]) + 1) for
@@ -298,18 +297,18 @@ def add_state_specific_formulae(smt, fa_a, fa_b, config):
 
     # Allow multiple final states.
     # FA A: At least one of the final state is reached.
-    # smt.add( Or( [ Or( Int('a_u_%s' % state) == -1 , Int('a_u_%s' % state) == 0 ) for state in fa_a.final ] ) )
-    # smt.add( Or( [ Int('a_u_%s' % state) == -1 for state in fa_b.final ] ) )
+    # smt.add( z3.Or( [ z3.Or( z3.Int('a_u_%s' % state) == -1 , z3.Int('a_u_%s' % state) == 0 ) for state in fa_a.final ] ) )
+    # smt.add( z3.Or( [ z3.Int('a_u_%s' % state) == -1 for state in fa_b.final ] ) )
     # FA B: At least one of the final state is reached.
-    # smt.add( Or( [ Or( Int('b_u_%s' % state) == -1 , Int('b_u_%s' % state) == 0 ) for state in fa_b.final ] ) )
-    # smt.add( Or( [ Int('b_u_%s' % state) == -1 for state in fa_b.final ] ) )
+    # smt.add( z3.Or( [ z3.Or( z3.Int('b_u_%s' % state) == -1 , z3.Int('b_u_%s' % state) == 0 ) for state in fa_b.final ] ) )
+    # smt.add( z3.Or( [ z3.Int('b_u_%s' % state) == -1 for state in fa_b.final ] ) )
 
     # Allow multiple inital states.
     # FA A: Choose only one inital state for a run.
-    # smt.add( Or( [ And( Int('a_u_%s' % state) == 1, Int('a_z_%s' % state) == 1, And( [ And( Int('a_u_%s' % other_state) == 0, Int('a_z_%s' % other_state) == 0 ) for other_state in fa_a.start if other_state != state ] ) ) for state in fa_a.start ] ) )
+    # smt.add( z3.Or( [ z3.And( z3.Int('a_u_%s' % state) == 1, z3.Int('a_z_%s' % state) == 1, z3.And( [ z3.And( z3.Int('a_u_%s' % other_state) == 0, z3.Int('a_z_%s' % other_state) == 0 ) for other_state in fa_a.start if other_state != state ] ) ) for state in fa_a.start ] ) )
 
     # FA B: Choose only one inital state for a run.
-    # smt.add( Or( [ And( Int('b_u_%s' % state) == 1, Int('b_z_%s' % state) == 1, And( [ And( Int('b_u_%s' % other_state) == 0, Int('b_z_%s' % other_state) == 0 ) for other_state in fa_b.start if other_state != state ] ) ) for state in fa_b.start ] ) )
+    # smt.add( z3.Or( [ z3.And( z3.Int('b_u_%s' % state) == 1, z3.Int('b_z_%s' % state) == 1, z3.And( [ z3.And( z3.Int('b_u_%s' % other_state) == 0, z3.Int('b_z_%s' % other_state) == 0 ) for other_state in fa_b.start if other_state != state ] ) ) for state in fa_b.start ] ) )
 
 
 def check_length_satisfiability(config, fa_a_formulae_dict, fa_b_formulae_dict):
@@ -322,8 +321,8 @@ def check_length_satisfiability(config, fa_a_formulae_dict, fa_b_formulae_dict):
 
     if not config.smt_free:
         smt_length = z3.Solver()
-        fa_a_var = Int('fa_a_var')
-        fa_b_var = Int('fa_b_var')
+        fa_a_var = z3.Int('fa_a_var')
+        fa_b_var = z3.Int('fa_b_var')
         smt_length.add(fa_a_var >= 0, fa_b_var >= 0)
 
     # Check for every formulae combination.
