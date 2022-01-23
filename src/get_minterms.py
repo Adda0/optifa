@@ -58,11 +58,15 @@ class MintermTreeNode:
 
     def __init__(self, new_set, parent = None):
         self.intersect = new_set
+        #print(f"Node intersect: {self.intersect}")
         self.left = None
         self.right = None
         self.parent = parent
 
     def refine_leaf(self, new_set, not_new_set):
+        """
+        Recursively refine leaf subtree.
+        """
         leaves = []
         if not self.intersect.isdisjoint(new_set):
             leaves.append(self.insert_left(self.intersect.intersection(new_set)))
@@ -73,12 +77,21 @@ class MintermTreeNode:
         return leaves
 
     def insert_left(self, new_set):
+        """
+        Insert to the left subtree.
+        """
         self.left = MintermTreeNode(new_set, self)
         return self.left
 
     def insert_right(self, new_set):
+        """
+        Insert to the right subtree.
+        """
         self.right = MintermTreeNode(new_set, self)
         return self.right
+
+    def __repr__(self):
+        return f"{self.intersect}"
 
 
 class MintermTree:
@@ -109,8 +122,17 @@ class MintermTree:
 
         self.leaves = new_leaves
 
+        #for leaf in self.leaves:
+        #   print(leaf.intersect)
+
+    def __repr__(self):
+        """
+        Print Minterms in a tree.
+        """
         for leaf in self.leaves:
-            print(leaf.intersect)
+            print(leaf)
+
+        return ""
 
 
 if __name__ == "__main__":
