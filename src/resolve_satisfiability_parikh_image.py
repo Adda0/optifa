@@ -19,7 +19,6 @@ import argparse
 import math
 
 import z3
-from z3 import And, Int, Or, Sum
 
 import symboliclib
 from lfa import LFA
@@ -66,7 +65,6 @@ def main():
     fa_a_copy = deepcopy(fa_a_orig)
     fa_b_copy = deepcopy(fa_b_orig)
 
-    found = False
     skipped_cnt = 0
     false_cnt = 0
     sat_cnt = 0
@@ -105,7 +103,6 @@ def main():
             if curr_pair[0] in fa_a_orig.final and curr_pair[1] in fa_b_orig.final:
                 # Automata have a non-empty intersection. We can end the testing here as we have found a solution.
                 intersect_ab.final.add(product_state_name)
-                found = True
                 if config.break_when_final:
                     break
 
@@ -170,7 +167,7 @@ def check_satisfiability(fa_a, fa_b, smt, config):
     smt.push()
     add_state_specific_formulae(smt, fa_a, fa_b, config)
 
-    # Check for satisfiability.
+    # Check for satisfiability for this current product state.
     #print("start smt check")
     res = smt.check()
     #print(res)
@@ -193,12 +190,12 @@ class ArgumentsParser(ProgramArgumentsParser):
         super().__init__()
 
         # Set additional arguments.
-        self.arg_parser.add_argument('--forward-lengths', '-f', action = 'store_true',
-                        help = "Compute forward lengths 'z' for Parikh image.")
-        self.arg_parser.add_argument('--no-z-constraints', '-z', action = 'store_true',
-                        help = 'Compute formulae without constraints for connectivity of automaton.')
-        self.arg_parser.add_argument('--timeout', '-t', metavar = 'TIMEOUT_MS', type = int,
-                        help = 'Set timeout after TIMEOUT_MS ms for Z3 SMT solver.')
+        self.arg_parser.add_argument('--forward-lengths', '-f', action='store_true',
+                help="Compute forward lengths 'z' for Parikh image.")
+        self.arg_parser.add_argument('--no-z-constraints', '-z', action='store_true',
+                help='Compute formulae without constraints for connectivity of automaton.')
+        self.arg_parser.add_argument('--timeout', '-t', metavar='TIMEOUT_MS', type=int,
+                help='Set timeout after TIMEOUT_MS ms for Z3 SMT solver.')
 
 
 class Config(ProgramConfig):

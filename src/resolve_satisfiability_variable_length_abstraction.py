@@ -19,7 +19,6 @@ from dataclasses import dataclass
 import math
 
 import z3
-from z3 import And, Int, Or, Sum
 
 import symboliclib
 from lfa import LFA

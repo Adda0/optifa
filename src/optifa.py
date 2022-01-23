@@ -97,7 +97,7 @@ def enqueue_next_states(q_states, fa_orig, curr_state):
 
 
 def add_persistent_formulae(smt, fa_a_orig, fa_b_orig, config):
-    # Add persistent formulae valid for every product-state.
+    # Add persistent formulae valid for every product state.
 
     # FA A: First conjunct.
     for state in fa_a_orig.states:
@@ -234,12 +234,14 @@ class ProgramArgumentsParser:
 
 
 def add_state_specific_formulae(smt, fa_a, fa_b, config):
+    """
+    Add formulae specific for the current states (initial, final and the rest) in the original automata.
+    """
     # Constraints for 'u_q'.
     for state in fa_a.states:
         if state in fa_a.start:
             smt.add(z3.Int('a_u_%s' % state) == 1)
         elif state in fa_a.final:
-            pass
             # smt.add(z3.Or( a_u_q[i] == -1, a_u_q[i] == 0))
             smt.add(z3.Int('a_u_%s' % state) == -1)
         else:
@@ -249,7 +251,6 @@ def add_state_specific_formulae(smt, fa_a, fa_b, config):
         if state in fa_b.start:
             smt.add(z3.Int('b_u_%s' % state) == 1)
         elif state in fa_b.final:
-            pass
             # smt.add(z3.Or( b_u_q[i] == -1, b_u_q[i] == 0))
             smt.add(z3.Int('b_u_%s' % state) == -1)
         else:
