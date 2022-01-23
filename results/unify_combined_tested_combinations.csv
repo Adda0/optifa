@@ -1,0 +1,4 @@
+Larger automaton,Smaller automaton,
+../../automata-benchmarks/nfa/non-vtf/armc/Bakery-4P-BinEnc-BwBad/armcNFA_inclTest_26.tmb,../../automata-benchmarks/nfa/non-vtf/armc/Bakery-4P-BinEnc-BwBad/armcNFA_inclTest_19.tmb,
+
+../../automata-benchmarks/nfa/non-vtf/armc/IBubbleSort-full-FbOneOne-Nondet/armcNFA_inclTest_15.tmb,../../automata-benchmarks/nfa/non-vtf/armc/IBubbleSort-full-FbOneOne-Nondet/armcNFA_inclTest_10.tmb,
