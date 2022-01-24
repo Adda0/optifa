@@ -1,0 +1,18 @@
+Ops a:1 b:1 c:1 d:1 x:0
+
+Automaton MintermAutomaton1 @LFA
+States s0 s1 s2 s3
+Final States s3
+Transitions
+x -> s0
+a(s0) -> s1
+b(s0) -> s1
+d(s0) -> s1
+a(s1) -> s2
+b(s1) -> s2
+c(s1) -> s2
+d(s1) -> s2
+a(s2) -> s3
+b(s2) -> s3
+c(s3) -> s2
+d(s3) -> s2
