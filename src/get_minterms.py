@@ -3,25 +3,13 @@
 # ====================================================
 # file name: get_minterms.py
 #
-# Script to getminterms from two finite automata.
+# Script to get minterms from two finite automata.
 # ====================================================
 # project: Abstraction of State Languages in Automata Algorithms
 #
 # author: David Chocholatý (xchoch08), FIT BUT
 # ====================================================
 
-import os
-import sys
-from collections import deque
-from copy import deepcopy
-import itertools
-import argparse
-
-import pickle
-
-import symboliclib
-from lfa import LFA
-import optifa
 from optifa import ProgramConfig, ProgramArgumentsParser
 
 
@@ -30,25 +18,37 @@ def main():
     config = ProgramArgumentsParser.get_config(ProgramConfig)  # Parse program arguments.
 
     # Fill Set of sets of symbols between two states with a transition.
-    transition_sets_set = set()
     fa_a_sets = config.fa_a_orig.get_transition_sets()
     fa_b_sets = config.fa_b_orig.get_transition_sets()
     print(len(fa_a_sets))
     print(len(fa_b_sets))
-    print(fa_a_sets)
+    #print(fa_a_sets)
+    #print(fa_b_sets)
     transitions_set = set()
     transitions_set.update(fa_a_sets)
     transitions_set.update(fa_b_sets)
-    print(len(transitions_set))
+    print(f"All transition sets: {len(transitions_set)}")
 
-    alphabet = config.fa_a_orig.alphabet.union(config.fa_b_orig.alphabet)
+    alphabet = config.fa_a_orig.get_used_alphabet().union(config.fa_b_orig.get_used_alphabet())
 
     minterm_tree = MintermTree.compute_minterm_tree(alphabet, transitions_set)
+    print("Final minterms:")
     print(minterm_tree)
 
     # Store minterms.
     if config.store_result:
         config.store_result()
+
+    # Replace transition symbols with generated minterms.
+    print("Mapping minterms to transition symbols:")
+    for transition_set in transitions_set:
+        print(f"{transition_set}: ", end="")
+
+        for minterm in minterm_tree.leaves:
+            if minterm.intersect.issubset(transition_set):
+                print(f"{minterm.intersect},", end="")
+
+        print()
 
 
 class MintermTreeNode:
@@ -58,7 +58,6 @@ class MintermTreeNode:
 
     def __init__(self, new_set, parent = None):
         self.intersect = new_set
-        #print(f"Node intersect: {self.intersect}")
         self.left = None
         self.right = None
         self.parent = parent
@@ -107,6 +106,16 @@ class MintermTree:
 
     @classmethod
     def compute_minterm_tree(cls, alphabet, transitions_set):
+        """
+        Get minterms as a tree from given transitions.
+
+        Parameters:
+            alphabet (set): Set of automata alphabet.
+            transitions_set (set): Set of automata transitions.
+
+        Returns:
+            MintermTree: Tree of minterms.
+        """
         minterm_tree = cls(alphabet, transitions_set)
         for transition_set in transitions_set:
             minterm_tree.refine(transition_set)
@@ -114,6 +123,12 @@ class MintermTree:
         return minterm_tree
 
     def refine(self, new_set):
+        """
+        Refine the entire tree with the given transition set.
+
+        Parameters:
+            new_set (set): Transition set to refine the tree with.
+        """
         new_leaves = []
         not_new_set = self.alphabet.difference(new_set)
 
