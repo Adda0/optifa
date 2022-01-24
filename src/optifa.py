@@ -262,20 +262,16 @@ def add_state_specific_formulae(smt, fa_a, fa_b, config):
             for state in fa_a.states:
                 if state in fa_a.start:
                     smt.add(z3.Int('a_z_%s' % state) == 1)
-                    smt.add(z3.And([z3.Int('a_y_%s' % transition) >= 0 for transition in
-                                 fa_a.get_ingoing_transitions_names(state)]))
+                    smt.add(z3.And([z3.Int('a_y_%s' % transition) >= 0
+                            for transition in fa_a.get_ingoing_transitions_names(state)]))
                 else:
                     smt.add(z3.Or(z3.And(z3.And(z3.Int('a_z_%s' % state) == 0),
-                                   z3.And([z3.Int('a_y_%s' % transition) == 0 for transition in
-                                        fa_a.get_ingoing_transitions_names(state)])), z3.Or([z3.And(z3.Int(
-                        'a_y_%s' % transition) > 0, z3.Int('a_z_%s' % transition.split('_')[0]) > 0,
-                                                                                              z3.Int('a_z_%s' % state) == z3.Int(
-                                                                                                  'a_z_%s' %
-                                                                                                  transition.split('_')[
-                                                                                                      0]) + 1) for
-                                                                                          transition in
-                                                                                          fa_a.get_ingoing_transitions_names(
-                                                                                              state)])))
+                            z3.And([z3.Int('a_y_%s' % transition) == 0
+                            for transition in fa_a.get_ingoing_transitions_names(state)])),
+                            z3.Or([z3.And(z3.Int('a_y_%s' % transition) > 0,
+                            z3.Int('a_z_%s' % transition.split('_')[0]) > 0,
+                            z3.Int('a_z_%s' % state) == z3.Int('a_z_%s' % transition.split('_')[0]) + 1)
+                            for transition in fa_a.get_ingoing_transitions_names(state)])))
 
             # FA B: Fourth conjunct.
             for state in fa_b.states:
@@ -285,16 +281,12 @@ def add_state_specific_formulae(smt, fa_a, fa_b, config):
                                  fa_b.get_ingoing_transitions_names(state)]))
                 else:
                     smt.add(z3.Or(z3.And(z3.And(z3.Int('b_z_%s' % state) == 0),
-                                   z3.And([z3.Int('b_y_%s' % transition) == 0 for transition in
-                                        fa_b.get_ingoing_transitions_names(state)])), z3.Or([z3.And(z3.Int(
-                        'b_y_%s' % transition) > 0, z3.Int('b_z_%s' % transition.split('_')[0]) > 0,
-                                                                                              z3.Int('b_z_%s' % state) == z3.Int(
-                                                                                                  'b_z_%s' %
-                                                                                                  transition.split('_')[
-                                                                                                      0]) + 1) for
-                                                                                          transition in
-                                                                                          fa_b.get_ingoing_transitions_names(
-                                                                                              state)])))
+                            z3.And([z3.Int('b_y_%s' % transition) == 0
+                            for transition in fa_b.get_ingoing_transitions_names(state)])),
+                            z3.Or([z3.And(z3.Int('b_y_%s' % transition) > 0,
+                            z3.Int('b_z_%s' % transition.split('_')[0]) > 0,
+                            z3.Int('b_z_%s' % state) == z3.Int('b_z_%s' % transition.split('_')[0]) + 1)
+                            for transition in fa_b.get_ingoing_transitions_names(state)])))
 
     # Allow multiple final states.
     # FA A: At least one of the final state is reached.
