@@ -5,8 +5,7 @@
 #
 # Base script for converting FA in Timbuk format to dot format.
 # ====================================================
-# project: Optimizing Automata Product Construction and Emptiness Test
-# "Optimalizace automatové konstrukce produktu a testu prázdnosti jazyka"
+# project: Abstraction of State Languages in Automata Algorithms
 #
 # author: David Chocholatý (xchoch08), FIT BUT
 # ====================================================
@@ -82,8 +81,11 @@ while getopts :i:po:t:v:n:h o; do
         fi
         ;;
     h) # Help.
-        printf "Usage: ./convert_timbuk_to_dot_format.sh [-i finite_automaton_timbuk_file] [-o finite_automaton_dot_file]\n\n"
+        printf "Usage: ./convert_timbuk_to_dot_format.sh [-i finite_automaton_timbuk_file] [-t timbuk_to_vtf_converter_script] "
+        printf "[-v vtf_to_dot_converter_script] [-o finite_automaton_dot_file]\n\n"
         echo "   [-i finite_automaton_timbuk_file] –– set finite_automaton_timbuk_file file to be Timbuk description of finite automaton to be converted."
+        echo "   [-t timbuk_to_vtf_converter_script] –– set as path to the Timbuk to vtf format converter script file."
+        echo "   [-v vtf_to_dot_converter_script] –– set as path to the vtf to dot format converter script file."
         echo "   [-o finite_automaton_dot_file] –– set output file containing the given Timbuk finite automaton in dot format"
         exit 0
         ;;
