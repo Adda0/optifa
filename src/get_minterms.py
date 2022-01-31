@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
 
-# ====================================================
 # file name: get_minterms.py
 #
 # Script to get minterms from two finite automata.
-# ====================================================
+#
 # project: Abstraction of State Languages in Automata Algorithms
 #
 # author: David Chocholatý (xchoch08), FIT BUT
-# ====================================================
 
 from optifa import ProgramConfig, ProgramArgumentsParser
 
@@ -16,6 +14,15 @@ from optifa import ProgramConfig, ProgramArgumentsParser
 def main():
     """Main script function."""
     config = ProgramArgumentsParser.get_config(ProgramConfig)  # Parse program arguments.
+
+    print("Number of states:")
+    print(len(config.fa_a_orig.states))
+    print(len(config.fa_b_orig.states))
+
+    print("Number of used transition symbols:")
+    used_alphabet = config.fa_a_orig.get_used_alphabet(config.fa_b_orig)
+    used_alphabet_len = len(used_alphabet)
+    print(used_alphabet_len)
 
     # Fill Set of sets of symbols between two states with a transition.
     fa_a_sets = config.fa_a_orig.get_transition_sets()
@@ -32,7 +39,8 @@ def main():
     alphabet = config.fa_a_orig.get_used_alphabet().union(config.fa_b_orig.get_used_alphabet())
 
     minterm_tree = MintermTree.compute_minterm_tree(alphabet, transitions_set)
-    print("Final minterms:")
+    final_minterms_len = len(minterm_tree.leaves)
+    print(f"Final minterms: {final_minterms_len}")
     print(minterm_tree)
 
     # Store minterms.
@@ -49,6 +57,9 @@ def main():
                 print(f"{minterm.intersect},", end="")
 
         print()
+
+    print(f"Minterm optimization results: {used_alphabet_len} –> {final_minterms_len} => "
+          f"{used_alphabet_len - final_minterms_len}")
 
 
 class MintermTreeNode:
