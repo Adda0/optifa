@@ -23,6 +23,7 @@ import pickle
 import symboliclib
 from lfa import LFA
 from optifa.basic import *
+from optifa.program_config import ProgramConfig, ProgramArgumentsParser
 
 
 # Main script function

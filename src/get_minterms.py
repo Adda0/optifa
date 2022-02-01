@@ -8,7 +8,7 @@
 #
 # author: David Chocholatý (xchoch08), FIT BUT
 
-from optifa.basic import ProgramConfig, ProgramArgumentsParser
+from optifa.program_config import ProgramConfig, ProgramArgumentsParser
 from optifa.minterms import MintermTree
 
 

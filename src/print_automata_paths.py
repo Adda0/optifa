@@ -20,7 +20,6 @@ from copy import deepcopy
 import itertools
 import argparse
 from optifa.basic import *
-#import optifa
 
 # Main script function
 def main():

@@ -12,14 +12,11 @@ import os
 import sys
 from collections import deque
 import itertools
-import argparse
 import math
 
-import pickle
 import z3
 
 import symboliclib
-from lfa import LFA
 
 
 def print_csv(message):
@@ -167,67 +164,6 @@ def add_persistent_formulae(smt, fa_a_orig, fa_b_orig, config):
                                                                                                    state)])))
 
     # End of SMT formulae initialization.
-
-
-class ProgramConfig:
-    """Class for storing program configurations passed as command line arguments."""
-
-    def __init__(self, args):
-        if args.loaded:
-            with open(args.fa_a, 'rb') as fa_a, open(args.fa_b, 'rb') as fa_b:
-                self.fa_a_orig = pickle.load(fa_a)
-                self.fa_b_orig = pickle.load(fa_b)
-        elif args.path:
-            self.fa_a_orig = symboliclib.parse(args.fa_a)
-            self.fa_b_orig = symboliclib.parse(args.fa_b)
-        else:
-            raise ValueError("missing automata arguments or their wrong combination")
-
-        self.break_when_final = args.break_when_final
-        self.store_result = args.store_result
-
-
-class ProgramArgumentsParser:
-    """Class parsing program arguments using argparse."""
-
-    def __init__(self):
-        self.arg_parser = argparse.ArgumentParser(
-            description='Construct product (intersection) of two finite automata using abstraction optimization '
-                        'techniques. '
-        )
-
-        automata_format_group = self.arg_parser.add_mutually_exclusive_group(required=True)
-        automata_format_group.add_argument('--loaded', '-l', action='store_true',
-                                           help='Read the automata files as a loaded Python objects parsed by '
-                                                'Symboliclib.')
-        automata_format_group.add_argument('--path', '-p', action='store_true',
-                                           help='Read the automata files as a Timbuk format files ready to be parsed '
-                                                'by Symboliclib.')
-
-        automata_path_group = self.arg_parser.add_argument_group(title="Automata to work with",
-                                                                 description="The automata paths for automata to "
-                                                                             "generate product from.")
-        automata_path_group.add_argument('--fa-a', '-a', metavar='AUTOMATON_A', type=str, required=True,
-                                         help='Automaton A to generate product from.')
-        automata_path_group.add_argument('--fa-b', '-b', metavar='AUTOMATON_B', type=str, required=True,
-                                         help='Automaton B to generate product from.')
-
-        self.arg_parser.add_argument('--break-when-final', '-r', action='store_true',
-                                     help='Break when final state is encountered to execute emptiness test.')
-        self.arg_parser.add_argument('--store-result', '-o', metavar='RESULT_FILE', type=str,
-                                     help='Store result into a file.')
-
-    def parse_args(self):
-        """Parse program command line arguments."""
-        args = self.arg_parser.parse_args()
-        return args
-
-    @classmethod
-    def get_config(cls, config_class):
-        arg_parser = cls()
-
-        # Create Config from the command line arguments.
-        return config_class(arg_parser.parse_args())
 
 
 def add_state_specific_formulae(smt, fa_a, fa_b, config):
