@@ -16,7 +16,7 @@ from copy import deepcopy
 import itertools
 
 from lfa import LFA
-from optifa import *
+from optifa.basic import *
 
 
 # Main script function.

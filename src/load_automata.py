@@ -20,7 +20,7 @@ from collections import deque
 from copy import deepcopy
 import itertools
 import argparse
-from optifa import *
+from optifa.basic import *
 from dataclasses import dataclass
 import pickle
 

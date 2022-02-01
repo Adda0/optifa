@@ -22,7 +22,7 @@ import pickle
 
 import symboliclib
 from lfa import LFA
-from optifa import *
+from optifa.basic import *
 
 
 # Main script function

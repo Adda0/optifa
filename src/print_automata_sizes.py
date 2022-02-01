@@ -19,7 +19,7 @@ from collections import deque
 from copy import deepcopy
 import itertools
 import argparse
-from optifa import *
+from optifa.basic import *
 #import optifa
 
 # Main script function

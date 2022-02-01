@@ -19,8 +19,8 @@ from collections import deque
 from copy import deepcopy
 import itertools
 import argparse
-from optifa import *
-#import optifa
+from optifa.basic import *
+
 
 # Main script function
 def main():

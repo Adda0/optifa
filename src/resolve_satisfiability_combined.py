@@ -17,7 +17,7 @@ from dataclasses import dataclass
 import z3
 
 from lfa import LFA
-from optifa import *
+from optifa.basic import *
 
 
 # Main script function.

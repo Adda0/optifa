@@ -8,7 +8,7 @@
 #
 # author: David Chocholatý (xchoch08), FIT BUT
 
-from optifa import ProgramConfig, ProgramArgumentsParser
+from optifa.basic import ProgramConfig, ProgramArgumentsParser
 
 
 def main():
