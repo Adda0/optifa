@@ -1,26 +1,18 @@
 #!/usr/bin/env -S python3 -u
 
-# ====================================================
 # file name: resolve_satisfiability.py
 #
 # Script to resolve satisfiable of given formulae using Z3 SMT solver.
-# ====================================================
-# project: Optimizing Automata Product Construction and Emptiness Test
-# "Optimalizace automatové konstrukce produktu a testu prázdnosti jazyka"
+#
+# project: Abstraction of State Languages in Automata Algorithms
 #
 # author: David Chocholatý (xchoch08), FIT BUT
-# ====================================================
 
-import sys
 from collections import deque
 from copy import deepcopy
-import itertools
-import argparse
-import math
 
 import z3
 
-import symboliclib
 from lfa import LFA
 from optifa.basic import *
 from optifa.program_config import ProgramConfig, ProgramArgumentsParser
@@ -190,7 +182,7 @@ class ArgumentsParser(ProgramArgumentsParser):
     def __init__(self):
         super().__init__()
 
-        # Set additional arguments.
+        # Define script-specific arguments.
         self.arg_parser.add_argument('--forward-lengths', '-f', action='store_true',
                 help="Compute forward lengths 'z' for Parikh image.")
         self.arg_parser.add_argument('--no-z-constraints', '-z', action='store_true',
