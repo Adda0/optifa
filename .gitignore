@@ -1,3 +1,6 @@
 src/fa_files
 .vscode
 .idea
+
+src/fa_a_minterms
+src/fa_b_minterms

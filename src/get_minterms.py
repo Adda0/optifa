@@ -20,9 +20,9 @@ def main():
     print(len(config.fa_a_orig.states))
     print(len(config.fa_b_orig.states))
 
-    print("Number of used transition symbols:")
     used_alphabet = config.fa_a_orig.get_used_alphabet(config.fa_b_orig)
     used_alphabet_len = len(used_alphabet)
+    print("Number of used transition symbols:")
     print(used_alphabet_len)
 
     # Fill Set of sets of symbols between two states with a transition.
@@ -64,7 +64,14 @@ def main():
           f"{used_alphabet_len - final_minterms_len}")
 
     # Store automata with minterms.
-    pass
+    transitions_list = []
+    for transition_set in transitions_set:
+        transitions_list.append(list(transition_set))
+
+    config.fa_a_orig.replace_transitions_with_minterms(minterm_tree.leaves, transitions_list)
+    config.fa_a_orig.print_automaton('fa_a_minterms')
+    config.fa_b_orig.replace_transitions_with_minterms(minterm_tree.leaves, transitions_list)
+    config.fa_b_orig.print_automaton('fa_b_minterms')
 
 
 if __name__ == "__main__":
