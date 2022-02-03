@@ -244,12 +244,11 @@ def check_length_satisfiability(config, fa_a_formulae_dict, fa_b_formulae_dict):
     :param fa_b_formulae_dict: Dictionary with formulae for FA B.
     :return: True if satisfiable; False if not satisfiable.
     """
-
     if not config.smt_free:
-        smt_length = z3.Solver()
+        smt = z3.Solver()
         fa_a_var = z3.Int('fa_a_var')
         fa_b_var = z3.Int('fa_b_var')
-        smt_length.add(fa_a_var >= 0, fa_b_var >= 0)
+        smt.add(fa_a_var >= 0, fa_b_var >= 0)
 
     # Check for every formulae combination.
     for fa_a_id in get_only_formulae(fa_a_formulae_dict):
@@ -269,13 +268,13 @@ def check_length_satisfiability(config, fa_a_formulae_dict, fa_b_formulae_dict):
                         return True
 
             else:  # Using SMT solver.
-                smt_length.push()
-                smt_length.add(fa_a_id[0] + fa_a_id[1] * fa_a_var == fa_b_id[0] + fa_b_id[1] * fa_b_var)
+                smt.push()
+                smt.add(fa_a_id[0] + fa_a_id[1] * fa_a_var == fa_b_id[0] + fa_b_id[1] * fa_b_var)
 
-                if smt_length.check() != z3.unsat:
+                if smt.check() != z3.unsat:
                     return True
 
-                smt_length.pop()
+                smt.pop()
 
     return False
 
