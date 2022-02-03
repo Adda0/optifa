@@ -28,6 +28,7 @@ def main():
     # Fill Set of sets of symbols between two states with a transition.
     fa_a_sets = config.fa_a_orig.get_transition_sets()
     fa_b_sets = config.fa_b_orig.get_transition_sets()
+    print("Number of transition sets:")
     print(len(fa_a_sets))
     print(len(fa_b_sets))
     #print(fa_a_sets)
@@ -61,6 +62,9 @@ def main():
 
     print(f"Minterm optimization results: {used_alphabet_len} –> {final_minterms_len} => "
           f"{used_alphabet_len - final_minterms_len}")
+
+    # Store automata with minterms.
+    pass
 
 
 if __name__ == "__main__":

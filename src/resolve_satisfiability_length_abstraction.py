@@ -1,15 +1,12 @@
 #!/usr/bin/env -S python3 -u
 
-# ====================================================
 # file name: resolve_satisfiability.py
 #
 # Script to resolve satisfiable of given formulae using Z3 SMT solver.
-# ====================================================
-# project: Optimizing Automata Product Construction and Emptiness Test
-# "Optimalizace automatové konstrukce produktu a testu prázdnosti jazyka"
+#
+# project: Abstraction of State Languages in Automata Algorithms
 #
 # author: David Chocholatý (xchoch08), FIT BUT
-# ====================================================
 
 from collections import deque
 from copy import deepcopy
@@ -140,7 +137,7 @@ class ArgumentsParser(ProgramArgumentsParser):
     def __init__(self):
         super().__init__()
 
-        # Set additional arguments.
+        # Define script-specific arguments.
         self.arg_parser.add_argument('--smt', '-s', action='store_true',
                                      help='Use SMT solver Z3 to check for satisfiability of formulae.')
         self.arg_parser.add_argument('--timeout', '-t', metavar='TIMEOUT_MS', type=int,
