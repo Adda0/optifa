@@ -49,6 +49,7 @@ def main():
         #print(f"Setting timeout {config.timeout}")
         smt.set("timeout", config.timeout)  # Set solver to timeout after given amount of time in ms.
 
+    # Add Parikh image formulae which are the same for all potential product-states tested for satisfiability.
     add_persistent_formulae(smt, fa_a_orig, fa_b_orig, config)
 
     # Define additional variables.
