@@ -11,7 +11,6 @@
 # author: David Chocholatý (xchoch08), FIT BUT
 # ====================================================
 
-import os
 import sys
 import symboliclib
 from lfa import LFA

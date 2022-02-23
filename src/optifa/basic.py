@@ -8,7 +8,7 @@
 #
 # author: David Chocholatý (xchoch08), FIT BUT
 
-import os
+from pathlib import Path
 import sys
 from collections import deque
 import itertools
@@ -33,7 +33,7 @@ def print_error(message, err_code=1):
     :param message: Error message to be printed.
     :param err_code: Error code to end the program with.
     """
-    print(os.path.basename(__file__) + ": error: " + message, file=sys.stderr)
+    print(Path(__file__).name + ": error: " + message, file=sys.stderr)
     sys.exit(err_code)
 
 

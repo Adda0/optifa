@@ -11,7 +11,7 @@
 # author: David Chocholatý (xchoch08), FIT BUT
 # ====================================================
 
-import os
+from pathlib import Path
 import sys
 import symboliclib
 
@@ -26,13 +26,9 @@ def main():
         file_fa = open(fa_name, "r")
         file_fa_dest = open(fa_name_dest, "w+")
     except IOError:
-        file_name = os.path.basename(__file__)
+        file_name = Path(__file__).name
         print('ERROR: ' + file_name + ': Opening file failed.', sep='', end='\n', file=sys.stderr)
         exit()
-
-
-
-
 
     file_fa_dest.write('Ops *:1 x:0\n')
 
@@ -58,10 +54,8 @@ def main():
         else:
             file_fa_dest.write(line)
 
-
     file_fa.close()
     file_fa_dest.close()
-
 
 
 if __name__ == "__main__":
