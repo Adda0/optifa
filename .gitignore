@@ -4,3 +4,14 @@ src/fa_files
 
 src/fa_a_minterms
 src/fa_b_minterms
+docs/article/.auctex-auto
+docs/article/projekt-01-kapitoly-chapters-en.log
+docs/article/projekt.aux
+docs/article/projekt.bbl
+docs/article/projekt.blg
+docs/article/projekt.log
+docs/article/projekt.out
+docs/article/projekt.ptc
+docs/article/projekt.toc
+docs/article/.kile/optifaarticle.kilepr.gui
+docs/article/optifaarticle.kilepr
