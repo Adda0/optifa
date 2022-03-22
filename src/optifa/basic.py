@@ -155,7 +155,7 @@ def add_persistent_formulae(smt, fa_a_orig, fa_b_orig, config):
                                  fa_b_orig.get_outgoing_transitions_names(state)]))
 
                 if state not in fa_b_orig.start and state not in fa_a_orig.final:
-                    smt.add(z3.Or(z3.And(z3.And(z3.Int('bz_%s' % state) == 0),
+                    smt.add(z3.Or(z3.And(z3.And(z3.Int('b_z_%s' % state) == 0),
                             z3.And([z3.Int('b_y_%s' % transition) == 0
                             for transition in fa_b_orig.get_ingoing_transitions_names(state)])),
                             z3.Or([z3.And(z3.Int('b_y_%s' % transition) >= 0,
@@ -260,11 +260,11 @@ def check_length_satisfiability(config, fa_a_formulae_dict, fa_b_formulae_dict):
 
                 # Handle lengths are distinct, further checking needed.
                 elif fa_a_id[0] > fa_b_id[0]:  # FA A handle is longer.
-                    if solve_one_handle_longer(fa_a_id, fa_b_id):
+                    if solve_for_one_handle_longer(fa_a_id, fa_b_id):
                         return True
 
                 else:  # FA B handle is longer.
-                    if solve_one_handle_longer(fa_b_id, fa_a_id):
+                    if solve_for_one_handle_longer(fa_b_id, fa_a_id):
                         return True
 
             else:  # Using SMT solver.
@@ -290,7 +290,7 @@ def get_only_formulae(formulae_dict):
     return only_formulae
 
 
-def solve_one_handle_longer(fa_a_id, fa_b_id):
+def solve_for_one_handle_longer(fa_a_id, fa_b_id):
     fa_a_id[0] -= fa_b_id[0]
     fa_b_id[0] = 0
 
