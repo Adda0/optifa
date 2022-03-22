@@ -1,6 +1,6 @@
-# Optimizing Automata Product Construction and Emptiness Test
+# Abstraction of State Languages in Automata Algorithms
 
-A script optimizing automata intersection product construction created during a [project praxis](https://www.fit.vut.cz/study/course/14017/.en).
+A set of programs and scripts to optimize automata algorithms using various abstractions of automata state languages.
 
 # About
 Finite automata are a well-known field of computational theory, and we use them widely in many situations. We will focus our attention to different heuristics for optimizing several typical problems with finite automata. We are interested especially in computation of intersection of automata product construction and its emptiness test, which is time and again required in modern computation technologies, but requires a lot of computational time and generates vast yet unnecessary so-called state space in the end.  For this reason, we will try to use length abstraction for solving these problems and optimizing the product construction and its emptiness test as good as possible using solely knowledge about recognized words lengths.
@@ -15,9 +15,9 @@ We have tested two main aspects:
 - Second, for the same pair of automata, we have tested the full product construction. Adding new accept states along the ways and comparing generated state spaces in the end for the full products accepting the whole intersection of original automata.
 
 ## License
-Project praxis: Optimizing Automata Product Construction and Emptiness Test
+Abstraction of State Languages in Automata Algorithms
 
 GPLv3 License \
-Copyright (C) 2021 David Chocholatý
+David Chocholatý \
 See [LICENSE](https://github.com/Adda0/optimizing_automata_product_construction_and_emptiness_test/blob/master/LICENSE)
 
