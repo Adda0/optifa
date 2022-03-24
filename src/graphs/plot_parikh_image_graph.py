@@ -18,6 +18,12 @@ import os
 import sys
 
 from pathlib import Path
+from enum import Enum
+
+
+class TEST_TYPE(Enum):
+    FP = "FP"
+    ET = "ET"
 
 
 def get_dataframe(filename: str = "../../combined_results_appended.csv", verbose: bool = False) -> pd.DataFrame:
@@ -32,7 +38,7 @@ def get_dataframe(filename: str = "../../combined_results_appended.csv", verbose
         pd.DataFrame: Data in a data frame.
     """
     df = pd.read_csv(filename)
-    print(df)
+    #print(df)
 
     #for column_name in df.columns:
         #df[column_name] = pd.to_numeric(df[column_name])
@@ -40,51 +46,55 @@ def get_dataframe(filename: str = "../../combined_results_appended.csv", verbose
     return df
 
 
-def plot_graph(df: pd.DataFrame, fig_location: str = None, show_figure: bool = False):
+def plot_graph_scatter_comparison(df: pd.DataFrame, fig_location: str = None, show_figure: bool = False,
+                                  test_type: TEST_TYPE = TEST_TYPE.FP):
     """
-    Plot graph depicting restaurant driver utility per minute.
+    Plot graph depicting scatter comparison of basic and length abstraction / Parikh image construction algorithms.
     Args:
         df (pd.DataFrame): Data frame to plot.
         fig_location (str): Location where to store the generated figure. If None, do not store at all.
         show_figure (bool): Whether to show the generated figure.
+        test_type (TEST_TYPE): Type of a test we want to plot.
     """
+
     vehicle_type_map = {
-        #"FP.B.states": "Basic",
-        "FP.C.states": "Combined LA + PI",
-        "FP.P.no_lengths.states": "Parikh image",
-        "FP.L.smt_free.states": "Length abstraction",
+        #f"{test_type.value}.C.states": "Combined LA + PI",
+        f"{test_type.value}.P.no_lengths.states": "Parikh image",
+        #f"{test_type.value}.L.smt_free.states": "Length abstraction",
     }
 
     value_vars = [
-        "FP.C.states",
-        #"FP.P.no_lengths.states",
-        "FP.L.smt_free.states",
+        #f"{test_type.value}.C.states",
+        f"{test_type.value}.P.no_lengths.states",
+        #f"{test_type.value}.L.smt_free.states",
     ]
 
     hue_order = [
-        "Length abstraction",
-        "Combined LA + PI",
-        #"FP.P.no_lengths.states",
+        #"Length abstraction",
+        "Parikh image",
+        #"Combined LA + PI",
     ]
 
+    #df.loc[df[f"{test_type.value}.B.states"] >= df[f"{test_type.value}.C.states"]]
 
-    df = df.melt(id_vars=["Larger automaton", "Smaller automaton", "FP.B.states"], value_vars=value_vars, var_name='type',
+    df = df.melt(id_vars=["Larger automaton", "Smaller automaton", f"{test_type.value}.B.states"], value_vars=value_vars, var_name='type',
                  value_name='count')
     df.loc[:, "type"] = df["type"].map(vehicle_type_map).astype('category')
 
-    #df["count"] = df["count"].fillna(0)
-    #df.loc[:, "count"] = df["count"].astype('int')
-    #print(df)
+    df = df.dropna()
+    df.loc[:, "count"] = df["count"].astype('int')
+    df.loc[:, f"{test_type.value}.B.states"] = df[f"{test_type.value}.B.states"].astype('int')
+    print(df)
 
     sns.set_theme(style="whitegrid")
-    sbg = sns.relplot(x="FP.B.states", y="count", hue="type", data=df, hue_order=hue_order)
-    sbg.map_dataframe(sns.lineplot, 'FP.B.states', 'FP.B.states', color='grey', )
+    sbg = sns.relplot(x=f"{test_type.value}.B.states", y="count", hue="type", data=df, hue_order=hue_order, legend=False)
+    sbg.map_dataframe(sns.lineplot, f"{test_type.value}.B.states", f"{test_type.value}.B.states", color="grey", alpha=0.4)
     #plt.yticks(df.loc[:, "count"].unique())
     #plt.xticks([i for i in range(0, df.loc[:, "count"].max())])
-    sbg.set_axis_labels("Čas od začátku směny (min)", "Počet rozvážejících řidičů")
+    #sbg.set_axis_labels("Čas od začátku směny (min)", "Počet rozvážejících řidičů")
     sbg.set(xscale="log", yscale="log")
     sbg.despine()
-    sbg._legend.set_title("Druh vozidla")
+    #sbg._legend.set_title("Druh vozidla")
     axis = sbg.axes.flat
     for ax in axis:
         ax.tick_params(bottom=True, left=True, labelleft=True, labelbottom=True)
@@ -101,8 +111,11 @@ if __name__ == "__main__":
     Runs the main script operations when run as a standalone script.
     """
     data_file = Path(sys.argv[1])
-    print(data_file.stem)
+    #print(data_file.stem)
     #df = get_dataframe(f"{filename}.csv", False)
     df = get_dataframe(data_file, False)
     #plot_graph(df, fig_location=f"{data_file.stem}.png", show_figure=False)
-    plot_graph(df, fig_location=f"test.png", show_figure=False)
+    plot_graph_scatter_comparison(df, fig_location=f"pi_la_et_scatter.png", show_figure=False,
+                                  test_type=TEST_TYPE.ET)
+    plot_graph_scatter_comparison(df, fig_location=f"pi_la_fp_scatter.png", show_figure=False,
+                                  test_type=TEST_TYPE.FP)
