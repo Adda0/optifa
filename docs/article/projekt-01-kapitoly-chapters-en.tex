@@ -445,7 +445,17 @@ When we have a series of such states, though, we can highly optimize generating 
 
     \Return $False$ \;
 }
-\BlankLine
+\end{algorithm}\DecMargin{1em}
+
+\begin{algorithm}
+\caption{Solve satisfiability of length abstraction formulae for one handle longer.}\label{checkLengthAbstractionSatisfiabilitySMTFreeAlgorithm}
+\SetKw{Return}{return}
+\SetKwFunction{FIsLengthAbstractionSatisfiable}{isLengthAbstractionSatisfiable}
+\SetKwFunction{FSolveForOneHandleLonger}{solveForOneHandleLonger}
+\SetKwFunction{FGetGCD}{getGCD}
+\SetKwProg{Fn}{Function}{:}{}
+
+\DontPrintSemicolon
 \Fn{\FSolveForOneHandleLonger{formulaForFA1, formulaForFA2}}{
     \KwData{
     Input length formulae of potential product state we are solving the satisfiability for (for concrete accept states combination).\\
@@ -594,7 +604,7 @@ We use Parikh image formulae to determine whether potential product states are t
 
 We can see our proposed algorithm using Parikh image computation to optimize product construction in the Algorithm~\ref{productConstructionParikhImageAlgorithm}. Similarly to the length abstraction algorithm, we start with the initial states (our abstract initial state, as described in Section~\ref{sec:reducedParikhImage}) of all finite automata $A_i \in A$, compute Parikh image formulae for each $A_i$ combined into a single formula $\varphi$. If $\varphi$ is unsatisfiable (each Parik image formulae simultaneously), the product is empty and we can stop the product generation at once. Otherwise, the formula is satisfiable and the corresponding product state is added to the generated product $P$. We proceed to generate the consecutive potential product states. We set the initial states for Parikh image formulae computation to the current state for each automaton $A_i$ for each potential product state and recompute the combined Parikh image formula. We iterate over potential product states from $W$ (see line~\ref{PIAlgorithm:IterateOverProductStates}).
 
-The Parikh image formulae are computed in function \texttt{areParikhImageFormulaeSatisfiable} and the function determined their satisfiability. The result of the satisfiability test is used further in the algorithm to determine whether the product state is added to the generated product and append consecutive potential product states to $W$. The Parikh image is computed as it is explained in Section~\ref{sec:reducedParikhImage}.
+The function \texttt{areParikhImageFormulaeSatisfiable} computes Parikh image formulae, determines their satisfiability and returns the result as a boolean value. We are only interested in the satisfiability test result because we do not need any additional information from the computed formulae. Therefore, a simple boolean value is sufficient. The result of the satisfiability test is used further in the algorithm to determine whether the product state is added to the generated product and append consecutive potential product states to $W$. The Parikh image is computed as it is explained in Section~\ref{sec:reducedParikhImage}.
 
 \begin{algorithm}
 \caption{Product construction with Parikh image abstraction}\label{productConstructionParikhImageAlgorithm}
@@ -753,14 +763,14 @@ We introduce a combined algorithm with both length abstraction and Parikh image 
 \SetKw{Return}{return}
 \SetKwFunction{FAddStateSpecificClauses}{addStateSpecificClauses}
 \SetKwFunction{FAreParikhImageFormulaeSatisfiable}{areParikhImageFormulaeSatisfiable}
-\SetKwFunction{FAreLengthAbstractionSatisfiable}{areLengthAbstractionSatisfiable}
+\SetKwFunction{FAreLengthAbstractionFormulaeSatisfiable}{areLengthAbstractionFormulaeSatisfiable}
 \DontPrintSemicolon
 \Input{ NFA $A_1 = (Q_1, \Sigma, \delta_1, I_1, F_1)$, NFA $A_2 = (Q_2, \Sigma, \delta_2, I_2, F_2)$}
 \Output{ bool: True if satisfiable, False otherwise.}
 \BlankLine
 
 % Check length satisfiability.
-\If{$\textbf{not } \FAreLengthAbstractionSatisfiable{$[q_1, q_2]$} $}{
+\If{$\textbf{not } \FAreLengthAbstractionFormulaeSatisfiable{$[q_1, q_2]$} $}{
    \Return $False$ \;
 }
 
