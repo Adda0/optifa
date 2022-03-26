@@ -52,8 +52,8 @@ Our proposed algorithm cannot remove any product states leading to an actual acc
 
 The contribution of this work can be summarized as follows:
 \begin{enumerate}
-    \item heuristic trimming generated state space of finite automata synchronous product construction based on length abstraction, and
-    \item implementation and experimental evaluation of said heuristic.
+    \item heuristics trimming the generated state space of finite automata operations based on length abstraction, Parikh image computation, mintermization, and
+    \item implementation and experimental evaluation of said heuristics.
 \end{enumerate}
 
 %--------------------------------------------------------
@@ -62,7 +62,7 @@ The contribution of this work can be summarized as follows:
 %--------------------------------------------------------
 
 \chapter{Preliminaries}
-Let us clarify a few definitions and terms often used throughout this paper. The following definitions are mostly adapted from \cite{Esparza} or \cite{Sipser}.
+Let us clarify a few definitions and terms often used throughout this paper. The following definitions are mostly adapted from~\cite{Esparza} or~\cite{Sipser}.
 
 \emph{Alphabet} is a finite, non-empty set denoted by $\Sigma$. Elements of an alphabet are called \emph{symbols} or \emph{letters}. A finite, possibly empty sequence of symbols over an alphabet is a \emph{word} $w$ from the set of all words $\Sigma^*$ over an alphabet $\Sigma$.
 
@@ -144,10 +144,6 @@ $W \gets  I$
     }
 }
 \end{algorithm}\DecMargin{1em}
-
-\section{Parikh Image Computation} %TODO
-\begin{definition}[\textbf{Parikh Image}]
-\end{definition}
 
 %--------------------------------------------------------
 %--------------------------------------------------------
@@ -516,7 +512,7 @@ In this section, we will introduce an algorithm for Parikh image computation use
 %TODO
 \subsection{Parikh Image} \label{sec:parikhImage}
 
-We derive our Parikh image construction from the Parikh's theorem described in~\ref{ParikhsTheoremSimpleAndDirectConstruction}, creating a semilinear Parikh image formulae for the given regular language as a set of Parikh images for each word in the language. However, our usage of Parikh image of some regular language (and therefore of the corresponding finite automaton recognizing such regular language) is restricted to determine the satisfiability of Parikh image formulae. That is, Parikh image constrains which we use in SMT solver to represent the abstraction of the current potential product state language.
+We derive our Parikh image construction from the Parikh's theorem \cite{Kozen1977} described in~\cite{ParikhsTheoremSimpleAndDirectConstruction}, creating a semi-linear Parikh image formulae for the given regular language as a set of Parikh images for each word in the language. However, our usage of Parikh image of some regular language (and therefore of the corresponding finite automaton recognizing such regular language) is restricted to determine the satisfiability of Parikh image formulae. That is, Parikh image constrains which we use in SMT solver to represent the abstraction of the current potential product state language.
 
 Our Parikh image formulae consist of the following constraints (clauses), in conjunctive normal form. For each potential product state, there exists exactly one our formula of Parikh image describing its regular language. We ask the SMT solver whether the Parikh image constraints for corresponding states in the original automata (one state per automaton) are compatible with each other. This ensures that we construct only those product states which satisfy the Parikh image constraints, otherwise we deem such potential product states redundant and such states can be pruned.
 
@@ -840,14 +836,14 @@ The Figure~\ref{fig:diagram:mintermization_automata_transition_sets} depicts how
     \centering
     \begin{minipage}{0.49\linewidth}
         \centering
-        \includegraphics[height=100pt]{obrazky-figures/mintermization_automaton_m1_with_transition_sets.pdf}
+        \includegraphics[height=100pt]{mintermization_automaton_m1_with_transition_sets.pdf}
         \caption{Finite automaton $M_1$ with transition sets $\varphi_i$.}
         \label{fig:diagram:mintermization_automaton_m1_with_transition_sets}
     \end{minipage}
     \hfill
     \begin{minipage}{0.49\linewidth}
         \centering
-        \includegraphics[height=100pt]{obrazky-figures/mintermization_automaton_m2_with_transition_sets.pdf}
+        \includegraphics[height=100pt]{mintermization_automaton_m2_with_transition_sets.pdf}
         \caption{Finite automaton $M_2$ with transition sets $\varphi_i$.}
         \label{fig:diagram:mintermization_automaton_m2_with_transition_sets}
     \end{minipage}
@@ -914,7 +910,6 @@ In the following section, we propose a method of using minterm computation with 
 \chapter{Experiments and Results}\label{experimentsAndResultsChapter}
 
 The reference implementation\footnote{In the \href{https://github.com/Adda0/optimizing_automata_product_construction_and_emptiness_test}{reference implementation}, we use \href{https://github.com/Z3Prover/z3}{Z3} as an SMT solver and automata operations are handled by \href{https://github.com/Adda0/symboliclib}{for our uses modified library Symboliclib}.} of optimization, written in Python 3, as well as a complete table of all of our experiments and their results and graphs is publicly accessible on a \href{https://github.com/Adda0/optimizing_automata_product_construction_and_emptiness_test}{GitHub repository}\footnote{{\href{https://github.com/Adda0/optimizing_automata_product_construction_and_emptiness_test}{https://github.com/Adda0/optimizing\_automata\_product\_\\construction\_and\_emptiness\_test}}}. There is further explanation of the following graphs as well as additional graphs with description and in-depth analysis of performed experiments.
-
 
 Test benchmarks used in our experiments were obtained from regular model checking. We have tested various different finite automata and their combinations. We have often used the same automata with their slightly changed variations to simulate real world examples of usually used automata to see how the optimized algorithm reduces the generated state space for certain types of automata with their typical qualities.
 
@@ -1006,12 +1001,8 @@ Out of all experiments, one weakness of our algorithm is clear---the more final 
 %--------------------------------------------------------
 \chapter{Conclusion}
 
-The most demanding parts of the intersection computation is the generation of product states and transitions of the product automaton. We tried to reduce the size of the generated state space by omitting the states which cannot lead to any accepting state---that is, omitting the \textit{branches} which do not lead to any accepting state---by computing the emptiness test of these states using length abstraction over the original automata using lasso automata.
+The most demanding parts of the intersection computation is the generation of product states and transitions of the product automaton. We tried to reduce the size of the generated state space by omitting the states which cannot lead to any accepting state---that is, omitting the \textit{branches} which do not lead to any accepting state---by performing the emptiness test of such states using various state languages abstractions over the original automata such as length abstraction using lasso automata or Parikh image computation based on Parikh's theorem. Each approach has been experimentally tested and further optizations to the proposed algorithms were suggested and tested.
 
-According to our experiments, product state space is minimized especially for intersections with huge non-terminating branches or for intersections of automata accepting different lengths of words recognized by the automata languages. Further, for automata with long lines and similar automata varying only slightly from each other. Experiments show our algorithm generates smaller product state spaces for both emptiness test and full product construction, which are two most usually used operations on automata intersection. And because length abstraction considers over-approximation of possible products, our algorithm is safe to use for any uses resolving automata intersection.
+According to our experiments, product state space is minimized especially for intersections with huge non-terminating branches or for intersections of automata accepting different lengths of words recognized by the automata languages. Further, for automata with long lines and similar automata varying only slightly from each other. Experiments show our algorithm generates smaller product state spaces for both emptiness test and full product construction, which are two most usually used operations on automata intersection. All our abstractions consider over-approximation of possible products. Therefore, our optimizations are safe to use for any uses resolving operations on finite automata.
 
-We have not encountered similar approaches to product construction optimization using length or other abstraction to compare our results with. It might be worth investing into combining our orthogonal approach with other existing algorithm to see how the generated product state space is affected. We are talking about abstraction techniques such as CEGAR \cite{DBLP:conf/cav/ClarkeGJLV00} and predicate abstraction \cite{DBLP:conf/cav/ColonU98, DBLP:conf/cav/GrafS97}, IMPACT \cite{DBLP:conf/cav/McMillan06}, possibly IC3/PDR \cite{DBLP:conf/sat/HoderB12, DBLP:conf/fmcad/BradleyM07}. All the above techniques have proven efficient in hardware or software verification, and they can be applied in automata too. First attempts to use these techniques in finite automata problem-solving are based on IC3 \cite{DBLP:journals/pacmpl/HolikJLRV18, DBLP:conf/cav/WangTLYJ16, DBLP:journals/corr/abs-1708-09073} and on the interpolation-based approach of McMillan \cite{DBLP:conf/tacas/AmlaM07, DBLP:conf/tacas/GangeNSSS13}.
-
-We can also compute Parikh images using Parikh theorem \cite{Kozen1977} instead of just lengths of recognized words. Parikh images give us additional information about every product state. This allows more precise estimation of possible accepted words by both automata and deciding the emptiness test of their intersection more effectively. Computation of Parikh image is time-consuming, but might further minimize the product construction state space.
-
-
+We have not encountered similar approaches to product construction optimization using length abstraction or Parikh image computation to compare our results with. It might be worth investing into combining our orthogonal approach with other existing algorithms to see how the generated product state space is affected. We are talking about abstraction techniques such as CEGAR \cite{DBLP:conf/cav/ClarkeGJLV00} and predicate abstraction \cite{DBLP:conf/cav/ColonU98, DBLP:conf/cav/GrafS97}, IMPACT \cite{DBLP:conf/cav/McMillan06}, possibly IC3/PDR \cite{DBLP:conf/sat/HoderB12, DBLP:conf/fmcad/BradleyM07}. All the above techniques have proven efficient in hardware or software verification, and they can be applied in automata too. First attempts to use these techniques in finite automata problem-solving are based on IC3 \cite{DBLP:journals/pacmpl/HolikJLRV18, DBLP:conf/cav/WangTLYJ16, DBLP:journals/corr/abs-1708-09073} and on the interpolation-based approach of McMillan \cite{DBLP:conf/tacas/AmlaM07, DBLP:conf/tacas/GangeNSSS13}.
