@@ -92,7 +92,10 @@ def plot_graph_scatter_comparison(df: pd.DataFrame, fig_location: str = None, sh
     #plt.yticks(df.loc[:, "count"].unique())
     #plt.xticks([i for i in range(0, df.loc[:, "count"].max())])
     #sbg.set_axis_labels("Čas od začátku směny (min)", "Počet rozvážejících řidičů")
-    sbg.set(xscale="log", yscale="log")
+    sbg.set(
+        xscale="log", yscale="log",
+        xlabel=None, ylabel=None,
+    )
     sbg.despine()
     #sbg._legend.set_title("Druh vozidla")
     axis = sbg.axes.flat
