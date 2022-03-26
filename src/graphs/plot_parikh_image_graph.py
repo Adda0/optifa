@@ -103,7 +103,7 @@ def plot_graph_scatter_comparison(df: pd.DataFrame, fig_location: str = None, sh
         ax.tick_params(bottom=True, left=True, labelleft=True, labelbottom=True)
 
     if fig_location:
-        sbg.savefig(fig_location)
+        sbg.savefig(fig_location, format="pdf")
 
     if show_figure:
         plt.show()
@@ -118,7 +118,7 @@ if __name__ == "__main__":
     #df = get_dataframe(f"{filename}.csv", False)
     df = get_dataframe(data_file, False)
     #plot_graph(df, fig_location=f"{data_file.stem}.png", show_figure=False)
-    plot_graph_scatter_comparison(df, fig_location=f"pi_la_et_scatter.png", show_figure=False,
+    plot_graph_scatter_comparison(df, fig_location=f"graph_pi_et_scatter.pdf", show_figure=False,
                                   test_type=TEST_TYPE.ET)
-    plot_graph_scatter_comparison(df, fig_location=f"pi_la_fp_scatter.png", show_figure=False,
+    plot_graph_scatter_comparison(df, fig_location=f"graph_pi_fp_scatter.pdf", show_figure=False,
                                   test_type=TEST_TYPE.FP)
