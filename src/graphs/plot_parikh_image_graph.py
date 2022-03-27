@@ -60,41 +60,54 @@ def plot_graph_scatter_comparison(df: pd.DataFrame, fig_location: str = None, sh
     vehicle_type_map = {
         #f"{test_type.value}.C.states": "Combined LA + PI",
         f"{test_type.value}.P.no_lengths.states": "Parikh image",
-        #f"{test_type.value}.L.smt_free.states": "Length abstraction",
+        f"{test_type.value}.L.smt_free.states": "Length abstraction",
     }
 
     value_vars = [
         #f"{test_type.value}.C.states",
         f"{test_type.value}.P.no_lengths.states",
-        #f"{test_type.value}.L.smt_free.states",
+        f"{test_type.value}.L.smt_free.states",
     ]
 
     hue_order = [
-        #"Length abstraction",
+        "Length abstraction",
         "Parikh image",
         #"Combined LA + PI",
     ]
 
     #df.loc[df[f"{test_type.value}.B.states"] >= df[f"{test_type.value}.C.states"]]
+    df = df[df[f"{test_type.value}.L.smt_free.states"].notna() & df[f"{test_type.value}.P.no_lengths.states"].notna()]
+    #df.loc[:, f"{test_type.value}.L.smt_free.states"] = df[f"{test_type.value}.L.smt_free.states"].astype('int')
+    #df.loc[:, f"{test_type.value}.P.no_lenghts.states"] = df[f"{test_type.value}.P.no_lengths.states"].astype('int')
+
+    #df = df[(df[f"{test_type.value}.L.smt_free.states"] >= 0 ) & ( df[f"{test_type.value}.P.no_lengths.states"] >= 0 )]
+    df = df[df[f"{test_type.value}.L.smt_free.states"] >= df[f"{test_type.value}.P.no_lengths.states"] ]
 
     df = df.melt(id_vars=["Larger automaton", "Smaller automaton", f"{test_type.value}.B.states"], value_vars=value_vars, var_name='type',
                  value_name='count')
     df.loc[:, "type"] = df["type"].map(vehicle_type_map).astype('category')
 
-    df = df.dropna()
+    #df = df.dropna()
     df.loc[:, "count"] = df["count"].astype('int')
     df.loc[:, f"{test_type.value}.B.states"] = df[f"{test_type.value}.B.states"].astype('int')
+
+    df = df[df["count"] <= df[f"{test_type.value}.B.states"] ]
+    df = df.sort_values(by="count", ascending=True)
     print(df)
 
     sns.set_theme(style="whitegrid")
     sbg = sns.relplot(x=f"{test_type.value}.B.states", y="count", hue="type", data=df, hue_order=hue_order, legend=False)
-    sbg.map_dataframe(sns.lineplot, f"{test_type.value}.B.states", f"{test_type.value}.B.states", color="grey", alpha=0.4)
+    #sbg = sns.displot(x=f"{test_type.value}.B.states", y="count", hue="type", data=df, hue_order=hue_order, legend=True)
+    #sbg.map_dataframe(sns.lineplot, f"{test_type.value}.B.states", f"{test_type.value}.B.states", color="grey", alpha=0.4)
+    sbg.ax.axline(xy1=(0,0), slope=1, color="grey", alpha=.4, dashes=(5, 2))
     #plt.yticks(df.loc[:, "count"].unique())
     #plt.xticks([i for i in range(0, df.loc[:, "count"].max())])
     #sbg.set_axis_labels("Čas od začátku směny (min)", "Počet rozvážejících řidičů")
+    max_val_axis = max(df[f"{test_type.value}.B.states"].max(), df["count"].max()) * 1.3
     sbg.set(
-        xscale="log", yscale="log",
+        xscale="symlog", yscale="symlog",
         xlabel=None, ylabel=None,
+        xlim=(-.1, max_val_axis), ylim=(-.1, max_val_axis),
     )
     sbg.despine()
     #sbg._legend.set_title("Druh vozidla")
