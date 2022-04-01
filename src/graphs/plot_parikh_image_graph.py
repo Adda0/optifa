@@ -18,12 +18,18 @@ import os
 import sys
 
 from pathlib import Path
-from enum import Enum
+from enum import Enum, unique
 
 
+@unique
 class TEST_TYPE(Enum):
     FP = "FP"
     ET = "ET"
+
+    @classmethod
+    def default(cls):
+        """Get the default value."""
+        return cls.FP
 
 
 def get_dataframe(filename: str = "../../combined_results_appended.csv", verbose: bool = False) -> pd.DataFrame:
@@ -47,7 +53,7 @@ def get_dataframe(filename: str = "../../combined_results_appended.csv", verbose
 
 
 def plot_graph_scatter_comparison(df: pd.DataFrame, fig_location: str = None, show_figure: bool = False,
-                                  test_type: TEST_TYPE = TEST_TYPE.FP):
+                                  test_type: TEST_TYPE = TEST_TYPE.default()):
     """
     Plot graph depicting scatter comparison of basic and length abstraction / Parikh image construction algorithms.
     Args:
