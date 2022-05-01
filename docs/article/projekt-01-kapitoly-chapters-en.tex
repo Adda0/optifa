@@ -107,7 +107,8 @@ $\delta$ is described as $([q_1, q_2], a) = \delta_1(q_1, a) \times \delta_2(q_2
 
 Focusing mainly on \emph{intersection} of automata, the product construction tells that $ L(A) = L(A_1) \cap L(A_2) $. Finally, we test the \emph{emptiness} of the resulting automaton language: $L(A)$ does not accept any words.
 
-We work with basic product construction algorithm in Algorithm~\ref{productConstructionAlg}.
+We work with a basic product construction algorithm in Algorithm~\ref{productConstructionAlg}.
+
 \begin{algorithm}
 \caption{Classic product construction algorithm used as a base for our optimization methods which extend the algorithm by deciding compatibility of state language abstractions.}\label{productConstructionAlg}
 \SetKwData{Left}{left}\SetKwData{This}{this}\SetKwData{Up}{up}
@@ -157,18 +158,30 @@ In the terminology of abstract interpretation, $P$ is a \emph{concrete domain} a
 %--------------------------------------------------------
 %--------------------------------------------------------
 
-\chapter{State Language Optimizations}
+\chapter{State Language Abstractions}
 
-In this chapter, we will intruduce several optimizations of state language. We aim to optimize operations on finite automata such as product construction, complement computation, minimalization or determinization and inclusion test. Furthermore, we want to introduce state language optimizations which work for different automata structures. E.g., operations on transducers, operations with alternating automata such as its emptiness or conversion of alternating automaton to its NFA representation, conversion of finite automata to flat automata, etc.
+In this chapter, we intruduce several state language abstractions. We aim to optimize operations on finite automata such as product construction, complement computation, minimalization or determinization and inclusion test. Furthermore, we want to create state language abstractions which can work for different automata structures: operations on transducers, operations with alternating automata such as its emptiness or a conversion of an alternating automaton to its NFA representation, conversion of finite automata to flat automata, etc. Our optimization methods therefore have to be able to improve substantially important processes used throughout multitude of theoretical areas as well as in praxis.
 
-Not only the classic operations are generally useful, but both transducers and alternating automata are operations often used, beside others, for example, in verification. Our optimization methods therefore have the ability to improve substantially important processes used throughout multitude of places and fields of study as well as in praxis.
+We try to optimize automata operations with our optimizations methods. For the purpose of introducing our methods, we will focus solely on synchronous product construction of automata intersection from now on. However, the proposed optimizations can be applied to other operations as well.
 
-We perform experiments with our optimization methods mostly on product construction of two NFAs and our optimization method algorithms are consequently introduced on these algorithms, improving the naive product construction algorithm to generate optimized products. Nevertheless, our optimization techniques are to be used in various fields of automata theory and allow us to optimize other, more complex problems. We chose product construction as our benchmarking operation on automata for its straightforwardness allowing us to see clearly pruning capabilities of our proposed optimization methods, even though the naive product construction algorithm complexity can be at most \emph{only} quadratic and is not that expensive in terms of computational time. Our optimization methods are applicable for more complex operations for exponential constructions (determinization, minimization, emptiness of alternating automaton, \ldots) and worse.
+When constructing a product, a considerate number of generated product states are non-terminating and thus unnecessary. Furthermore, the whole product must be constructed before we can determine whether the automata intersection is empty. Our optimizations decide the emptiness of parts of the product (or the whole product) already in the process of generating the product (on the fly). We can thus prune non-terminating states before they are added to the product and omit extensive product state space before even considering it in the classic product generation algorithm. We achieve this by computing state language abstractions for each state the generated product state consists of and deciding the compatibility of these abstractions.
+
+Our product construction optimizations are applicable on two and more automata, but for the ease of explanation, we will consider only two automata ($A_1$ and $A_2$). The concept of state language abstractions is to find a state language abstraction $\alpha^X(q)$ of a state $q$ in abstraction $X$ ($\abstLA{q}$ for length abstraction and $\abstPI{q}$ for Parikh image abstraction) representing a formula in first-order predicate logic. Both our $\abstLA{q}$ and $\abstPI{q}$ respect Galois connection. Hence, they are an over-approximation of state language of $q$. We compare such state abstractions in different finite automata ($\alpha(q_1)$ where $q_1 \in Q_{A_1}$, $\alpha(q_2)$ where $q_2 \in Q_{A_2}$) to find out whether they are compatible with each other. If not, we can assume the corresponding state languages are neither and can prune such product state $p = [q_1, q_2]$.
+
+We perform experiments with the following optimization methods mostly on product construction of two NFAs, improving the naive product construction algorithm to generate optimized products. We chose product construction as our benchmarking operation on automata for its straightforwardness allowing us to clearly follow pruning capabilities of our proposed optimization methods, even though the naive product construction algorithm complexity can be at most \emph{only} quadratic. Nevertheless, our optimization techniques are to be used in various fields of automata theory and to allow us to optimize even other, more complex problems (determinization, minimization, emptiness of alternating automata, \ldots).
 
 %--------------------------------------------------------
 %--------------------------------------------------------
 
-\section{State Language Optimization with Length Abstraction}
+\section{Length Abstraction of State Languages}
+
+% TODO: Include these paragraphs, maybe.
+Our proposed algorithm cannot remove any product states leading to an actual accepting state. Therefore, it is impossible to accidentally trim product states leading to some accepting states and change the intersection language in the end. The language we get is the same as the one generated from the naive product construction algorithm. Consequently, is it completely secure to use our optimization with any kind of automata for any kind of uses.
+
+Computing length abstraction over the languages of finite automata (and over individual states in the automata in particular) is accomplished using lasso automata (handle and loop automata)---deterministic finite automata with a unary alphabet (similar as in \cite{DBLP:conf/cav/AbdullaACHRRS14}). They consist of a \emph{handle} (a sequence of states from the initial state) and a single \emph{loop} (resolving the cycles in the original automaton) with a few accepting states along the way, hence the name of a handle and loop or lasso automaton. Create one by taking the initial automaton, consider all transition symbols as a single transition symbol and determinize this automaton.
+
+What you get is an automaton accepting every length of any word recognized by the language of the initial automaton. Consequently, it is easy to compute semi-linear set (formulae\footnote{disjunction of linear equations}) for the allowed lengths of words, which can be effectively processed and compared using SMT solvers. We are computing these formulae for individual product states (precisely for the corresponding states in the original automata), checking their satisfiability and consequently construct only those product states for which the length test resolves as satisfiable.
+% End of TODO.
 
 Our task is to try to minimize the number of generated states when trying to resolve the product construction of automata intersection and test its emptiness. One possible solution is looking for lengths of words accepted by both automata---testing whether both automata recognize words of the same lengths. Afterwards, we check the original transition symbols for generating new product states\footnote{So we do not get non-empty intersection results when there is no word both original automata actually accept and only their lengths correspond.}. Consequently, we can resolve the emptiness test of some intersections very quickly and optionally optimize the product construction, when we need to generate the whole product.
 
@@ -264,7 +277,7 @@ $solved \gets \emptyset$ \;\label{solved}
         }
     }
 }
-\end{algorithm}\DecMargin{1em}
+\end{algorithm}
 
 We will call $W$ from line \ref{work_set} a work set. It stores the potential product states prepared for testing for satisfiability and other processing, which we pick from $W$ one by one\footnote{In spite of the fact that more approaches are valid, we strongly recommend picking the last added product state from the work set $W$ (see line \ref{picklast})---using Depth-first Search for a graph algorithm---as this allows us to quickly advance through the automaton and get to any final state faster---in case we just want to know whether automata have a non-empty intersection, this change will get us the answer most of the time in less steps. It works even better with implemented satisfiable state skipping optimization, explained in Section~\ref{sec:skipping states}.}.
 
@@ -307,7 +320,7 @@ The optimization process starts when a product state $q$ is picked from $W$. Ins
     \Return $False$ \;
 }
 
-\end{algorithm}\DecMargin{1em}
+\end{algorithm}
 
 The formulae are generated using lasso automata for both original automata. For every state, we get one or more formulae in the form $\varphi: \exists k( |w| = a + b \cdot k)$, where $|w|$ is a length of a recognized word, $a$ is the length of a handle to a certain accepting state, and $b$ is the length of a loop to return to this particular accepting state going through the loop. $k$ is the number of cycles through the loop states until a word ends in an accepting state. When multiple depicted formulae are present (because there are more accepting states in the lasso automaton), we append these formulae with \emph{logical or} ($\lor$), then compare these with the formulae from the other lasso automaton for the other initial finite automaton using SMT solver.
 
@@ -389,7 +402,7 @@ If our original automata have long lines (with non-splitting branches), this wil
     }{\label{AlgIsSkippable} % else
         $sat \gets True$ \;
     }
-\end{algorithm}\DecMargin{1em}
+\end{algorithm}
 %}
 
 The only change is a test for every checked product state $q$, which decides whether $q$ can be skipped, if it cannot give us any information which we do not have yet. You can see that we proceed with SMT solver satisfiability check only for $q$ which are generated from the product states with multiple transitions generating $q$ and at least one more product state (in general at least two new potential product states). If only one $q$ is generated, we skip the satisfiability check for $q$ and continue to generating its successive states immediately.
@@ -448,7 +461,7 @@ When we have a series of such states, though, we can highly optimize generating 
 
     \Return $False$ \;
 }
-\end{algorithm}\DecMargin{1em}
+\end{algorithm}
 
 \begin{algorithm}
 \caption{Solve satisfiability of length abstraction formulae for one handle longer.}\label{checkLengthAbstractionSatisfiabilitySMTFreeAlgorithm}
@@ -503,133 +516,146 @@ When we have a series of such states, though, we can highly optimize generating 
     }
     \Return $False$ \;
 }
-\end{algorithm}\DecMargin{1em}
-
+\end{algorithm}
 
 %--------------------------------------------------------
 %--------------------------------------------------------
 %--------------------------------------------------------
 %--------------------------------------------------------
-\section{Product Construction Optimization with Parikh Image Computation}
+\section{Parikh Image State Language Abstraction}
 
-This section presents a product construction optimization using Parikh images of finite automata. Parikh image optimization provides more information about the finite automata the product is computed for than simple length abstraction, which allows us to more precisely determine whether the generated product has non-empty intersection. However, the Parikh image computation itself consumes a considerate amount of computational time for some of the more extensive finite automata. The question is, whether the added computation time compensates for more precise product generation with higher product states pruning capabilities.
+The $\abstLA{q}$ is a simple and fast optimization abstracting accepted words to only their lengths, but can be too general to detect non-terminating states in some cases. In this section, we present a product construction optimization using Parikh image state language abstraction which aims to make the abstraction more accurate to prune larger quantities of unnecessary generated product state space.
 
-In this section, we will introduce an algorithm for Parikh image computation used for computing Parikh image of each potential product state to decide the satisfiability of Parikh image constraints for this particular product state. If the constraints are proved to be satisfiable, the considered product state is added to the generated product, otherwise, the potential product state is omitted and no additional potential product states accessible from the omitted product state in one step are added to the queue for testing for their satisfiability.
+Parikh images provide more information about the finite automata than simple length abstraction as Parikh image abstracts accepted words to numbers of occurrences of transition symbols in words regardless of their position in words instead of only word lengths without consideration of which transition symbols are actually used. Parikh image abstraction allows us to more precisely determine the emptiness of finite automata intersection. However, the Parikh image computation itself consumes a considerate amount of computational time for some of the more extensive finite automata. The question is, whether the added computation time compensates for more precise product generation with higher product states pruning capabilities.
 
-%TODO
+We introduce an algorithm for Parikh image computation applied on each potential product state $p = [q_1, q_2]$ to decide the compatibility of its $\abstPI{q_1}$, $\abstPI{q_2}$ (mutual satisfiability of formulae describing the abstractions). If the abstractions are proved to be compatible, $p$ is added to the generated product. Otherwise, $p$ is omitted and no additional $p'$ such that $p' = \delta(p, a)$ accessible only from $p$ are added to the queue to test their abstractions compatibility. Generalization to n-tuples is then a matter of adding additional abstraction equal to the number of input automata.
+
 \subsection{Parikh Image} \label{sec:parikhImage}
 
-We derive our Parikh image construction from the Parikh's theorem \cite{Kozen1977} described in~\cite{ParikhsTheoremSimpleAndDirectConstruction}, creating a semi-linear Parikh image formulae for the given regular language as a set of Parikh images for each word in the language. However, our usage of Parikh image of some regular language (and therefore of the corresponding finite automaton recognizing such regular language) is restricted to determine the satisfiability of Parikh image formulae. That is, Parikh image constrains which we use in SMT solver to represent the abstraction of the current potential product state language.
+We derive our Parikh image construction from the Parikh's theorem~\cite{Kozen1977} described in~\cite{ParikhsTheoremSimpleAndDirectConstruction}, creating a semi-linear Parikh image formulae for the given regular language as a set of Parikh images for each word in the language. However, our usage of Parikh image of some regular language (and therefore of the corresponding finite automaton recognizing such regular language) is restricted to determining the compatibility of Parikh image state language abstractions. Therefore, we only test for satisfiability of Parikh image formulae describing $\abstPI{q_i}$. We use SMT solver to resolve the satisfiability of Parikh image formulae of the current potential product state.
 
-Our Parikh image formulae consist of the following constraints (clauses), in conjunctive normal form. For each potential product state, there exists exactly one our formula of Parikh image describing its regular language. We ask the SMT solver whether the Parikh image constraints for corresponding states in the original automata (one state per automaton) are compatible with each other. This ensures that we construct only those product states which satisfy the Parikh image constraints, otherwise we deem such potential product states redundant and such states can be pruned.
+Our Parikh image formulae consist of the following constraints, in conjunctive normal form. For each potential product state, there exists exactly one our formula of Parikh image describing its regular language. We ask the SMT solver whether the Parikh image constraints for corresponding states in the original automata (one state per automaton) are compatible with each other. This ensures that we construct only those product states which satisfy the Parikh image constraints, otherwise we deem such potential product states redundant and such states can be pruned.
 
-Given an NFA $A = (Q, \Sigma, \Delta, q_0, F)$, Parikh image constraints representing clauses in the classic Parikh image formula are constructed as follows:
+Given an NFA $A = (Q, \Sigma, \Delta, I, F)$ where $I$ is a singleton $I = \{ q_{0} \}$, Parikh image formula $\varphi$ (as described in~\cite{PI_computation/10.1007/978-3-030-45093-9_59} for solving string constraints) consists of the following conjuncts. $\varphi$ describes runs of $A$ (precisely, their over-approximation). The defined variables represent qualities of each run, their precise values the precise qualities of the specific run. Satisfiable assignment defines a set of runs with qualities given by the assigned variable values.
+
 \begin{enumerate}
-    \item \label{clauses:u_original} Foremost, we define a variable $u_{q}$ for each transition $t \in \Delta$. We assign values to $u_{q}$ as follows:
+    \item \label{clauses:u_original} Foremost, we define a variable $u_{q}$ for each state $q \in Q$. $u_{q}$ defines how many times we enter $q$ and exit $q$ again by specifying the difference between the number of entries and exits. We construct equations with $u_{q}$ for a run as follows:
     \begin{itemize}
-        \item $u_{q} = 1$ for the initial state $q_0$,
-        \item $u_{q} \in \{ 0, -1 \}$ for each state $q \in F$ and
-        \item $u_{q} = 0$ for every other state $q \in Q \ ( \{ q_{o} \} \cup F )$.
+        \item $u_{q} = 1$ for $q \in I$,
+        \item $u_{q} \in \{ 0, -1 \}$ for $q \in F$ and
+        \item $u_{q} = 0$ for $q \in Q \setminus ( I \cup F )$.
     \end{itemize}
 
-    \item \label{clauses:y_original} Second, we define a variable $y_{t}$ for each transition $t \in \Delta$ such that $y_{t} \geq 0$.
+    \item \label{clauses:y_original} Second, we define a variable $y_{t}$ for each transition $t \in \Delta$ such that $y_{t} \geq 0$ describing how many times is $t$ used in the run.
 
-    \item \label{clauses:uy_original} We can now present an equation introducing a connection between $u_{q}$ and $y_{t}$ for each automaton state $q \in Q$ as follows:
+    \item \label{clauses:uy_original} We can now present an equation introducing a connection between $u_{q}$ and $y_{t}$ to evaluate the difference between the number of entries and exits for each $q \in Q$ as follows:
     $$ u_q + \sum_{t \in \Delta_q^+} y_t - \sum_{t \in \Delta_q^-} y_t = 0.$$
     where $\Delta_q^+$ is a set of ingoing transitions $ \Delta_q^+ = \{ (q',a,q) \in \Delta \}$ and $\Delta_q^-$ is a set of outgoing transitions $ \Delta_q^- = \{ (q,a,q') \in \Delta \} $ from the given state $q$.
 
-    \item \label{clauses:hash_original} Furthermore, we declare a variable $\#_a$ for each transition symbol $ a \in \Sigma$ such that $\#_a = \sum_{t = (q, a, q') \in \Delta} y_t$ to express the number of uses of a given symbol $a$ is consistent with the number of used $y_t$ with $a$.
+    \item \label{clauses:hash_original} Furthermore, we declare the only free variable $\#_a$ for each transition symbol $ a \in \Sigma$. $\#_a$ describes the number of occurrences of $a$ in accepted words regardless of their position in the words (the number of $a$ in the run). The constraint $\#_a = \sum_{t = (q, a, q') \in \Delta} y_t$ ensures $\#_a$ is consistent with the number of used $t$ with $a$.
 
-    \item \label{clauses:z_original} Last, but not least, we make sure the regular language expressed by Parikh image preserves the connectedness of the finite automaton. For this reason, yet another variable $z_q$ for each state $q \in Q$ is introduced. $z_q$ represents the length of the path from $q_0$ to $q$ in a spanning tree of the subgraph with $y_t \geq 0$.
+    \item \label{clauses:z_original} Last, but not least, we make sure the regular language expressed by Parikh image preserves the connectedness of $A$---the used automata states are accessible from $I$ and they are connected by transitions. Variable $z_q$ for each $q \in Q$ is introduced. $z_q$ represents the length of the path from $I$ to $q$ in a spanning tree of the subgraph with $y_t \geq 0$.
 
-    If the state $q$ is an initial state, we add a constraint $z_q = 1 \land y_t \geq 0$. Otherwise,
-        $$(z_q = 0 \land \bigwedge_{t \in \Delta_q^+} y_t = 0) \lor \bigvee_{t \in \Delta_q^+} (y_t \geq 0 \land z_{q'} \geq 0 \land z_q = z_{q'} + 1) \text{.}$$
+    If $q \in I$, we add a constraint $z_q = 1 \land y_t \geq 0$. Otherwise,
+    {
+    \begin{align*}
+        (z_q = 0 \land \bigwedge_{t \in \Delta_q^+} y_t = 0) \lor \bigvee_{t \in \Delta_q^+} (y_t \geq 0 \land z_{q'} \geq 0 \land z_q = z_{q'} + 1) \text{.}
+    \end{align*}
+    }
+    If the distance $z_q$ is $0$, $q$ is not in the run.
 \end{enumerate}
 
-We gain a qualifier-free formula $\varphi$ in Presburger arithmetic:
-$$ \exists u_{q_1},\ldots,u_{q_n},z_{q_1},\ldots,z_{q_n},y_{t_1},\ldots,y_{t_m} : \varphi $$
-where $n = |Q|$ is the number of states and $m = |\Delta|$ is the number of transitions in the finite automaton.
+We gain an existentially quantified formula $\varphi$ in Presburger arithmetic describing language abstracting $\alpha^{PI}$ for $A$ with free variables $\#_a$:
+$$ \alpha^{PI} : \exists u_{q_1},\ldots,u_{q_n},z_{q_1},\ldots,z_{q_n},y_{t_1},\ldots,y_{t_m} : \varphi $$
+where $n = \lvert Q \rvert$ is the number of states and $m = \lvert \Delta \rvert$ is the number of transitions in the finite automaton.
+
+For SMT solving, it is paramount that we have formulae without universal quantifiers, otherwise the SMT solver computation could \emph{explode} computation time-wise. SMT solver work best with quantifier-free or existential formulae. Thanks to how Parikh image is constructed, our approach takes advantage of these SMT qualities and our Parikh image formulae can be inserted in SMT solver as quantifier-free.
 
 \subsubsection{Reduced Parikh Image}\label{sec:reducedParikhImage}
 
-The presented Parikh image works as intended. Nevertheless, the described Parikh image computation requires extensive resources and computation time. However, we use Parikh image only for determining the emptiness of the product. Given that most of the computation time takes evaluation of satisfiability of Parikh image formula $\varphi$, we try to minimize the number of Parikh image formula clauses SMT solver needs to evaluate in order to determine satisfiability of $\varphi$.
+The presented Parikh image works as intended. Nevertheless, the described Parikh image computation requires extensive resources and computation time. However, we use Parikh image only for determining the emptiness of the product. Given that most of the computation time is taken by the evaluation of these conjuncts, we try to minimize the number of Parikh image formula conjuncts SMT solver needs to evaluate for each $\varphi$.
 
-Consequently, we infer our reduced Parikh image from the above shown Parikh image to further optimize Parikh image computation. We strip Parikh image of for our purposes unnecessary constraints and unifying initial states as well as accept states for initial finite automata.
+Consequently, we infer our reduced Parikh image from the above shown Parikh image to further optimize Parikh image computation. We strip Parikh image of for our purposes unnecessary constraints and unify initial states as well as accept states.
 
 %TODO Unification of inital and accept states
 
-Our reduced Parikh image consists of the following clauses:
+Our reduced Parikh image consists of the following conjuncts:
 \begin{enumerate}
-    \item \label{clauses:u_reduced} We use the clause~\ref{clauses:u_original}, except now we restrict $u_q$ for each final state to have only the value $-1$, i.e.:
+    \item \label{clauses:u_reduced} We use the conjuncts~\ref{clauses:u_original}, except now we restrict $u_q$ for each final state to have only the value $-1$, i.e.:
     $$ u_{q} = -1 \text{ for each state } q \in F \text{.}$$
 
     We can perform this reduction, because we know for sure that by unifying final states of the automaton into one abstract final state, there will be exactly only one final state where all words accepted by the automaton end, but none passes through this state earlier.
     %TODO Why to change this? Cannot it be only the single one? Is it because of the unified initial and final state.
 
-    \item \label{clauses:y_reduced} \label{clauses:uy_reduced} \label{clauses:hash_reduced} The clause~\ref{clauses:y_original} and~\ref{clauses:uy_original} remain unchanged, the same holds for clause~\ref{clauses:hash_original}.
-    \item \label{clauses:z_reduced} However, we completely omit the clause for $z_{q}$ which ensures the connectedness of the Parikh image representation of finite automaton. The reason is that, as we have found out, the difference in pruning capabilities of Parikh image with or without the clause~\ref{clauses:z_original} on our benchmark automata is insignificant in comparison to the computation time spared by removing this clause (see Chapter~\ref{experimentsAndResultsChapter}).
+    \item \label{clauses:y_reduced} \label{clauses:uy_reduced} \label{clauses:hash_reduced} The conjuncts~\ref{clauses:y_original} and~\ref{clauses:uy_original} remain unchanged, the same holds for conjuncts~\ref{clauses:hash_original}.
+    \item \label{clauses:z_reduced} However, we completely omit the conjuncts for $z_{q}$ which ensure the connectedness of the Parikh image representation of finite automaton. The reason is that, as we have found out, the difference in pruning capabilities of Parikh image with or without the conjuncts~\ref{clauses:z_original} on our benchmark automata is insignificant in comparison to the computation time spared by removing these conjuncts %TODO: Add experiments there: (see Section~\ref{sec:experiments_and_results}).
 
-    The reason the clause~\ref{clauses:z_original} is so demanding computation time-wise is that the whole clause have to be always recomputed for each single state Parikh image is computed for. Furthermore, the clause itself is complex enough for even simple automata and SMT solvers need extensive resources to compute Parikh images with this clause in consideration.
+    The reason conjuncts~\ref{clauses:z_original} are so demanding computation time-wise is that all these conjuncts have to be always recomputed for each single state Parikh image is computed for. Furthermore, the conjuncts themselves are complex for even simple automata. For that reason, SMT solvers need extensive resources to compute Parikh images with these conjuncts in consideration.
 
-    Even then, if we require ensuring that the reduced Parikh image represents the connectedness of the finite automaton, we can include this clause, but, thanks to our unification of initial and accept states, we change it as follows to reflect our initial and accept state unification changes:
+    Even then, if we require ensuring that the reduced Parikh image represents the connectedness of the finite automaton, we can include these conjuncts, but, thanks to our unification of initial and accept states, we change them as follows to reflect our initial and accept state unification changes:
 
-    The constraint for when $q$ is an initial state ($z_q = 1 \land y_t \geq 0$) remains unchanged. However, for every other state, we remove the possibility of $y_t = 0$ and $z_{q'} = 0$ in the second half of the clause. The clause looks like this:
-    $$ (z_q = 0 \land \bigwedge_{t \in \Delta_q^+} y_t = 0) \lor \bigvee_{t \in \Delta_q^+} (y_t > 0 \land z_{q'} > 0 \land z_q = z_{q'} + 1) \text{.}$$
+    The constraint for when $q$ is an initial state ($z_q = 1 \land y_t \geq 0$) remains unchanged. However, for every other state, we remove the possibility of $y_t = 0$ and $z_{q'} = 0$ in the second half of the conjuncts. The conjuncts look like this:
+    {
+    \begin{align*}
+		(z_q = 0 \land \bigwedge_{t \in \Delta_q^+} y_t = 0) \lor \bigvee_{t \in \Delta_q^+} (y_t > 0 \land z_{q'} > 0 \land z_q = z_{q'} + 1) \text{.}
+    \end{align*}
+    }
+
 \end{enumerate}
 
-% TODO: what each constraint means?
+Our goal is to reduce the number of conjuncts the SMT solver needs to compute for each potential product-state. We focus on several optimizations such as incremental SMT solving,
 
-Our goal is to reduce the number of constraints the SMT solver needs to compute for each potential product-state. We focus on several optimizations such an incremental SMT solving,
-
-Due to how we have reduced our Parikh image used for automata state language abstraction, we work only with finite automata with a single initial state and a single accept state. However, we can easily convert any finite automaton into the required format with adding two new states to each input automaton. One for a new initial state from which one can transition to all previous initial states and one for a new accept state to which leads all previous accept states. The previous initial and accept states are changed to common automata states.
+Due to how we have reduced our Parikh image used for automata state language abstraction, we work only with finite automata with a single initial state and a single accept state. However, we can easily convert any finite automaton into the required format with adding two new states to each input automaton. One for a new initial state from which one can transition to all previous initial states and one for a new accept state to which lead all previous accept states. The previous initial and accept states are changed to common automata states.
 
 % TODO Algorithm or pseudocode? What about? Formal math representation?
 
+\subsubsection{Compatibility of Multiple Parikh Image State Language Abstractions}
 
+So far, we have shown how to compute Parikh image for a single finite automaton to represent said automaton with a single formula. We want to use this formula in such a way that would allow us to decide satisfiability of those formulae for multiple automata simultaneously when the formulae are combined into a single formula which we can decide its satisfiability for. The following paragraphs show how we use these features of Parikh images to determine satisfiability of multiple Parikh image formulae.
 
-\subsubsection{Satisfiability of Multiple Parikh Image Formulae Simultaneously}
+We can compute $\varphi_1$ for $A_1$ and $\varphi_2$ for $A_2$. Each $\varphi_i$ represents exactly one $A_i$. Therefore, each $\varphi_i$ by itself is satisfiable for $A_i$ where $\varphi_i$ describes words accepted by $A_i$\footnote{Our Parikh image is an over-approximation of the accepted language of $A_i$. Therefore, there could exist such evaluation of variables in $\varphi_i$ which describes words not accepted by $A_i$. It is a trade-off of precise representation of $A_i$ for faster computation of $\varphi_i$.}.
 
-So far, we have shown how to compute Parikh image for a single finite automaton to represent said automaton with a single formula. We want to use this formula in such a way that would allow us to decide satisfiability of those formulae for multiple automata simultaneously when the formulae are combined into a single formula which we can decide its satisfiability for.
+If each $\varphi_i$ is satisfiable, we want to know whether a combination of state language abstractions is compatible at the same time: $\sat{\compatPI{p}}$ such that $p = [q_1, q_2]$ is a product state,
+\[
+    \compatPI{p} : \abstPI{q_1} \wedge \abstPI{q_2} \text{ and}
+\]
+$\sat{\psi}$ is \emph{True} iff $\psi$ is satisfiable, $False$ otherwise.
 
-Given at least two finite automata $A_i \in A$, we can compute Parikh image formulae $\varphi_i \in \Phi$ for each finite automaton where $1 \leq i \leq n$ for $n = |A|$ is the number of finite automata. Each of these formulae $\varphi_i \in \Phi$ represents exactly one of the finite automata $A_i \in A$. Therefore, each of the formulae $\varphi_i$ by itself is satisfiable in some interpretation $I_i$ such that $I_i \models \varphi_i$ for the automaton $A_i$ where $I_i$ evaluates variables in $\varphi_i$ such that the formula describes words accepted by the automaton $A_i$\footnote{Our Parikh image is an overapproximation of the accepted language of a given finite automaton. Therefore, there could exist such interpretation $I \models \varphi_i$ which describe words not accepted by the original finite automaton $A_i$. It is a trade-off of precise representation of given automaton  for faster computation of Parikh image.}.
+However, to maintain the languages of specific automata distinguishable, we label each variable $u_q, y_t$ (optionally, $z_q$, too) for each $\varphi_i$ according to $i$: $u_{iq}, y_{it}$ ($z_{iq}$). The only exception are free variables $\#_a$ which in contrary are bound to transition symbols $a \in \Sigma$ common to both $A_i$.
 
-We use this features of Parikh image to determine satisfiability of multiple finite automata as follows. If each formula $\varphi_i$ is satisfiable, we want to know whether a combination of multiple formulae $\varphi_i, \varphi_i', \ldots$ is satisfiable at the same time for the same interpretation $I$. However, to maintain the languages of specific automata distinguishable, we label each variable $u_q, y_t$ (optionally, $z_q$, too) for each $\varphi_i$ according to $i$: $u_{iq}, y_{it}$ ($z_{iq}$). The only exception are variables $\#_a$ which in contrary are bound to transition symbols $a \in \Sigma$ common to all finite automata $A_i \in A$.
-
-Now, we find interpretation $I$ such that:
-$$ I \models \bigwedge_{1 \leq i \leq |A|} \varphi_i$$
-\noindent which would mean there are words accepted by all the Parikh image formulae $\varphi_i \in \Phi$ simultaneously and therefore by all the automata from $A$. Consequently, the automata product would be non-empty.
+$\sat{\compatPI{p}}$ means there are words accepted by all $\varphi_i$ simultaneously and therefore by both $A_i$. Consequently, the automata product would be non-empty.
 
 \subsection{Optimization Algorithm Using Parikh Images}
 
-In this section, we introduce the basic algorithm using Parikh image computation to construct the product of the intersection of finite automata. The algorithm resembles length optimization algorithm from Algorithm~\ref{productConstructionLengthAbstrAlg}. However, we compute Parikh image formulae and determine their satisfiability instead of generating lasso automata and determining satisfiability of length abstraction formulae now to optimize product construction.
+We introduce the basic algorithm using Parikh image computation to construct the product of the intersection of finite automata. The algorithm resembles the length optimization algorithm from Algorithm~\ref{productConstructionLengthAbstrAlg}. However, we compute Parikh image formulae and determine their satisfiability instead of generating lasso automata and determining satisfiability of length abstraction formulae now to optimize product construction.
 
-We use Parikh image formulae to determine whether potential product states are to be added to the generated product (in case the Parikh image formulae for each automaton $A_i \in A$ are satisfiable simultaneously) or omitted (in case any Parikh image formula $\varphi_i$ for a finite automaton $A_i \in A$ is unsatisfiable simultaneously with the Parikh image formulae $\varphi_j$ where $j \in \{ 1 \leq j \leq |A| \} \backslash \{i\}$ for the remaining finite automata $A_j \in A$).
+We use Parikh image formulae to determine whether $p$ is to be added to the generated product $P$ (in case $\sat{\compatPI{p}}$) or omitted (in case $\varphi_1$ and $\varphi_2$ are unsatisfiable simultaneously in $\compatPI{p}$.
 
-We can see our proposed algorithm using Parikh image computation to optimize product construction in the Algorithm~\ref{productConstructionParikhImageAlgorithm}. Similarly to the length abstraction algorithm, we start with the initial states (our abstract initial state, as described in Section~\ref{sec:reducedParikhImage}) of all finite automata $A_i \in A$, compute Parikh image formulae for each $A_i$ combined into a single formula $\varphi$. If $\varphi$ is unsatisfiable (each Parik image formulae simultaneously), the product is empty and we can stop the product generation at once. Otherwise, the formula is satisfiable and the corresponding product state is added to the generated product $P$. We proceed to generate the consecutive potential product states. We set the initial states for Parikh image formulae computation to the current state for each automaton $A_i$ for each potential product state and recompute the combined Parikh image formula. We iterate over potential product states from $W$ (see line~\ref{PIAlgorithm:IterateOverProductStates}).
+We can see our proposed algorithm using Parikh image computation to optimize product construction in the Algorithm~\ref{productConstructionParikhImageAlgorithm}. Similarly to the length abstraction algorithm, we start with the initial states (our abstract initial state, as described in Section~\ref{sec:reducedParikhImage}) of $A_1$ and $A_2$, compute $\varphi_1$ and $\varphi_2$ combined into a single formula $\compatPI{p}$. If $\neg \sat{\compatPI{p}}$, $P$ is empty and we can stop the product generation at once. Otherwise, $\sat{\compatPI{p}}$ is satisfiable and the corresponding product state is added to $P$. We proceed to generate the consecutive potential product states. We set the initial states for Parikh image formulae computation to the current state for each automaton $A_i$ for each potential product state and recompute the combined Parikh image formula. We iterate over potential product states from $W$ (see line~\ref{PIAlgorithm:IterateOverProductStates}).
 
-The function \texttt{areParikhImageFormulaeSatisfiable} computes Parikh image formulae, determines their satisfiability and returns the result as a boolean value. We are only interested in the satisfiability test result because we do not need any additional information from the computed formulae. Therefore, a simple boolean value is sufficient. The result of the satisfiability test is used further in the algorithm to determine whether the product state is added to the generated product and append consecutive potential product states to $W$. The Parikh image is computed as it is explained in Section~\ref{sec:reducedParikhImage}.
+The expression in line~\ref{areParikhImageFormulaeSatisfiable} computes state language abstractions by computing Parikh image formulae, determines their compatibility (satisfiability of Parikh image formulae) and returns the result as a boolean value. We are only interested in the satisfiability test result because we do not need any additional information from the computed formulae. Therefore, a simple boolean value is sufficient. The result of the satisfiability test is used further in the algorithm to determine whether the product state is added to the generated product and consecutive potential product states are appended to $W$. The Parikh image is computed as it is explained in Section~\ref{sec:reducedParikhImage}.
 
 \begin{algorithm}
-\caption{Product construction with Parikh image abstraction}\label{productConstructionParikhImageAlgorithm}
+\caption{Product construction algorithm with Parikh image abstraction.}\label{productConstructionParikhImageAlgorithm}
 \SetKwInOut{Input}{Input}
 \SetKwInOut{Output}{Output}
-\SetKwFunction{FAreParikhImageFormulaeSatisfiable}{areParikhImageFormulaeSatisfiable}%
+\SetKwFunction{FStateAbstractionPI}{$ \alpha^{PI} $}
 \DontPrintSemicolon
-\Input{ NFA $A_1 = (Q_1, \Sigma, \delta_1, I_1, F_1)$, \\ NFA $A_2 = (Q_2, \Sigma, \delta_2, I_2, F_2)$}
+\Input{ NFA $A_1 = (Q_1, \Sigma, \delta_1, I_1, F_1)$, NFA $A_2 = (Q_2, \Sigma, \delta_2, I_2, F_2)$}
 \Output{ NFA $P = (A_1 \cap A_2) = (Q, \Sigma, \delta, I, F)$ with $L(A_1 \cap A_2) = L(A_1) \cap L(A_2)$}
 \BlankLine
 $Q, \delta, F \gets \emptyset$ \;
 $I \gets I_1 \times I_2$ \;
 $W \gets I$ \;\label{work_set}
-$sat \gets False$ \;\label{sat}
+$res \gets False$ \;\label{sat}
 $solved \gets \emptyset$ \;\label{PIAlgorithm:solved}
 \While{$W \neq \emptyset$}{\label{PIAlgorithm:IterateOverProductStates}
     \textbf{picklast} $[q_1, q_2]$ \textbf{from} $W$\label{picklast} \;
     \textbf{add} $[q_1, q_2]$ \textbf{to} $solved$ \;
 
-    $sat \gets \FAreParikhImageFormulaeSatisfiable{$[q_{1}, q_{2}]$}$ \label{areParikhImageFormulaeSatisfiable} \;
+    $res \gets \FStateAbstractionPI{$q_{1}$} \land \FStateAbstractionPI{$q_{2}$} \textbf{ is } \emph{sat} $ \label{areParikhImageFormulaeSatisfiable} \;
 
-    \If{$sat$}{\label{AlgSolveForSat}\label{satTrue}
+    \If{$res = True$}{\label{AlgSolveForSat}\label{satTrue}
         \textbf{add} $[q_1, q_2]$ \textbf{to} $Q$ \;
         \If{$q_1 \in F_1$ \textbf{and} $q_2 \in F_2$} {
         \textbf{add} $[q_1, q_2]$ \textbf{to} $F$ \;
@@ -644,156 +670,133 @@ $solved \gets \emptyset$ \;\label{PIAlgorithm:solved}
         }
     }
 }
-\end{algorithm}\DecMargin{1em}
+\end{algorithm}
 
-\subsubsection{Optimization with Skippable States}
+\subsubsection{Skippable States Optimization}
 
-Same as for the length abstraction algorithm from Algorithm~\ref{productConstructionLengthAbstrAlg}, we can make use of skipping satisfiable product states optimization. When Parikh image is evaluated as satisfiable for some potential product state $q$ and such state generates only one consecutive potential product state $q'$ such that $q \rightarrow{a} q'$ where $a \in \Sigma $ is a transition symbol, we can skip computing Parikh image for the state $q'$ as we know for sure Parikh image for this particular product state $q'$ needs to be satisfiable in order to get a satisfiable result for Parikh image for state $q$. We can add this functionality to our previous algorithm by replacing line~\ref{areParikhImageFormulaeSatisfiable} with the content of Algorithm~\ref{productConstructionParikhImageAlgorithmAddingSkippableStates}.
+Same as for the length abstraction, we can make use of skipping satisfiable product states optimization. When $\sat{\compatPI{p}}$ for some potential product state $p = [q_1, q_2]$ and $p$ generates only one consecutive potential product state $p' = [q^{'}_1, q^{'}_2]$ such that $p \rightarrow{a} p'$ where $ a \in \Sigma $, we can skip computing Parikh images for $p'$ as we know for sure $\sat{\compatPI{p'}}$ in order to get a satisfiable result for Parikh image for $p$. We can add this functionality to our previous algorithm by replacing line~\ref{areParikhImageFormulaeSatisfiable} with the content of Algorithm~\ref{productConstructionParikhImageAlgorithmAddingSkippableStates}.
 
 % TODO: Maybe: Algorithm for skippable states (function skippable()).
-
 \begin{algorithm}
 \caption{Parikh image computation with skippable states optimization.}\label{productConstructionParikhImageAlgorithmAddingSkippableStates}
 \SetKwFunction{FIsSkippable}{isSkippable}
-\SetKwFunction{FAreParikhImageFormulaeSatisfiable}{areParikhImageFormulaeSatisfiable}
+\SetKwFunction{FAreParikhImageFormulaeSatisfiable}{$\alpha^{PI}$}
 \DontPrintSemicolon
 \BlankLine
     \eIf{$\textbf{not } \FIsSkippable{$[q_1, q_2]$}$} {
-        $sat \gets \FAreParikhImageFormulaeSatisfiable{$[q_{1}, q_{2}]$}$ \;
+        $res \gets \FStateAbstractionPI{$q_{1}$} \land \FStateAbstractionPI{$q_{2}$} \textbf{ is } \emph{sat} $ \;
     } {\label{AlgIsSkippable} % else
-        $sat \gets True$ \;
+        $res \gets True$ \;
     }
-\end{algorithm}\DecMargin{1em}
+\end{algorithm}
 
 \subsection{Optimization with Incremental SMT Solving}
 
-Considering we have to recompute satisfiability Parikh image formula for every potential product state whose Parikh image satisfiability we check, we would appreciate a solution which would allow as to recompute only the clauses which change between two formulae (for two distinct product states) and keep the clauses which remain unchanged from the previous computation to be used in the next computation without the need to recompute them again. Our reduced Parikh image algorithm is designed for such optimization.
+We have to recompute Parikh image formula for every potential product state whose state language abstractions compatibility we check. We would appreciate a solution which would allow us to recompute only the conjuncts which change between two formulae (for two distinct product states) and keep the conjuncts which remain unchanged from the previous computation to be used in the next computation without the need to recompute them again. Our reduced Parikh image algorithm is designed for such optimization.
 
-Notice that some clauses of Parikh image remain unchanged for the whole automaton, i.e., for every state we compute Parikh image for. Therefore, we can use incremental solving features of SMT, which precompute these clauses only once when Parikh image is first computed\footnote{Consequently, computing Parikh image for the first time (for the first state of the given finite automaton) will take longer than for the following product states.}. For computing Parikh image for every other state, we make use of these already computed constraints to quicken Parikh image computation.
+Notice that some conjuncts of Parikh image remain unchanged for the whole automaton, i.e., for every potential product state we compute Parikh images for. Therefore, we can use incremental solving features of SMT solver, which precompute these conjuncts only once when Parikh image is first computed\footnote{Consequently, computing Parikh image for the first time (for the first state of the given finite automaton) will take longer than for the following product states.}. We make use of these already computed constraints to quicken Parikh image computation for every other state.
 
-Assume two original finite automata $A$ and $B$ and state $p$ as a potential product state generated by $A$ and $B$. The changes of clauses are caused by moving (setting) the corresponding states in both original automata (from which we compute Parikh image formula for satisfiability check)---$q$ in $A$ and $s$ in $B$---to the current potential product state $p$ as new initial states $q_0$ and $s_0$, respectively, as we proceed further into the automata. We start with the abstract initial states (one for each original automata, $q'_0$ for $A$ and $s'_0$ for $B$).
+Assume finite automata $A$ and $B$ (whose intersection we generate) and a state $p = [a, b]$ where $a \in Q_A, b \in Q_B$ as a potential product state. The changes of conjuncts in $\varphi_A$ and $\varphi_B$ are caused by moving (setting) the states in both $A$ and $B$ corresponding to $p$ as new initial states $I_A = \{a\}$ and $I_B = \{b\}$ as we proceed further into the automata in product construction. We start with the abstract initial states (one for each original automata, $I_A = \{a'_0\}$ and $I_B = \{b'_0\}$).
 
-First, we compute the satisfiability Parikh image formula for $p_0 = (q'_0,s'_0)$, the initial state for $A$ and $B$ are set as $q'_0$ and $s'_0$. If the formula is satisfiable, we generate new potential product states (for example, $p_1 = (q_1, s_1)$ and $p_2 = (q_1, s_2)$). Now we need to check whether to include $p_1$ and $p_2$ to the generated product, i.e., check that the Parikh image formula for $p_1$ and $p_2$ are satisfiable. Taking $p_1$, we set new initial states for both $A$ and $B$ like this: $q_1$ for $A$ and $s_1$ for $B$. Similarly for $p_2$, we would set $q_1$ as a new initial state of $A$ and $s_2$ as a new initial state of $B$.
+First, we compute $\compatPI{p_0}$ such that $p_0 = (a'_0,b'_0)$. Iff $\sat{\compatPI{p_0}}$, we generate new potential product states (e.g., $p_1 = (a_1, b_1)$ and $p_2 = (a_1, b_2)$). Now we need to check whether to include $p_1$ and $p_2$ to the generated product, i.e., check that $\sat{\compatPI{p_1}}$ and $\sat{\compatPI{p_2}}$, respectively. Taking $p_1$, we set new initial states $I_A = \{a_1\}, I_B = \{b_1\}$. Similarly for $p_2$, we would set $I_A = \{a_1\}, I_B = \{b_2\}$.
 
-We now need to change every mention of initial states in Parikh image formula because the initial state are different from those we used at the start ($q'_0$ and $s'_0$) and for which we already computed the Parikh image formula (state $p_1$).
+We now need to change every mention of initial states in $\varphi_A$ and $\varphi_B$ because the initial states are different from those we used at the start ($a'_0$ and $b'_0$) and for which we already computed $\compatPI{p_0}$. We now introduce an optimization of Parikh image computation which precomputes unchanged conjuncts only once and recomputes only conjuncts mentioning initial states.
 
 \subsubsection{Persistent and State Specific Clauses}
 
-To present optimization with incremental SMT solving, we split current reduced Parikh image clauses into two groups:
-\begin{itemize}
-    \item persistent clauses and
-    \item state specific clauses.
-\end{itemize}
+To present optimization with incremental SMT solving, we split $\abstPI{q}$ conjuncts into two groups: persistent clause and state specific clause.
 
-Persistent clauses represent Parikh image clauses which can be precomputed once and used throughout the whole process of working with the given finite automaton. Persistent clauses consist of unchanged clauses of original Parikh image described in~\ref{sec:parikhImage}:
-\begin{itemize}
-    \item clause~\ref{clauses:y_original},
-    \item clause~\ref{clauses:uy_original} and
-    \item clause~\ref{clauses:hash_original}.
-\end{itemize}
+Persistent clause represents Parikh image conjuncts which can be precomputed once and used throughout the whole process of working with the given finite automaton. Persistent clause consists of unchanged conjuncts of original Parikh image described in~\ref{sec:parikhImage}: conjuncts~\ref{clauses:y_original}, conjuncts~\ref{clauses:uy_original} and conjuncts~\ref{clauses:hash_original}.
 
-State specific clauses are clauses which change with every potential product state tested for satisfiability, and as such have to be constructed and recomputed for every satisfiability check. The whole process of recomputing state specific s clauses is the most resource heavy part of the Parikh image computation algorithm, and therefore our goal is to lower the number of state specific clauses as much as possible. The state specific clauses consist of:
-\begin{itemize}
-    \item clause~\ref{clauses:u_reduced} as it directly changes the clause according to initial states and
-    \item optionally, if we want to include $z_{q}$ constraints, clause~\ref{clauses:z_reduced}. We would need to recompute $z_{q}$ constraints for each potential product state too because the clause manipulates with initial states.
-\end{itemize}
+State specific clause consists of conjuncts which change with every potential product state $p$ tested for satisfiability, and as such have to be constructed and recomputed for every satisfiability test. The whole process of recomputing state specific clause is the most resource heavy part of the Parikh image computation algorithm. Therefore, our goal is to minimize the number of conjuncts in a state specific clause as much as possible. The state specific clause consists of conjuncts~\ref{clauses:u_reduced} as they directly change according to initial states and, optionally, if we want to include $z_{q}$ conjuncts, conjuncts~\ref{clauses:z_reduced}. We would need to recompute $z_{q}$ conjuncts for each potential product state too because the conjuncts compute with initial states.
 
-As we can see, the majority of clauses can be precomputed for the whole product generation process and only taken into consideration with new state specific clauses. SMT solvers are well optimized to improve their performance by allowing incremental SMT solving.
+SMT solvers are well optimized to improve their performance by allowing incremental SMT solving. As we can see, the majority of conjuncts can be precomputed for the whole product generation and only taken into consideration with always recomputed new state specific clause.
 
-It is worth to note that the clause~\ref{clauses:z_reduced} manipulates with initial states but the structure of the clause could be reversed to compute connectedness of the automaton in \emph{reversed} order, from the accept states to the initial states, in which case the clause could be reconstructed as a persistent clause dependent on accept states which remain the same (the abstract accept state) for the entire time. This additional optimization is worth inspecting further.
+It is worth to note that the conjuncts~\ref{clauses:z_reduced} manipulate with initial states but the structure of the conjuncts could be reversed to compute connectedness of the automaton in \emph{reversed} order, from the accept states to the initial states. In that case, the conjuncts could be reconstructed as a part of the persistent clause dependent on accept states which remain unchanged (the abstract accept state) for the entire time. This additional optimization might be worth inspecting. Because the inclusion of conjuncts~\ref{clauses:z_reduced} does not generate smaller state spaces with our benchmark automata, we did not investigate further yet.
 
-Moreover, SMT solvers can utilize their cache abilities to compute similar, consecutive formulae faster. We can observe how Parikh image satisfiability of successive product states are computed quickly due to minimal changes in formulae which SMT solvers can quickly resolve while using the most of the previously computed formulae constraints.
+SMT solvers can utilize their cache abilities to compute similar, consecutive formulae faster. We can observe how Parikh image satisfiability of successive product states are computed quickly due to minimal changes in formulae which SMT solvers can quickly resolve while using the most of the previously computed formulae constraints.
 
 \subsubsection{Algorithm for Incremental SMT solving Using Parikh Image}
+
 %TODO Differences in incremental algorithm.
 
-To implement incremental SMT solving to our current Parikh image algorithm, we need to make the following adjustments.
+To implement incremental SMT solving to our current Parikh image computation shown in Algorithm~\ref{productConstructionParikhImageAlgorithm}, we need to make the following adjustments.
 
-We need to precompute persistent clauses once for all automata $A_i \in A$. We insert a new line from Algorithm~\ref{} to our algorithm between line~\ref{PIAlgorithm:solved} and~\ref{PIAlgorithm:IterateOverProductStates}. The line contains a call to function \texttt{addStatePersistentClauses()} which precomputes all state persistent clauses for all automata $A_i \in A$. Note that the function is called only once, before we enter the \emph{while} loop for iterating over potential product states.
+We need to precompute persistent clauses once $A_1$ and $A_2$. We insert a new line to our algorithm between lines~\ref{PIAlgorithm:solved} and~\ref{PIAlgorithm:IterateOverProductStates}. The new line contains a call to a function \texttt{addPersistentClauses()} which precomputes persistent clauses for both $A_1$ and $A_2$. Note that the function is called only once, before we enter the \emph{while} loop for iterating over potential product states.
 
-We compute the remaining clauses as normal when we ask for satisfiability of Parikh image formulae for potential product state when we are calling function \texttt{areParikhImageFormulaeSatisfiable} on line~\ref{areParikhImageFormulaeSatisfiable}. However, we push the previously precomputed state persistent clauses to the SMT solver stack to preserve them when the current state specific clauses are dropped after the satisfiability of Parikh image formulae is resolved. For pseudocode of the called function , see Algorithm~\ref{productConstructionParikhImageAlgorithmAddPersistentClauses}. The function \texttt{resolveParikhImageSatisfiability} computes Parikh image formulae and determines their satisfiability, as explained in Section~\ref{sec:reducedParikhImage}.
+We compute state specific clauses as normal when we ask whether $\sat{\compatPI{p}}$ when we are checking compatibility of both $\alpha^{PI}$ on line~\ref{areParikhImageFormulaeSatisfiable}. However, we push the previously precomputed state persistent clauses to the SMT solver stack. This preserves them when the current state specific clauses are dropped after $\sat{\compatPI{p}}$ is resolved. For a pseudocode of the replacement of line~\ref{areParikhImageFormulaeSatisfiable}, see Algorithm~\ref{productConstructionParikhImageAlgorithmAddPersistentClauses}.
 
 \begin{algorithm}
 \caption{Add state specific clauses to SMT solver for incremental SMT solving optimization.}\label{productConstructionParikhImageAlgorithmAddPersistentClauses}
 \SetKw{Return}{return}
-\SetKwFunction{FAreParikhImageFormulaeSatisfiable}{areParikhImageFormulaeSatisfiable}
-\SetKwFunction{FResolveParikhImageSatisfiability}{resolveParikhImageSatisfiability}
+\SetKwFunction{FStateAbstractionPI}{$ \alpha^{PI} $}
 \SetKwFunction{FSMTSolverPush}{smtSolverPush}
 \SetKwFunction{FSMTSolverPop}{smtSolverPop}
 \SetKwProg{Fn}{Function}{:}{}
 
 \DontPrintSemicolon
-\Fn{\FAreParikhImageFormulaeSatisfiable{$[q_1, \ldots, q_i]$}}{
-    \KwData{
-        Potential product state we are determining satisfiability of Parikh image formulae for.
-    }
-    \KwResult{bool: \emph{True} if satisfiable, \emph{False} otherwise.}
+\FSMTSolverPush{} \;
+$res \gets \FStateAbstractionPI{$q_{1}$} \land \FStateAbstractionPI{$q_{2}$} \textbf{ is } \emph{sat} $ \;\label{IncrementalAlgorithm:isSat}
+\FSMTSolverPop{} \;
+\end{algorithm}
 
-    % The function code itself.
-    \FSMTSolverPush{} \;
-    $sat \gets \FResolveParikhImageSatisfiability{$[q_1, \ldots, q_i]$}$ \;
-    \FSMTSolverPop{} \;
-    \Return $sat$ \;
-}
-\end{algorithm}\DecMargin{1em}
+The line~\ref{IncrementalAlgorithm:isSat} computes Parikh image formulae and determines their satisfiability, as explained in Section~\ref{sec:reducedParikhImage}.
 
 %--------------------------------------------------------
 %--------------------------------------------------------
 
-\section{Optimization with SMT Solver Timeout}
+\subsection{Optimization with SMT Solver Timeout}
 
-In the case of Parikh images computed with SMT solver, it is easier to find an unsatisfiable counterexample than to prove the formula is satisfiable. Based on our experiments in Chapter~\ref{experimentsAndResultsChapter}, we use timeout functionalities of SMT solver to quicken the process of resolving satisfiability of potential product states.
+In the case of Parikh images computed with SMT solver, it is easier to determine $\neg \sat{\compatPI{p}}$ than $\sat{\compatPI{p}}$. Based on our experiments, we use timeout functionalities of SMT solver to quicken the process of resolving satisfiability of potential product states.
 
-We define a maximal amount of time SMT solver can compute satisfiability Parikh image formula for a single product state to resolve its satisfiability for. If SMT solver resolves the satisfiability of such formula before the time runs out, we proceed as normal. However, if the time runs out, the result of satisfiability test is unknown and we must consider such formula might be satisfiable. Then we can, for the sake of efficiency, handle the current formula as a satisfiable one.
+We define a maximal amount of time SMT solver can compute $\sat{\compatPI{p}}$ for a single product state $p$ to resolve its satisfiability. If SMT solver resolves $\sat{\compatPI{p}}$ before the time runs out, we proceed as normal. However, if the time runs out, the result of the satisfiability test is unknown and we must presume $\sat{\compatPI{p}}$.
 
-This approach resolves the satisfiability of over abstraction of Parikh image satisfiability formulae described above. We prune potential product states whose Parikh image satisfiability can be resolved quickly (within the defined timeout) while allowing the inclusion of some potential product states which are in fact unnecessary to the generated product. Nevertheless, we find pruning capabilities of this optimization satisfactory and the computation time decreases noticeably.
+This approach resolves $\sat{\compatPI{p}}$ of an over abstraction described previously. We prune such potential product states that $\sat{\compatPI{p}}$ can be resolved quickly (within the defined timeout) while allowing the inclusion of some potential product states which are in fact unnecessary to the generated product. Nevertheless, we find pruning capabilities of this optimization satisfactory and the computation time decreases noticeably.
 
-There is a problem with choosing the right timeout time for SMT solver. We say the ideal timeout depends on a structure of finite automata we are working with, their size and complexity. And on how much time we are willing to give to the SMT solver. The timeout time is directly proportional to the results precision and reversely proportional to the scale of over abstraction computed. The cost is that the computation time requirements are directly proportional to SMT timeout time, too.
+There is a problem with choosing the right time limit for timeout for SMT solver. We say the ideal timeout depends on a structure of finite automata we are working with, their size and complexity. And on how much time we are willing to give to the SMT solver. The timeout is directly proportional to the results precision and reversely proportional to the scale of over abstraction computed. The cost is that the computation time requirements are directly proportional to SMT timeout, too.
 
 %--------------------------------------------------------
 %--------------------------------------------------------
 
-\section{Combined Approach of Parikh Image Optimization Enhanced by Length Abstraction}
+\section{Combination of State Language Abstractions}
 
-One of the strengths of our optimization algorithms is their high customizability. The different approaches can be combined, easily parallelized and applied on various operations on finite automata. In this section, we present an approach which takes advantage of specific strengths of our proposed optimization methods while trying to mitigate their weaknesses and utilizes them in a single algorithm.
+One of the strengths of our optimization algorithms is their high customizability. The different approaches can be combined, easily parallelized and applied on various operations on finite automata. We present an approach which takes advantage of specific strengths of our proposed optimization methods while trying to mitigate their weaknesses and utilizes them in a single algorithm.
 
-We introduce a combined algorithm with both length abstraction and Parikh image computation to optimize product construction algorithm. %TODO
+We introduce a variation of satisfiability testing of state abstractions. We use both length abstraction and Parikh image computation to determine satisfiability of state abstraction to optimize Parikh image computation algorithm. The Algorithm~\ref{checkSatisfiabilityCombinedAlgorithm} shows how we apply our optimizations on a single potential product state.
 
-\begin{algorithm}
-\caption{Check satisfiability using length abstraction and Parikh image computation algorithm}\label{checkSatisfiabilityAlgorithm}
-\SetKwInput{Input}{Input}
-\SetKwInput{Output}{Output}
+\begin{algorithm}[ht]
+\caption{Implementation of function checking satisfiability of state abstraction using both length abstraction and Parikh image computation optimizations.}\label{checkSatisfiabilityCombinedAlgorithm}
 \SetKw{Return}{return}
+
+\SetKwFunction{FStateAbstractionLA}{$ \alpha^{LA} $}
+\SetKwFunction{FStateAbstractionPI}{$ \alpha^{PI} $}
+
 \SetKwFunction{FAddStateSpecificClauses}{addStateSpecificClauses}
-\SetKwFunction{FAreParikhImageFormulaeSatisfiable}{areParikhImageFormulaeSatisfiable}
-\SetKwFunction{FAreLengthAbstractionFormulaeSatisfiable}{areLengthAbstractionFormulaeSatisfiable}
+\SetKwProg{Fn}{Function}{:}{}
+
 \DontPrintSemicolon
-\Input{ NFA $A_1 = (Q_1, \Sigma, \delta_1, I_1, F_1)$, NFA $A_2 = (Q_2, \Sigma, \delta_2, I_2, F_2)$}
-\Output{ bool: True if satisfiable, False otherwise.}
-\BlankLine
+    % Check length satisfiability.
+    \eIf{$\FStateAbstractionLA{$q_{1}$} \land \FStateAbstractionLA{$q_{2}$} \textbf{ is } \emph{unsat}$}{
+         $res \gets False$ \;
+    }{ % Else branch.
+        $res \gets \FStateAbstractionPI{$q_{1}$} \land \FStateAbstractionPI{$q_{2}$} \textbf{ is } \emph{sat} $ \;
+        \If{$res = Unknown$}{
+            $res \gets True$ \;
+        }
+    }
 
-% Check length satisfiability.
-\If{$\textbf{not } \FAreLengthAbstractionFormulaeSatisfiable{$[q_1, q_2]$} $}{
-   \Return $False$ \;
-}
+    % Resolve Parikh image formulae.
+\end{algorithm}
 
-% Resolve Parikh image formulae.
-$ \FAddStateSpecificClauses{$[q_1, q_2]$} $\;
-
-$sat \gets \FAreParikhImageFormulaeSatisfiable{$[q_1, q_2]$} $ \;
-\eIf{$sat = true$ \textbf{ or } $sat = unknown$}{
-    \Return $True$ \;
-}{ % else
-    \Return $False$ \;
-}
-
-\end{algorithm}\DecMargin{1em}
+First, we test whether $\alpha^{LA}$ alone can prune the generated product state space by omitting the current potential product state $[q_1, q_2]$ if $\neg \sat{\compatLA{[q_1, q_2]}}$. If length abstraction succeeds in omitting $[q_1, q_2]$ from the product, we do not need to compute Parikh images for $[q_1, q_2]$ and can continue with the Parikh image algorithm as if $\neg \compatPI{[q_1, q_2]}$. Otherwise, we continue with Parikh image computation for $[q_1, q_2]$ (resolving satisfiability of its formulae as in the basic Parikh image algorithm from~\ref{productConstructionParikhImageAlgorithm}).
 
 %--------------------------------------------------------
 %--------------------------------------------------------
 %--------------------------------------------------------
 %--------------------------------------------------------
+
 \section{Abstraction of State Language with Mintermization}
+
 In this section, we introduce a method of optimizing operations on finite automata using minterms of the given finite automata. Minterm computation abstracts state language of automata in a different approach than which we explored so far, allowing us to follow a diverse set of characteristics about the state language. We can afterwards make use of computed minterms for the automata with other optimization methods introduced in this paper, as well as another optimization approaches.
 
 Foremost, we give an algorithm for minterm computation to compute minterms for the non-empty multiset of input finite automata $A = {M_1, M_2, \dots, M_n}$, where $n$ equals the number of finite automata, which we desire to execute the required automata operation on. Gained minterms abstract automata state language in such a way we do not lose any information about the former automata, but might create a more concise finite automata which will be easier to work with our other optimization methods and may significantly decrease the computation time required for optimizations such as Parikh image computation.
@@ -907,7 +910,6 @@ In the following section, we propose a method of using minterm computation with 
 
 % TODO: Algorithm using minterms for computation methods.
 
-
 %TODO
 
 %--------------------------------------------------------
@@ -916,7 +918,7 @@ In the following section, we propose a method of using minterm computation with 
 %--------------------------------------------------------
 \chapter{Experiments and Results}\label{experimentsAndResultsChapter}
 
-The reference implementation\footnote{In the \href{https://codeberg.org/Adda/optifa}{reference implementation}, we use \href{https://github.com/Z3Prover/z3}{Z3} as an SMT solver and automata operations are handled by \href{https://codeberg.org/Adda/symboliclib}{for our uses modified library Symboliclib}.} of optimization, written in Python 3, as well as a complete table of all of our experiments and their results and graphs is publicly accessible on a \href{https://codeberg.org/Adda/optifa}{Codeberg repository}\footnote{{\href{https://codeberg.org/Adda/optifa}{https://codeberg.org/Adda/optifa}}}. There is further explanation of the following graphs as well as additional graphs with description and in-depth analysis of performed experiments.
+The reference implementation\footnote{In the \href{https://codeberg.org/Adda/optifa}{reference implementation}, we use \href{https://github.com/Z3Prover/z3}{Z3} as an SMT solver and automata operations are handled by \href{https://codeberg.org/Adda/symboliclib}{for our uses modified library Symboliclib}.} of the proposed optimizations, written in Python 3, as well as a complete table of all of our experiments and their results and graphs is publicly accessible on a \href{https://codeberg.org/Adda/optifa}{Codeberg repository}\footnote{{\href{https://codeberg.org/Adda/optifa}{https://codeberg.org/Adda/optifa}}}. There is further explanation of the following graphs as well as additional graphs with description and in-depth analysis of performed experiments.
 
 Test benchmarks used in our experiments were obtained from regular model checking. We have tested various different finite automata and their combinations. We have often used the same automata with their slightly changed variations to simulate real world examples of usually used automata to see how the optimized algorithm reduces the generated state space for certain types of automata with their typical qualities.
 
@@ -1047,8 +1049,52 @@ Incremental SMT solving proves to be a great improvement to the Parikh image com
 
 We can notice that the number of persistent clauses covers substantial part of all Parikh image clauses (experimentally determined to be usually around $70 \%$ for our benchmark automata). Therefore, around $70\%$ of each computed Parikh image clauses can be precomputed once. Only $30\%$ of clauses must be computed repeatedly for each potential product state.
 
-\section{Combined Approach of Length Abstraction with Parikh Image Computation}
+\section{Experiments with Combination of State Language Abstractions}
 
+We show results of several experiments with Parikh image computation optimization. At first, we are interested in pruning capabilities of Parikh image abstraction without further optimizations. Later, we provide results for introduced optimizations of Parikh image computation algorithm.
+
+The following graphs in Figure~\ref{fig:graph:pi_product_state_space_sizes} show the results for both the emptiness test and full product construction of unoptimized Parikh image computation abstraction. The graph in Figure~\ref{fig:graph:pi_et_state_space_sizes_comp} shows the comparison of product state spaces sizes in basic product construction algorithm and our Parikh image computation algorithm for emptiness test. Sorted in order of increasing product state space size generated by the basic product construction algorithm. The graph in Figure~\ref{fig:graph:pi_fp_state_space_sizes_comp} shows the same data, only for the full product construction experiment.
+
+%\begin{figure}[ht]
+%    \centering
+%        \includegraphics[height=100pt]{graph_pi_et_scatter.pdf}
+%        \caption{Emptiness test}
+%        \label{fig:graph:pi_et_state_space_sizes_comp}
+%        \vspace{0.4cm}
+%        \includegraphics[height=100pt]{graph_pi_fp_scatter.pdf}
+%        \caption{Full product construction}
+%        \label{fig:graph:pi_fp_state_space_sizes_comp}
+%    \vspace{0.4cm}
+%    \caption{Comparison of state space sizes generated by basic and optimized with Parikh image computation product construction algorithms. Both axes are in logarithmic scale, x-axis showing state space sizes of basic product, y-axis state space sizes of optimized product.}
+%    \label{fig:graph:pi_product_state_space_sizes}
+%\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \begin{minipage}{0.49\linewidth}
+        \centering
+        \includegraphics[height=120pt]{graph_pi_et_scatter.pdf}
+        \caption{Emptiness test}
+        \label{fig:graph:pi_et_state_space_sizes_comp}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.49\linewidth}
+        \centering
+        \includegraphics[height=120pt]{graph_pi_fp_scatter.pdf}
+        \caption{Full product}
+        \label{fig:graph:pi_fp_state_space_sizes_comp}
+    \end{minipage}
+    \vspace{0.5cm}
+
+    \caption{Comparison of state space sizes generated by basic and optimized product construction algorithms with length abstraction (blue dots) and Parikh image computation (orange dots). Both axes are in symmetrical logarithmic scale\protect\footnotemark, showing state space sizes: x-axis of basic product, y-axis of optimized product.}
+    \label{fig:graph:pi_product_state_space_sizes}
+\end{figure}
+
+\footnotetext{Plot is linear around $0$ instead of logarithmic.}
+
+We conclude from the experiments that Parikh image optimizes the generated product state space in nearly every case and produces equal or better results than length abstraction every time. The strength of Parikh image is its higher pruning capacity due to wider range of information gathered from the automata. In multiple cases, Parikh image optimization is able to prune vast \emph{branches} of potential generated product by correctly determining incompatible transition symbols even if possible lengths of accepted words are mutually compatible, sometimes even entirely stopping product construction immediately when basic and length abstraction constructions continue to generate state space further.
+
+Incremental SMT solving proves to be a great improvement to the Parikh image computation optimization. The amount of clauses depends on the number of states in finite automata, the number of transitions and the number of initial or accepting states. The following experiment provides an example comparison of the number of all clauses in Parikh image, clauses common to all product states (persistent clauses) and state specific clauses. For a product of $434$ states, each product state Parikh image contains $2652$ clauses. From those, $1782$ clauses are persistent clauses and the remaining $870$ are state specific clauses. A proportional ratio o persistent clauses in whole Parikh image is around $67.2 \%$. The number of persistent clauses (experimentally determined to be usually around $70 \%$) for our benchmark automata means around $70\%$ of each computed Parikh image clauses can be precomputed once. Only $30\%$ of clauses must be computed repeatedly for each potential product state.
 
 %--------------------------------------------------------
 %--------------------------------------------------------
