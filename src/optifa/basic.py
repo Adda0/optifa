@@ -279,6 +279,46 @@ def check_length_satisfiability(config, fa_a_formulae_dict, fa_b_formulae_dict):
     return False
 
 
+def check_single_length_satisfiability(config, fa_a_formula, fa_b_formula):
+    """
+    Check satisfiability for length abstraction formulae using SMT solver Z3.
+    :param fa_a_formulae_dict: Dictionary with formulae for FA A.
+    :param fa_b_formulae_dict: Dictionary with formulae for FA B.
+    :return: True if satisfiable; False if not satisfiable.
+    """
+    if not config.smt_free:
+        smt = z3.Solver()
+        fa_a_var = z3.Int('fa_a_var')
+        fa_b_var = z3.Int('fa_b_var')
+        smt.add(fa_a_var >= 0, fa_b_var >= 0)
+
+    # Check for every formulae combination.
+    if config.smt_free:  # Without using SMT solver.
+        # Handle legths are equal, True without the need to resolve loops.
+        if fa_a_formula[0] == fa_b_formula[0]:
+            return True
+
+        # Handle lengths are distinct, further checking needed.
+        elif fa_a_formula[0] > fa_b_formula[0]:  # FA A handle is longer.
+            if solve_for_one_handle_longer(fa_a_formula, fa_b_formula):
+                return True
+
+        else:  # FA B handle is longer.
+            if solve_for_one_handle_longer(fa_b_id, fa_b_formula):
+                return True
+
+    else:  # Using SMT solver.
+        smt.push()
+        smt.add(fa_a_formula[0] + fa_a_formula[1] * fa_a_var == fa_b_formula[0] + fa_b_formula[1] * fa_b_var)
+
+        if smt.check() != z3.unsat:
+            return True
+
+        smt.pop()
+
+    return False
+
+
 def get_only_formulae(formulae_dict):
     only_formulae = []
     for accept_state in formulae_dict:
