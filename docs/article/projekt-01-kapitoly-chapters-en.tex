@@ -12,7 +12,7 @@ We consider several usual operations which take lots of computational time and g
 %--------------------------------------------------------
 % Intersection
 
-The intersection of finite automata, an extensively used automata operation, combines the original states from the individual automata to tuples called product states in the generated state space by finding corresponding transitions with the same symbols. Every product state represents an intersection of languages of two corresponding states in the original automata. The synchronous product construction is expensive on computational time. Furthermore, the generated product state space increases exponentially according to the number of used automata and the number of their states\footnote{The product construction sometimes \emph{explodes} in a huge product state space.}. However, there are often large parts of the generated state space which cannot accept any words (no final states can be reached from these states---non-terminating states), yet are still generated. Therefore, it is important to have a decent algorithm to minimize the generated product state space as much as possible.
+The intersection of finite automata, an extensively used automata operation, combines the original states from the individual automata to tuples called product states in the generated state space by finding corresponding transitions with the same symbols. Every product state represents an intersection of languages of two corresponding states in the original automata. The synchronous product construction is expensive on computational time. Furthermore, the generated product state space increases exponentially according to the number of used automata and the number of their states\footnote{The product construction sometimes \emph{explodes} in a huge product state space.}. However, there are often large parts of the generated state space which cannot accept any words (no final states can be reached from these states), yet are still generated. Therefore, it is important to have a decent algorithm to minimize the generated product state space as much as possible.
 
 %--------------------------------------------------------
 % Our optimization
@@ -55,9 +55,10 @@ The contribution of this work can be summarized as follows:
 %--------------------------------------------------------
 
 \chapter{Preliminaries}
+
 Let us clarify a few definitions and terms often used throughout this paper. The following definitions are mostly adapted from~\cite{Esparza} or~\cite{Sipser}.
 
-\emph{Alphabet} is a finite, non-empty set denoted by $\Sigma$. Elements of an alphabet are called \emph{symbols} or \emph{letters}. A finite, possibly empty sequence of symbols over an alphabet is a \emph{word} $w$ from the set of all words $\Sigma^*$ over an alphabet $\Sigma$.
+\emph{Alphabet} is a finite, non-empty set denoted by $\Sigma$. Elements of an alphabet are called \emph{symbols} or \emph{letters}. A finite, possibly empty, sequence of symbols over an alphabet is a \emph{word} $w$ from the set of all words $\Sigma^*$ over an alphabet $\Sigma$.
 
 \begin{definition}[\textbf{Deterministic finite automaton}] \hfill \newline
     A deterministic finite automaton (DFA) is a 5-tuple $A = (Q, \Sigma, \delta, I, F)$, where:
@@ -66,32 +67,32 @@ Let us clarify a few definitions and terms often used throughout this paper. The
         \item $\Sigma$ is an \textbf{input alphabet},
         \item $\delta$ is a \textbf{transition function}: $Q \times \Sigma \rightarrow{} Q$,
         \item $I \in Q$ is the \textbf{initial state}, and
-        \item $F \subseteq Q$ is a \textbf{set of final states}.
+        \item $F \subseteq Q$ is a \textbf{set of final (accept) states}.
     \end{itemize}
 \end{definition}
 
-A \emph{run} of $A$ on input $a_0a_1a_2...a_{n-1}$ is a sequence $q_0 \xrightarrow{a_0} q_1 \xrightarrow{a_1} q_2 \xrightarrow{a_3} ... \xrightarrow{a_{n-1}} q_n$, such that $q_i \in Q$ for $0 \leq i \leq n$ and $\delta(q_i, a_i) = q_{i+1}$ for $0 \leq i \leq n - 1$. A run is \emph{accepting} if $q_n \in F$. The automaton A accepts a word $w \in \Sigma^*$ if it has an accepting run on input $w$. A \emph{language} recognized by finite automaton A is a set $L(A) = \{w \in \Sigma^* | w \text{ is accepted by } A\}$. A single transition from transition function $\delta$ is denoted as $q \xrightarrow{a} q'$ if $q' \in \delta(q, a)$ and means \textit{one can get from state $q$ to state $q'$ with a transition symbol $a$}. For every state, DFA has at most one transition for a given symbol.
+A \emph{run} of $A$ on input $a_0a_1a_2 \ldots a_{n-1}$ is a sequence $q_0 \xrightarrow{a_0} q_1 \xrightarrow{a_1} q_2 \xrightarrow{a_3} \ldots \xrightarrow{a_{n-1}} q_n$, such that $q_i \in Q$ for $0 \leq i \leq n$, $q_0 = I$ and $\delta(q_i, a_i) = q_{i+1}$ for $0 \leq i \leq n - 1$. A run is \emph{accepting} if $q_n \in F$. The automaton A \emph{accepts} a word $w \in \Sigma^*$ if it has an accepting run on input $w$. A \emph{language} recognized by finite automaton A is a set $L(A) = \{w \in \Sigma^* \,\vert\, w \text{ is accepted by } A\}$. A single \emph{transition} from transition function $\delta$ is denoted as $q \xrightarrow{a} q'$ if $q' \in \delta(q, a)$ and means \textit{one can get from state $q$ to state $q'$ with a transition symbol $a$}. For every state, DFA has at most one transition for a given symbol. Consequently, DFA has exactly one run on a given word from initial state to one of the accept states (or non-terminating states\footnote{No accept state is accessible from them.} in case the word is not accepted by the automaton at all).
 
 \begin{definition}[\textbf{Non-deterministic finite automaton}]
     A non-deterministic finite automaton (NFA) is a 5-tuple $A = (Q, \Sigma, \delta, I, F)$, where $Q$, $\Sigma$ and $F$ are as for DFA and:
     \begin{itemize}
-        \item $\delta$ is a \textbf{transition relation}: $\delta: Q \times \Sigma_{\epsilon} \rightarrow{} P(Q)$, where $\Sigma_{\epsilon} = \Sigma \cup \epsilon$ and $P(Q) = \{R | R \subseteq Q\}$ is a set of subsets of $Q$, and
-        \item $I = \{q | q \in Q\}$ is a non-empty \textbf{set of initial states}.
+        \item $\delta$ is a \textbf{transition relation}: $\delta: Q \times \Sigma_{\epsilon} \rightarrow{} P(Q)$, where $\Sigma_{\epsilon} = \Sigma \cup \epsilon$ and $P(Q) = \{R \,\vert\, R \subseteq Q\}$ is a set of subsets of $Q$, and
+        \item $I = \{q \,\vert\, q \in Q\}$ is a non-empty \textbf{set of initial states}.
     \end{itemize}
 \end{definition}
 
-Consequently, DFA has exactly one run on a given word from initial state to one of the accepting states (or nonterminating states in case the word is not accepted by the automaton at all). For every state and its transition symbol $P(Q) \in \delta(q, a)$ is a singleton. For example, $\delta(q_1, a) = \{ q_1, q_2 \}$.
+For every state and its transition symbol $P(Q) \in \delta(q, a)$ is a singleton. For example, $\delta(q_1, a) = \{ q_1, q_2 \}$.
 
 Two finite automata $A$ and $B$ are said to be \emph{equivalent} when both accept the same language: $L(A) = L(B)$.
 
-For every NFA $A$ exists a corresponding DFA $B$. \emph{Determinization} is a process of converting such NFA to DFA.
+For every NFA $A$ exists a corresponding equivalent DFA $B$. \emph{Determinization} is a process of converting such NFA to DFA.
 
 \begin{definition}[\textbf{Powerset (\textbf{subset}) construction}]
     The powerset construction is a method for creating a corresponding deterministic finite automaton from its equivalent non-deterministic finite automaton. Produces finite automaton $A'$, where $Q' = 2^Q$, $F' = \{S \in Q' | S \cap F \neq \emptyset\}$, $I' = I$ and for $S \in Q': \delta'(S, a) = \bigcup_{s \in S} \delta(s, a)$.
 \end{definition}
 
 \begin{definition}[\textbf{Product construction}]
-Operations \\ on automata $A_1$ and $A_2$ yield a result~-- a product $A$ as a 5-tuple deterministic finite automaton $A = (Q, \Sigma, \delta, I, F)$.
+Operations \\ on automata $A_1$ and $A_2$ yield a result---a product $A$ as a 5-tuple deterministic finite automaton $A = (Q, \Sigma, \delta, I, F)$.
 
 Given two NFAs $A_1 = (Q_1, \Sigma, \delta_1, I_1, F_1)$ and \\ $A_2 = (Q_2, \Sigma, \delta_2, I_2, F_2)$ over the same alphabet $\Sigma$, we can define:
 \begin{itemize}
@@ -102,21 +103,18 @@ Given two NFAs $A_1 = (Q_1, \Sigma, \delta_1, I_1, F_1)$ and \\ $A_2 = (Q_2, \Si
 \end{itemize}
 \end{definition}
 
-The transition relation is described as $\delta = \\ ([q_1, q_2], a) = \delta_1(q_1, a) \times \delta_2(q_2, a)$. For pairs of states $q_1$ and $q_2$ from $A_1$ and $A_2$, respectively, and a common transition symbol $a$ of transitions $q'_1 \in \delta_1(q_1, a)$ and $q'_2 \in \delta_2(q_2,a)$, we denote a single product transition as $[q_1, q_2] \xrightarrow{a} [q'_1, q'_2]$, where $[q'_1, q'_2] \in \delta([q_1, q_2], a)$ for the corresponding states $[q_1, q_2]$ and $[q'_1, q'_2]$ in $A$ are called product states.
+$\delta$ is described as $([q_1, q_2], a) = \delta_1(q_1, a) \times \delta_2(q_2, a)$. For pairs of states $q_1$ and $q_2$ from $A_1$ and $A_2$, respectively, and a common transition symbol $a$ of transitions $q'_1 \in \delta_1(q_1, a)$ and $q'_2 \in \delta_2(q_2,a)$, we denote a single product transition as $[q_1, q_2] \xrightarrow{a} [q'_1, q'_2]$, where $[q'_1, q'_2] \in \delta([q_1, q_2], a)$ for the corresponding states $[q_1, q_2]$ and $[q'_1, q'_2]$ in $A$ are called product states.
 
-Focusing mainly on \emph{intersection} of automata, the product construction tells that
-$$ L(A) = L(A_1) \cap L(A_2) \text{.} $$
+Focusing mainly on \emph{intersection} of automata, the product construction tells that $ L(A) = L(A_1) \cap L(A_2) $. Finally, we test the \emph{emptiness} of the resulting automaton language: $L(A)$ does not accept any words.
 
-To solve the \emph{emptiness test}, we test
-$$ L(A) = \emptyset \text{.}$$
-
+We work with basic product construction algorithm in Algorithm~\ref{productConstructionAlg}.
 \begin{algorithm}
-\caption{Classic product construction}\label{productConstructionAlg}
+\caption{Classic product construction algorithm used as a base for our optimization methods which extend the algorithm by deciding compatibility of state language abstractions.}\label{productConstructionAlg}
 \SetKwData{Left}{left}\SetKwData{This}{this}\SetKwData{Up}{up}
 \SetKwFunction{Union}{Union}\SetKwFunction{FindCompress}{FindCompress}
 \SetKwInOut{Input}{Input}\SetKwInOut{Output}{Output}
 \DontPrintSemicolon
-\Input{ NFA $A_1 = (Q_1, \Sigma, \delta_1, I_1, F_1)$, \\ NFA $A_2 = (Q_2, \Sigma, \delta_2, I_2, F_2)$}
+\Input{ NFA $A_1 = (Q_1, \Sigma, \delta_1, I_1, F_1)$, NFA $A_2 = (Q_2, \Sigma, \delta_2, I_2, F_2)$}
 \Output{ NFA $(A_1 \cap A_2) = (Q, \Sigma, \delta, I, F)$ with $L(A_1 \cap A_2) = L(A_1) \cap L(A_2)$}
 \BlankLine
 $Q, \delta, F \gets \emptyset$ \\
@@ -136,7 +134,23 @@ $W \gets  I$
         }
     }
 }
-\end{algorithm}\DecMargin{1em}
+\end{algorithm}
+
+\begin{definition}[\textbf{Galois Connection}]
+
+Galois connection is a quadruple $\pi = (\mathcal{P}, \alpha, \gamma, \mathcal{Q})$ such that:
+
+\begin{itemize}
+    \item $\mathcal{P} = \langle P, \leq \rangle$ and $\mathcal{Q} = \langle Q, \sqsubseteq \rangle$ are \emph{partially ordered sets} (posets) and
+    \item abstraction function $\alpha : P \rightarrow Q$ and concretization function $\gamma : Q \rightarrow P$ inverse to $\alpha$. $\forall p \in P$ and $\forall q \in Q$:
+    \[
+        p \leq \gamma(q) \Leftrightarrow \alpha(p) \sqsubseteq q \text{.}
+    \]
+\end{itemize}
+
+\end{definition}
+
+In the terminology of abstract interpretation, $P$ is a \emph{concrete domain} and $Q$ is an \emph{abstract domain}. If $\alpha$ and $\gamma$ functions form a Galois connection, $\forall p \in P : p \leq \gamma(\alpha(p))$. That is, the abstraction may only over-approximate the concrete semantics.
 
 %--------------------------------------------------------
 %--------------------------------------------------------
