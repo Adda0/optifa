@@ -114,12 +114,26 @@
 \usepackage[all]{hypcap}
 
 \usepackage[linesnumbered,vlined]{algorithm2e}
+\SetAlFnt{\footnotesize}
+\SetAlCapFnt{\small}
+\SetAlCapNameFnt{\small}
+\usepackage{algorithmic}
+%\algsetup{linenosize=\tiny}
 \usepackage{subfigure}
-%\usepackage{paralist} % TODO: Install paralist and use inline enums.
+\usepackage{amsmath}
+\usepackage{MnSymbol}
 
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{definition}{Definition}[section]
 \newtheorem{example}{Example}[section]
+
+\newcommand{\compatLA}{\emph{$\Phi$}^{LA}}
+\newcommand{\compatPI}[1]{\emph{$\Phi$}^{PI}(#1)}
+\newcommand{\sat}[1]{\emph{sat}(#1)}
+\newcommand{\abstLA}[1]{\alpha^{LA}(#1)}
+\newcommand{\abstPI}[1]{\alpha^{PI}(#1)}
+
+%\usepackage{paralist} % TODO: Install paralist and use inline enums.
 
 % Informace o práci/projektu / Information about the thesis
 %---------------------------------------------------------------------------
@@ -147,31 +161,29 @@
   supervisor.title.p={Doc. Mgr.},   %titul před jménem (nepovinné) / title before the name (optional)
   supervisor.title.a={Ph.D.},    %titul za jménem (nepovinné) / title after the name (optional)
   % Klíčová slova / keywords
-  keywords.cs={Konečné automaty, Abstrakce jazyků stavů, Konstrukce produktu, Test prázdnosti, Optimalizace výpočtu průniku, Redukce stavového prostoru, SMT v\'ypočty, Délková abstrakce, Parikovské obrazy, Mintermizace}, % klíčová slova v českém či slovenském jazyce / keywords in czech or slovak language
-  keywords.en={Finite Automata, State Languages Abstraction, Product Construction, Emptiness Test, Intersection Computation Optimization, State Space Reduction, SMT Solving, Length Abstraction, Parikh Image, Mintermization}, % klíčová slova v anglickém jazyce / keywords in english
-  %keywords.en={Here, individual keywords separated by commas will be written in English.},
+  keywords.cs={Konečné automaty, Abstrakce jazyků stavů, SMT v\'ypočty, Konstrukce produktu, Test prázdnosti, Optimalizace výpočtu průniku, Redukce stavového prostoru, Délková abstrakce, Parikovské obrazy, Mintermizace}, % klíčová slova v českém či slovenském jazyce / keywords in czech or slovak language
+  keywords.en={Finite Automata, State Languages Abstraction, SMT solving, Product Construction, Emptiness Test, Intersection Computation Optimization, State Space Reduction, SMT Solving, Length Abstraction, Parikh Image, Mintermization}, % klíčová slova v anglickém jazyce / keywords in english
   % Abstrakt / Abstract
-  abstract.cs={Teorie konečných automatů je dobře známou oblastí teorie algoritmů. Konečné automaty běžně denně používáme v mnohých situacích, aniž bychom si to uvědomovali. V této práci se zaměříme na rozdílné heuristiky pro optimalizaci několika typických problémů spjatých s konečnými automaty. Zajímáme se převážně o~možnosti abstrakce jazyků stavů pro jejich použití v automatových algoritmech. Studujeme převážně konstrukci průniku konečných automatů a jeho test prázdnosti, kterých je často využíváno v moderních výpočetních technologiích, ale které vyžadují značný výpočetní čas a produkují rozsáhlý stavový prostor. Z~tohoto důvodu využíváme přístupů optimalizace těchto operací jako jsou délková abstrakce, Parikovské obrazy nebo mintermizace pro řešení zmíněných problémů a optimalizaci konstrukce průniku a jeho testu prázdnosti s využitím znalostí získaných z abstrakcí jazyků automatových stavů.}, % abstrakt v českém či slovenském jazyce / abstract in czech or slovak language
-  abstract.en={Finite automata theory is a well-known model of computational theory. We use finite automata daily in many situations without even knowing it. In this thesis, we will focus our attention on different heuristics for optimizing several typical problems connected to finite automata. We are interested in possibilities of abstraction of automata state languages to be used in various automata algorithms. We explore especially the computation of intersection of automata product construction and its emptiness test, which are required in modern computation technologies, but requires a lot of computational time and generates unnecessary state space. For this reason, we use various optimization approaches for these operations such as length abstraction, Parikh image computation or mintermization for solving mentioned problems and optimizing the product construction and its emptiness test using knowledge gained from abstractions of automata state languages.}, % abstrakt v anglickém jazyce / abstract in english
-  %abstract.en={An abstract of the work in English will be written in this paragraph.},
+  %abstract.cs={Teorie konečných automatů je dobře známou oblastí teorie algoritmů. Konečné automaty běžně denně používáme v mnohých situacích, aniž bychom si to uvědomovali. V této práci se zaměříme na rozdílné heuristiky pro optimalizaci několika typických problémů spjatých s konečnými automaty. Zajímáme se převážně o~možnosti abstrakce jazyků stavů pro jejich použití v automatových algoritmech. Studujeme převážně konstrukci průniku konečných automatů a jeho test prázdnosti, kterých je často využíváno v moderních výpočetních technologiích, ale které vyžadují značný výpočetní čas a produkují rozsáhlý stavový prostor. Z~tohoto důvodu využíváme přístupů optimalizace těchto operací jako jsou délková abstrakce, Parikovské obrazy nebo mintermizace pro řešení zmíněných problémů a optimalizaci konstrukce průniku a jeho testu prázdnosti s využitím znalostí získaných z abstrakcí jazyků automatových stavů.}, % abstrakt v českém či slovenském jazyce / abstract in czech or slovak language
+  abstract.cs={
+  Objevujeme možnosti použit\'i různ\'ych abstrakc\'i jazyků automatů pro optimalizaci automatov\'ych algoritmů použ\'ivan\'ych v matematice, v\'ypočetn\'i teorii a logice. Zaj\'im\'ame se o~abstrakci jazyků stavů na množiny možn\'ych d\'elek slov nebo Parikovy obrazy, reprezentovan\'e jako semi-line\'arn\'i množiny, a zkoum\'ame možnosti jejich využit\'i k optimalizaci konstrukce v\'ysledku automatov\'ych operac\'i pomoc\'i odstraňov\'an\'i stavů s nekompatibiln\'imi abstrakcemi. N\'asleduje optimalizace těchto technik.
+
+  Použ\'iv\'ame synchronn\'i konstrukci průniku a test jeho pr\'azdnosti jako operaci pro experiment\'aln\'i vyhodnocen\'i metod. Nicm\'eně naše abstrakce jsou aplikovateln\'e na mnoh\'e typick\'e automatov\'e operace, např\'iklad generaci doplňku aj.
+  }, % abstrakt v českém či slovenském jazyce / abstract in czech or slovak language
+  abstract.en={
+  We explore possibilities of using various abstractions of automata languages in optimization of automata algorithms used in mathematics, computation theory and logic. We focus on abstracting languages of states to sets of possible word lengths or Parikh images, represented as semi-linear sets, and exploring options of using them to optimize the construction of result of automata operations by pruning pairs of states with incompatible abstractions. We continue towards optimization of these techniques.
+
+  We use synchronous product construction and its emptiness test as our benchmarking operation on automata in our experiments. Nevertheless, our abstractions are applicable on many other typical automata operations, e.g., complement generation etc.
+ }, % abstrakt v anglickém jazyce / abstract in english
   % Prohlášení (u anglicky psané práce anglicky, u slovensky psané práce slovensky) / Declaration (for thesis in english should be in english)
-   %declaration={Prohlašuji, že jsem tuto bakalářskou práci vypracoval samostatně pod vedením pana X...
-%Další informace mi poskytli...
-%Uvedl jsem všechny literární prameny, publikace a další zdroje, ze kterých jsem čerpal.},
   declaration={I hereby declare that this Bachelor's thesis was prepared as an original work by the author under the supervision of Doc.~Mgr.~Lukáš~Holík,~Ph.D.
  %The supplementary information was provided by Mr. Y
  I have listed all the literary sources, publications and other sources, which were used during the preparation of this thesis.},
   % Poděkování (nepovinné, nejlépe v jazyce práce) / Acknowledgement (optional, ideally in the language of the thesis)
-  %acknowledgment={V této sekci je možno uvést poděkování vedoucímu práce a těm, kteří poskytli odbornou pomoc
-%(externí zadavatel, konzultant apod.).},
-  acknowledgment={I would like to thank my supervisor, Doc.~Mgr.~Lukáš~Holík,~Ph.D., who has provided essential and necessary information about the topic, outlined possible solutions and answered every question I have had throughout the whole process.
-  
-   %and to the people which provided professional help %TODO
-%(external submitter, consultant, etc.).
+  acknowledgment={I would like to thank my supervisor, Doc.~Mgr.~Lukáš~Holík,~Ph.D., who has provided essential and necessary information about the topic, outlined possible solutions and answered every question I have had throughout the whole time.
+  %and to the people which provided professional help %TODO
+  %(external submitter, consultant, etc.).
   },
-  % Rozšířený abstrakt (cca 3 normostrany) - lze definovat zde nebo níže / Extended abstract (approximately 3 standard pages) - can be defined here or below
-  %extendedabstract={Do tohoto odstavce bude zapsán rozšířený výtah (abstrakt) práce v českém (slovenském) jazyce.},
-  %extabstract.odd={true}, % Začít rozšířený abstrakt na liché stránce? / Should extended abstract start on the odd page?
   faculty={FIT}, % FIT/FEKT/FSI/FA/FCH/FP/FAST/FAVU/USI/DEF
   faculty.cs={Fakulta informačních technologií}, % Fakulta v češtině - pro využití této položky výše zvolte fakultu DEF / Faculty in Czech - for use of this entry select DEF above
   faculty.en={Faculty of Information Technology}, % Fakulta v angličtině - pro využití této položky výše zvolte fakultu DEF / Faculty in English - for use of this entry select DEF above
@@ -180,7 +192,7 @@
 }
 
 % Rozšířený abstrakt (cca 3 normostrany) - lze definovat zde nebo výše / Extended abstract (approximately 3 standard pages) - can be defined here or above
-%\extendedabstract{Do tohoto odstavce bude zapsán výtah (abstrakt) práce v českém (slovenském) jazyce.}
+\extendedabstract{awdawdDo tohoto odstavce bude zapsán výtah (abstrakt) práce v českém (slovenském) jazyce.} % TODO
 % Začít rozšířený abstrakt na liché stránce? / Should extended abstract start on the odd page?
 %\extabstractodd{true}
 
