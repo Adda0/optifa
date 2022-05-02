@@ -11,3 +11,72 @@
 
 %\chapter{Poster}
 
+\chapter{Complete Optimization Algorithm}
+
+\begin{algorithm}
+\caption{Product construction algorithm using both length abstraction and Parikh image computation and all their optimizations.}\label{productConstructionParikhImageAlgorithm}
+\SetKwInOut{Input}{Input}
+\SetKwInOut{Output}{Output}
+\SetKwFunction{FStateAbstractionPI}{$ \alpha^{PI} $}
+\SetKwFunction{FSMTSolverPush}{smtSolverPush}
+\SetKwFunction{FSMTSolverPop}{smtSolverPop}
+
+\SetKwFunction{FIsSkippable}{isSkippable}
+\SetKwFunction{FStateAbstractionLA}{$ \alpha^{LA} $}
+\SetKwFunction{FStateAbstractionPI}{$ \alpha^{PI} $}
+\SetKwFunction{FAddStateSpecificClauses}{addStateSpecificClauses}
+\SetKwFunction{FAddPersistentClauses}{addPersistentClauses}
+\SetKwProg{Fn}{Function}{:}{}
+
+
+\DontPrintSemicolon
+\Input{ NFA $A_1 = (Q_1, \Sigma, \delta_1, I_1, F_1)$, NFA $A_2 = (Q_2, \Sigma, \delta_2, I_2, F_2)$}
+\Output{ NFA $P = (A_1 \cap A_2) = (Q, \Sigma, \delta, I, F)$ with $L(A_1 \cap A_2) = L(A_1) \cap L(A_2)$}
+\BlankLine
+$Q, \delta, F \gets \emptyset$ \;
+$I \gets I_1 \times I_2$ \;
+$W \gets I$ \;\label{work_set}
+$res \gets False$ \;\label{sat}
+$solved \gets \emptyset$ \;\label{PIAlgorithm:solved}
+$ \FAddPersistentClauses{} $\;
+\While{$W \neq \emptyset$}{\label{PIAlgorithm:IterateOverProductStates}
+    \textbf{picklast} $[q_1, q_2]$ \textbf{from} $W$\label{picklast} \;
+    \textbf{add} $[q_1, q_2]$ \textbf{to} $solved$ \;
+
+    \eIf{$\textbf{not } \FIsSkippable{$[q_1, q_2]$}$} {
+
+    % Check length satisfiability.
+    \eIf{$\FStateAbstractionLA{$q_{1}$} \land \FStateAbstractionLA{$q_{2}$} \textbf{ is } \emph{unsat}$}{
+         $res \gets False$ \;
+    }{ % Else branch.
+
+        \FSMTSolverPush{} \;
+        $ \FAddStateSpecificClauses{$[q_1, q_2]$} $\;
+        $res \gets \FStateAbstractionPI{$q_{1}$} \land \FStateAbstractionPI{$q_{2}$} \textbf{ is } \emph{sat} $ \;\label{IncrementalAlgorithm:isSat}
+        \FSMTSolverPop{} \;
+        \If{$res = Unknown$}{
+            $res \gets True$ \;
+        }
+    }
+    } {\label{AlgIsSkippable} % else
+        $res \gets True$ \;
+    }
+
+
+    \If{$res = True$}{\label{AlgSolveForSat}\label{satTrue}
+        \textbf{add} $[q_1, q_2]$ \textbf{to} $Q$ \;
+        \If{$q_1 \in F_1$ \textbf{and} $q_2 \in F_2$} {
+        \textbf{add} $[q_1, q_2]$ \textbf{to} $F$ \;
+        }\label{AlgAddToFinalState}
+        \ForAll{$a \in \Sigma$}{
+            \ForAll{$q'_1 \in \delta_1(q_1, a), q'_2 \in \delta_2(q_2, a)$}{
+                \If{$[q'_1, q'_2] \notin solved$ \textbf{and} $[q'_1, q'_2] \notin W$}{
+                    \textbf{add} $[q'_1, q'_2]$ \textbf{to} $W$ \;
+                }
+                \textbf{add} $[q'_1, q'_2] \textbf{ to } \delta([q_1, q_2], a)$ \;
+            }
+        }
+    }
+}
+\end{algorithm}
+
