@@ -24,7 +24,7 @@ In our methods, we focus mainly on decision-making about the satisfiability prob
 
 We start with length abstraction of state languages\footnote{to sets of possible word lengths} optimization. We have computed possible lengths of accepted words for each automaton and their states. Length abstraction is an effective and simple method but the pruning capabilities are limited to specific qualities. Length abstraction alone cannot sometimes detect unnecessary state space for automata with rich alphabet and many transitions from each state for such state languages accept multitude of words lengths.
 
-When the lengths of words recognized by the languages of the current states are not compatible with each other---the original languages of the corresponding states cannot accept a word of the same lengths---there is definitely no transition from this product state leading to accepting the same word in both original automata. We can prune such states from our generated product. Consequently, this removes the need to even consider their potential successor states, which are generated normally. We trim the generated product to only states whose corresponding original states languages can accept words of the same lengths. Even though there might still be states which do not lead to any accepting state in the final product, this simple optimization already trims a substantial parts of the normally generated synchronous product state space reasonably often.
+When the lengths of words recognized by the languages of the current states are not compatible with each other---the original languages of the corresponding states cannot accept a word of the same lengths---there is definitely no transition from this product state leading to accepting the same word in both original automata. We can prune such states from our generated product. Consequently, this removes the need to even consider their potential successor states, which are generated normally. We trim the generated product to only states whose corresponding original states languages can accept words of the same lengths. Even though there might still be states which do not lead to any final state in the final product, this simple optimization already trims a substantial parts of the normally generated synchronous product state space reasonably often.
 
 %--------------------------------------------------------
 % Parikh image
@@ -99,7 +99,7 @@ Given two NFAs $A_1 = (Q_1, \Sigma, \delta_1, I_1, F_1)$ and \\ $A_2 = (Q_2, \Si
     \item a set of states $Q = Q_1 \times Q_2$,
     \item a transition relation $\delta: Q \times \Sigma \rightarrow{} P(Q)$,
     \item a set of initial states $I = I_1 \times I_2$, and
-    \item a set of accepting states $F = F_1 \times F_2$.
+    \item a set of final (accept) states $F = F_1 \times F_2$.
 \end{itemize}
 \end{definition}
 
@@ -151,7 +151,7 @@ Galois connection is a quadruple $\pi = (\mathcal{P}, \alpha, \gamma, \mathcal{Q
 
 \end{definition}
 
-In the terminology of abstract interpretation, $P$ is a \emph{concrete domain} and $Q$ is an \emph{abstract domain}. If $\alpha$ and $\gamma$ functions form a Galois connection, $\forall p \in P : p \leq \gamma(\alpha(p))$. That is, the abstraction may only over-approximate the concrete semantics.
+In the terminology of abstract interpretation, $P$ is a \emph{concrete domain} and $Q$ is an \emph{abstract domain}. If $\alpha$ and $\gamma$ functions form a Galois connection, $\forall p \in P \bigr( p \leq \gamma(\alpha(p)) \bigr)$. That is, the abstraction may only over-approximate the concrete semantics.
 
 %--------------------------------------------------------
 %--------------------------------------------------------
@@ -168,7 +168,7 @@ When constructing a product, a considerate number of generated product states ar
 
 Our product construction optimizations are applicable on two and more automata, but for the ease of explanation, we will consider only two automata ($A_1$ and $A_2$). The concept of state language abstractions is to find a state language abstraction $\alpha^X(q)$ of a state $q$ in abstraction $X$ ($\abstLA{q}$ for length abstraction and $\abstPI{q}$ for Parikh image abstraction) representing a formula in first-order predicate logic. Both our $\abstLA{q}$ and $\abstPI{q}$ respect Galois connection. Hence, they are an over-approximation of state language of $q$. We compare such state abstractions in different finite automata ($\alpha(q_1)$ where $q_1 \in Q_{A_1}$, $\alpha(q_2)$ where $q_2 \in Q_{A_2}$) to find out whether they are compatible with each other. If not, we can assume the corresponding state languages are neither and can prune such product state $p = [q_1, q_2]$.
 
-Because our proposed abstractions are always over-abstractions, they cannot accidentally trim any product states leading to an accepting state (cannot change the intersection language). The optimized product language is the same as the one generated from the naive product construction algorithm. Consequently, is it completely safe to use our optimizations with any kind of automata for any kind of uses.
+Because our proposed abstractions are always over-abstractions, they cannot accidentally trim any product states leading to an final state (cannot change the intersection language). The optimized product language is the same as the one generated from the naive product construction algorithm. Consequently, is it completely safe to use our optimizations with any kind of automata for any kind of uses.
 
 We perform experiments with the following optimization methods mostly on product construction of two NFAs, improving the naive product construction algorithm to generate optimized products. We chose product construction as our benchmarking operation on automata for its straightforwardness allowing us to clearly follow pruning capabilities of our proposed optimization methods, even though the naive product construction algorithm complexity can be at most \emph{only} quadratic. Nevertheless, our optimization techniques are to be used in various fields of automata theory and to allow us to optimize even other, more complex problems (determinization, minimization, emptiness of alternating automata, \ldots).
 
@@ -190,7 +190,7 @@ Our chosen approach to the problem of optimizing product construction and decidi
 
 $\alpha^{LA}$ generalizes the language recognized by the NFA $A$ by considering only the possible lengths of words accepted by $A$. It is an over-approximation of $L(A)$. This means that if a word is not accepted by the length abstraction of $A$, it cannot be accepted by $A$, either.
 
-Computing length abstraction over the languages of finite automata (and over individual states in the automata in particular) is accomplished using lasso automata LSA (handle and loop automata)---deterministic finite automata with a unary alphabet (similar as in \cite{DBLP:conf/cav/AbdullaACHRRS14}). They consist of a \emph{handle} (a sequence of states from the initial state) and a single \emph{loop} (resolving the cycles in the original automaton) resembling a lasso with a few accepting states representing the lengths of accepted words. Thus, the name is a lasso automaton.
+Computing length abstraction over the languages of finite automata (and over individual states in the automata in particular) is accomplished using lasso automata LSA (handle and loop automata)---deterministic finite automata with a unary alphabet (similar as in \cite{DBLP:conf/cav/AbdullaACHRRS14}). They consist of a \emph{handle} (a sequence of states from the initial state) and a single \emph{loop} (resolving the cycles in the original automaton) resembling a lasso with a few final states representing the lengths of accepted words. Thus, the name is a lasso automaton.
 
 Let us demonstrate the construction of \LSAa{$A_1$} for the following NFA $A_1$, which we continue to use to introduce our length abstraction optimization. You can create \LSAa{$A_1$} by taking $A_1$, considering all transition symbols as a single transition symbol and determinizing the result. \LSAa{$A_1$} is an automaton accepting every length of any word recognized by $L(A_1)$. Consequently, it is easy to compute semi-linear set (formulae\footnote{disjunction of linear equations}) for the allowed lengths of words, which can be effectively evaluated. We are computing these formulae for individual product states (precisely for the corresponding states in the original automata), checking their satisfiability and consequently construct only those product states for which the length abstraction compatibility test resolves as satisfiable.
 
@@ -216,7 +216,7 @@ $$\Sigma = \{0, 1\} \longrightarrow \Sigma' = \{*\} $$
 	\label{fig:NFA_A1_star}
 \end{figure}
 
-We start the determinization process on $A_1$ with unary alphabet. For the final \LSAa{$A_1$}, see Figure~\ref{fig:HaL_A1}. \LSAa{$A_1$} accepts any words of lengths of words recognized by $A_1$. We will use these lengths in the process of constructing the product.\footnote{You can notice \LSAa{$A_1$} looks different to what is depicted in Section~\ref{sec:length_abstraction}. It is caused by our optimization with generating only a single LSA per original automaton. \LSAa{$A_1$} is valid and the fact there are actually two separate automata with one even being inaccessible does not raise any issue for us. The reason for this behaviour will be further explained in Section~\ref{sec:singleHaL}.}
+We start the determinization process on $A_1$ with unary alphabet. For the final \LSAa{$A_1$}, see Figure~\ref{fig:HaL_A1}. \LSAa{$A_1$} accepts any words of lengths of words recognized by $A_1$. You can notice \LSAa{$A_1$} looks different to what is depicted in Section~\ref{sec:length_abstraction}. It is caused by our optimization with generating only a single LSA per original automaton. \LSAa{$A_1$} is valid and the fact there are actually two separate automata with one even being inaccessible does not raise any issue for us. The reason for this behaviour will be further explained in Section~\ref{sec:singleHaL}. We will use these lengths in the process of constructing the product.
 
  \begin{figure}[ht]
 	\centering
@@ -224,6 +224,16 @@ We start the determinization process on $A_1$ with unary alphabet. For the final
 	\caption{Lasso automaton \LSAa{$A_1$} for the original NFA $A_2$.}
 	\label{fig:HaL_A1}
 \end{figure}
+
+The length abstraction formulae are generated for \LSAa{$A_1$}. For every state $q$, we get one or more existentially quantified formulae $\varphi$ in Presburger arithmetic describing language abstracting $\abstLA{q}$ in the form
+\[
+    \varphi: \exists k ( |w| = h + l \cdot k )
+\]
+where $|w|$ is a length of a recognized word, $h$ is the length of a handle to a certain final state $f$, and $l$ is the length of a loop to return to $f$ going through the loop. $k$ is the number of cycles through the loop states until a word ends in $f$. When multiple depicted formulae are present (because there are more final states or different accepting runs for a single final state in LSA), we append these formulae with \emph{logical or}, then compare these with the formulae from the other LSA for the other initial finite automaton using SMT solver.
+\[
+    \alpha^{LA} : \exists k ( \varphi_1 \lor \ldots \lor \varphi_n )
+\]
+where $n$ is a number of generated $\varphi$.
 
 %--------------------------------------------------------
 %--------------------------------------------------------
@@ -233,11 +243,33 @@ When we are constructing a product $P$, we do not want to regenerate LSA for eac
 
 Due to the nature of LSA, the successive product states $p'$ generate LSA very similar to \LSAa{p}. We just need to append new states to $Q_{LSA}$. As a result, we will work with only two lasso automata (possibly with multiple loops and/or multiple handles)---one for both automata whose intersection is computed.
 
-If $q \notin Q_{LSA}$, we add $q$ to $Q_{LSA}$ and continue with the following states $q'$ until we either create an entirely new loop in LSA or generate $q' \in Q_{LSA}$. If $q' \in Q_{LSA}$, we can stop generating $q'$ as from now on, $\forall q' : q' \in Q_{LSA}$.
+If $q \notin Q_{LSA}$, we add $q$ to $Q_{LSA}$ and continue with the following states $q'$ until we either create an entirely new loop in LSA or generate $q' \in Q_{LSA}$. If $q' \in Q_{LSA}$, we can stop generating $q'$ as from now on, $\forall q' ( q' \in Q_{LSA})$.
 
 %--------------------------------------------------------
 %--------------------------------------------------------
 \section{Product Construction with Length Abstraction Optimization}
+
+To better demonstrate our solution, the second automaton we will be working with is a NFA $A_2$ from Figure~\ref{fig:NFA_A2_orig}.
+
+$$ A_2 = (\{s_0, s_1, s_2, s_3\}, \{0, 1\}, \delta_2, \{s_0\}, \{s_3\}) $$
+
+Transition relation $\delta_2$ is depicted in Figure~\ref{fig:NFA_A2_orig}.
+
+\begin{figure}[ht]
+    \centering
+	\includegraphics[]{diagrams-Original B.pdf}
+	\caption{Non-deterministic finite automaton $A_2$.}
+	\label{fig:NFA_A2_orig}
+\end{figure}
+
+In Figure~\ref{fig:HaL_A2}, there is \LSAa{$A_2$}, which we will be using together with \LSAa{$A_1$} shown in Figure~\ref{fig:HaL_A1} for computation of recognized word lengths.
+
+\begin{figure}[ht]
+    \centering
+	\includegraphics[]{diagrams-Final Handle and Loop Automaton B.pdf}
+	\caption{Lasso automaton \LSAa{$A_2$} for the original NFA $A_2$.}
+	\label{fig:HaL_A2}
+\end{figure}
 
 The core of the product construction algorithm remains unchanged, but there are a few differences. The Algorithm~\ref{productConstructionLengthAbstrAlg} shows how we alternate the original product construction algorithm to optimize the algorithm and resolve emptiness test for each \emph{branch} of the potential product automaton.
 
@@ -282,78 +314,54 @@ The optimization process starts when a product state $p$ is picked from $W$. Ins
 \]
 $\sat{\psi}$ is \emph{True} iff $\psi$ is satisfiable ($\Phi \textbf{ is } \emph{sat}$), $False$ otherwise. On line \ref{satisfiable}, we check whether $\sat{\compatLA{p}}$. If $\sat{\compatLA{p}}$, i.e., there will be an accepting run using $p$ (see line \ref{satTrue}), we add $p$ to $Q$, possibly to $F$ and generate $p'$.
 
-The formulae are generated using \LSAa{$A_1$} and \LSAa{$A_2$}. For every state, we get one or more formulae in the form $\varphi: \exists k( |w| = h + l \cdot k)$, where $|w|$ is a length of a recognized word, $h$ is the length of a handle to a certain accepting state, and $l$ is the length of a loop to return to this particular accepting state going through the loop. $k$ is the number of cycles through the loop states until a word ends in an accepting state. When multiple depicted formulae are present (because there are more accepting states in LSA), we append these formulae with \emph{logical or} ($\lor$), then compare these with the formulae from the other LSA for the other initial finite automaton using SMT solver.
+For $A_1$ for the initial state (we start computing lengths as if the state $q_0$ is the initial state) from \LSAa{$A_1$}, we get an existential formula representing length abstraction $\abstLA{q_1}$\footnote{This formula consists of two independent disjuncts $\varphi_1$ and $\varphi_2$ describing there are more possible lengths for accepted words from the same initial state (leading to two independent final states in the automaton).}. For $A_2$ for the initial state $s_0$ from \LSAa{$A_2$}, we get a formula for length abstraction $\abstLA{s_0}$\footnote{We are using variable $m$ here instead of $k$ to emphasize variables from different formulae are not dependent on each other---they correspond to various final states.}.
+\begin{align*}
+    &\abstLA{q_0}: \exists k ( |w| = 2 \lor |w| = 4 + 2 \cdot k ) \\
+    &\abstLA{s_0}: \exists m ( |w| = 2 + 1 \cdot m )
+\end{align*}
+
+When we compare $\abstLA{q_0}$ and $\abstLA{s_0}$, we get:
+$$ \abstLA{q_0} \land \abstLA{s_0} : \exists k \exists m ( 2 \lor 4 + 2 \cdot k = 2 + 1 \cdot m ) $$
+
+We try to find values of $k$ and $m$ such that some of the expressions on the left and on the right side of the equation are equal. We pass this equation to SMT solver to solve its satisfiability. Returns \emph{sat} when satisfiable ($res$ is set to \emph{True}) and \emph{unsat} when unsatisfiable ($res$ is set to \emph{False}). If \emph{unsat} is returned, we can stop generating this \emph{branch} of a NFA as we know for sure there cannot be a word which is accepted by both $A_1$ and $A_2$, when there is even no word fulfilling the length requirements. In this case, we have successfully reduced the generated state space by omitting product state $p = [q_0, s_0]$ and any further product states $p'$, which would be later normally generated from $p$ and its successors (assuming the transition symbols correspond).
+
 
 % TODO: What to do with the pseudocode? Update paragraphs and include implementation of satisfiable().
 \begin{algorithm}
+\newcommand{\LAFormula}[1]{\varphi_{#1}}
+
 \caption{Check satisfiability using length abstraction algorithm with SMT solver.}\label{checkLengthAbstractionSatisfiabilitySMTAlgorithm}
 \SetKwInput{Input}{Input}
 \SetKwInput{Output}{Output}
 \SetKw{Return}{return}
-\SetKwFunction{FIsLengthAbstractionSatisfiable}{isLengthAbstractionSatisfiable}%
+\SetKw{Break}{break}
+\SetKwFunction{FIsLengthAbstractionSatisfiable}{isLengthAbstractionSatisfiable}
+\SetKwFunction{FSMTInit}{smtInit}
+\SetKwFunction{FSMTAdd}{smtAdd}
+\SetKwFunction{FSMTPush}{smtPush}
+\SetKwFunction{FSMTPop}{smtPop}
+\SetKwFunction{FSMTCheck}{smtCheck}
 \SetKwProg{Fn}{Function}{:}{}
 
 \DontPrintSemicolon
 \BlankLine
 
-\Fn{\FIsLengthAbstractionSatisfiable{formulaeForFA1, formulaeForFA2}}{
-    \KwData{
-    Input length formulae of potential product state we are solving the satisfiability for (for all possible accept states combinations).\\
-    formulaeForFA1: Formulae for the first finite automaton, \\
-    formulaeForFA2: Formulae for the second finite automaton.
-    }
-    \KwResult{bool: \emph{True} if satisfiable, \emph{False} otherwise.}
+$\FSMTInit{}$ \;
+$\FSMTAdd{$k \geq 0, m \geq 0$}$ \;
 
-    $smtAdd(VariableForFormulaForFA1 \geq 0, VariableForFormulaForFA2 \geq 0)$ \;
-
-    \For{$formulaForFA1 \in formulaeForFA1$}{
-        \For{$formulaForFA2 \in formulaeForFA2$}{
-            $smtPush()$ \; % TODO Remove push and pop and replace the smtAdd with something like smtSetClauses.
-            $smtAdd(formulaForFA1.handle + formulaForFA1.lasso * VariableForFormulaForFA1 = formulaForFA2.handle + formulaForFA2.lasso * VariableForFormulaForFA2)$ \;
-            $sat \gets \textbf{smtCheck}()$ \;
-            \If{$sat$ \textbf{ or } $sat = unknown$}{
-                \Return $True$ \;
-            }
-            $smtPop()$ \;
+\For{$\LAFormula{q_1} \in \abstLA{q_1}$}{
+    \For{$\LAFormula{q_2} \in \abstLA{q_2}$}{
+        $\FSMTPush{}$ \;
+        $\FSMTAdd{$\LAFormula{q_1}.handle + \LAFormula{q_1}.lasso * k = \LAFormula{q_2}.handle + \LAFormula{q_2}.lasso * m$}$ \;
+        $res \gets \FSMTCheck{}$ \;
+        \If{$res = True$}{
+            \Break \;
         }
+        $\FSMTPop{}$ \;
     }
-
-    \Return $False$ \;
 }
 \end{algorithm}
 
-To better demonstrate our solution, the second automaton we will be working with is a NFA $A_2$ from Figure~\ref{fig:NFA_A2_orig}.
-
-$$ A_2 = (\{s_0, s_1, s_2, s_3\}, \{0, 1\}, \delta_2, \{s_0\}, \{s_3\}) $$
-
-Transition relation $\delta_2$ is depicted in Figure~\ref{fig:NFA_A2_orig}.
-
-\begin{figure}[ht]
-    \centering
-	\includegraphics[]{diagrams-Original B.pdf}
-	\caption{Non-deterministic finite automaton $A_2$.}
-	\label{fig:NFA_A2_orig}
-\end{figure}
-
-In Figure~\ref{fig:HaL_A2}, there is \LSAa{$A_2$}, which we will be using together with \LSAa{$A_1$} shown in Figure~\ref{fig:HaL_A1} for computation of recognized word lengths.
-
-\begin{figure}[ht]
-    \centering
-	\includegraphics[]{diagrams-Final Handle and Loop Automaton B.pdf}
-	\caption{Lasso automaton \LSAa{$A_2$} for the original NFA $A_2$.}
-	\label{fig:HaL_A2}
-\end{figure}
-
-For $A_1$ for the initial state (we start computing lengths as if the state $q_0$ is the initial state) from \LSAa{$A_1$}, we get existential formula $\varphi$\footnote{This formula consists of two independent formulae describing there are more possible lengths for accepted words from the same initial state (leading to two independent accepting states in the automaton).}. For $A_2$ for the initial state $s_0$ from \LSAa{$A_2$}, we get formula $\psi$\footnote{We are using variable $m$ here instead of $k$ to emphasize variables from different formulae are not dependent on each other---they correspond to various accepting states.}.
-\begin{align*}
-    &\varphi: \exists k(|w| = 2 \lor |w| = 4 + 2 \cdot k) \\
-    &\psi: \exists m(|w| = 2 + 1 \cdot m)
-\end{align*}
-
-When we compare $\varphi$ and $\psi$, we get:
-$$ \exists k \exists m (2 \lor 4 + 2 \cdot k = 2 + 1 \cdot m) $$
-
-We try to find values of $k$ and $m$ such that some of the expressions on the left and on the right side of the equation are equal. We pass this equation to SMT solver to solve its satisfiability. Returns \emph{sat} when satisfiable ($sat$ is set to \emph{True}) and \emph{unsat} when unsatisfiable ($sat$ is set to \emph{False}). If \emph{unsat} is returned, we can stop generating this \emph{branch} of a NFA as we know for sure there cannot be a word which is accepted by both $A_1$ and $A_2$, when there is even no word fulfilling the length requirements. In this case, we have successfully reduced the generated state space by omitting product state $p = [q_0, s_0]$ and any further product states $p'$, which would be later normally generated from $p$ and its successors (assuming the transition symbols correspond).
 
 \begin{figure}[ht]
 	\centering
@@ -362,7 +370,7 @@ We try to find values of $k$ and $m$ such that some of the expressions on the le
 	\label{fig:product_WIP}
 \end{figure}
 
-In Figure~\ref{fig:product_WIP}, we can see the product of $A_1$ and $A_2$ being constructed using our optimization. Red states represent tested states that are resolved as unsatisfiable for computed length formulae and therefore the algorithm omits any successive product states---dashed states (such as $q_4s_2$ or $q_3s_2$), which are generated in the basic naive product construction algorithm. The green state is satisfiable and also represents accepting states in both automata. Here, we have found a possible solution accepted by both original automata. If we desire to resolve only the product emptiness test, we can stop the execution of the algorithm here as we have found one accepting state---automata have non-empty intersection.
+In Figure~\ref{fig:product_WIP}, we can see the product of $A_1$ and $A_2$ being constructed using our optimization. Red states represent tested states that are resolved as unsatisfiable for computed length formulae and therefore the algorithm omits any successive product states---dashed states (such as $q_4s_2$ or $q_3s_2$), which are generated in the basic naive product construction algorithm. The green state is satisfiable and also represents final states in both automata. Here, we have found a possible solution accepted by both original automata. If we desire to resolve only the product emptiness test, we can stop the execution of the algorithm here as we have found one final state---automata have non-empty intersection.
 
 \begin{figure}[ht]
 	\centering
@@ -373,7 +381,7 @@ In Figure~\ref{fig:product_WIP}, we can see the product of $A_1$ and $A_2$ being
 
 As you can notice in Figure~\ref{fig:product_final}, the product generated by our algorithm has only 4 product states in comparison to 9 product states generated by the classic algorithm.
 
-When we get $\neg \sat{\compatLA{p}}$, we do not need to construct any following states $p'$ and check whether $\sat{\compatLA{p'}}$ and therefore, we are able to determine whether such \textit{branches} of automata have an empty intersection and we do not need to consider them in the product construction. The emptiness test is successfully accomplished, and we determined that for this \emph{branch} there cannot exist any word accepted by both automata and consequently by their intersection. When we get unsatisfiable result for every branch of the automaton (i.e., no \emph{branch} can lead to any accepting state) even if by inspecting transition symbols it looks like there could be a non-empty intersection, we can say that such input automata have an empty intersection and product construction will be very quick in that case---this is where our optimization dominates.
+When we get $\neg \sat{\compatLA{p}}$, we do not need to construct any following states $p'$ and check whether $\sat{\compatLA{p'}}$ and therefore, we are able to determine whether such \textit{branches} of automata have an empty intersection and we do not need to consider them in the product construction. The emptiness test is successfully accomplished, and we determined that for this \emph{branch} there cannot exist any word accepted by both automata and consequently by their intersection. When we get unsatisfiable result for every branch of the automaton (i.e., no \emph{branch} can lead to any final state) even if by inspecting transition symbols it looks like there could be a non-empty intersection, we can say that such input automata have an empty intersection and product construction will be very quick in that case---this is where our optimization dominates.
 
 A note of caution. It is important to understand that we are working only with possible word lengths and therefore when we test the emptiness of intersection of automata, we can resolve only such intersections that words lengths are not accepted by both automata. When the test shows there could be some words of certain length accepted by both automata and for that reason by their intersection too ($\sat{\compatLA{p}}$), we cannot be sure there truly are any words accepted by both automata with their intersection non-empty, because there may be words of the suggested length, but it may be a different word for each automaton (which differ from one another in the containing symbols or their position in the word). For resolving such cases, we have to proceed with the classic algorithm steps to produce product states according to their original transition symbols, not only by comparing the possible words lengths. With certainty, we can omit only the cases where $\neg \sat{\compatLA{p}}$.
 
@@ -382,7 +390,7 @@ A note of caution. It is important to understand that we are working only with p
 
 \subsection{Optimization with Skipping Satisfiable States} \label{sec:skipping states}
 
-When we take new $p$ from $W$ and check whether $\sat{\compatLA{p}}$, it is time to add to $W$ all of the possible successive product states $p'$. When $p$ generates only a single $p'$, we can say with certainty that $\sat{\compatLA{p'}}$ too as there is only a single branch in the automaton leading from $p$ to an~accepting state (through $p'$). $p'$ is \emph{skippable}, iff there exists $p$ for which $\sat{\compatLA{p}}$ and whose only successor is $p'$. We add $p'$ to $W$ with the information of being skippable. If $p'$ is already in~$W$, we append the information to $p'$ in $W$.
+When we take new $p$ from $W$ and check whether $\sat{\compatLA{p}}$, it is time to add to $W$ all of the possible successive product states $p'$. When $p$ generates only a single $p'$, we can say with certainty that $\sat{\compatLA{p'}}$ too as there is only a single branch in the automaton leading from $p$ to an~final state (through $p'$). $p'$ is \emph{skippable}, iff there exists $p$ for which $\sat{\compatLA{p}}$ and whose only successor is $p'$. We add $p'$ to $W$ with the information of being skippable. If $p'$ is already in~$W$, we append the information to $p'$ in $W$.
 
 We skip checking for $\sat{\compatLA{p'}}$ when we pick $p'$ from $W$. We can immediately check for final states and generate the successive product states. This optimization saves us generating the length abstraction formulae for $p'$ and testing the formulae in the SMT solver for their satisfiability and even possibly reducing the number of states generated for both \LSAa{$A_1$} and \LSAa{$A_2$}.
 
@@ -412,16 +420,20 @@ The only change is a test for every checked $p$, which decides whether $p$ can b
 	\label{fig:wip_skip_product}
 \end{figure}
 
-You can notice there is one skippable state in the former example, which had to be evaluated and tested for satisfiability earlier. The blue state in Figure~\ref{fig:wip_skip_product} is such a skippable state. In our case for state $q_5s_2$, when only one new state is generated from state $q_4s_3$ while this state is resolved as satisfiable, newly generated product state has to be satisfiable as well, because the check for $q_4s_3$ already considered the state $q_5s_2$ as its only way to any accepting state resolving in \emph{sat} check for $q_4s_3$ actually.
+You can notice there is one skippable state in the former example, which had to be evaluated and tested for satisfiability earlier. The blue state in Figure~\ref{fig:wip_skip_product} is such a skippable state. In our case for state $q_5s_2$, when only one new state is generated from state $q_4s_3$ while this state is resolved as satisfiable, newly generated product state has to be satisfiable as well, because the check for $q_4s_3$ already considered the state $q_5s_2$ as its only way to any final state resolving in \emph{sat} check for $q_4s_3$ actually.
 
 When we have a series of such states, though, we can highly optimize generating the whole branch with only one initial check for satisfiability. In real world examples, there are often automata with long branches splitting into multiple branches only occasionally. We will check for satisfiability for all of the initial states of each new branch and then either omit the entire branch (if \emph{unsat} is returned) or skip checking satisfiability in the entire branch (if \emph{sat} is returned).
 
 \subsection{Resolving Length Abstraction Satisfiability without SMT Solver}
 
+The nature of length abstraction formulae allows us to compute their satisfiability without the need to use SMT solvers. $\compatLA{p}$ forms a linear congruence equations, hich can be resolved just by utilizing linear congruence qualities.
+
 % TODO: Comment on SMT solver removal for length abstraction.
 
 \begin{algorithm}
-\caption{Check satisfiability using length abstraction algorithm without SMT solver}\label{checkLengthAbstractionSatisfiabilitySMTFreeAlgorithm}
+\newcommand{\LAFormula}[1]{\varphi_{#1}}
+
+\caption{Check satisfiability using length abstraction algorithm without SMT solver.}\label{checkLengthAbstractionSatisfiabilitySMTFreeAlgorithm}
 \SetKw{Return}{return}
 \SetKwFunction{FIsLengthAbstractionSatisfiable}{isLengthAbstractionSatisfiable}
 \SetKwFunction{FSolveForOneHandleLonger}{solveForOneHandleLonger}
@@ -429,38 +441,27 @@ When we have a series of such states, though, we can highly optimize generating 
 \SetKwProg{Fn}{Function}{:}{}
 
 \DontPrintSemicolon
-\Fn{\FIsLengthAbstractionSatisfiable{formulaeForFA1, formulaeForFA2}}{
-    \KwData{
-    Input length formulae of potential product state we are solving the satisfiability for (for all possible accept states combinations).\\
-    formulaeForFA1: Formulae for the first finite automaton, \\
-    formulaeForFA2: Formulae for the second finite automaton.
-    }
-    \KwResult{bool: \emph{True} if satisfiable, \emph{False} otherwise.}
-
-    % The function code itself.
-    \For{$formulaForFA1 \in formulaeForFA1$}{
-        \For{$formulaForFA2 \in formulaeForFA2$}{
-            \uIf{$formulaForFA1.handle = formulaForFA2.handle$}{
-                \Return $True$ \;
-            } \uElseIf{$formulaForFA1.handle > formulaForFA2.handle$}{
-                $sat \gets \FSolveForOneHandleLonger{formulaForFA1, formulaForFA2}$ \;
-                \If{$sat$}{
-                    \Return $True$ \;
-                }
-            } \uElse{
-                $sat \gets \FSolveForOneHandleLonger{formulaForFA2, formulaForFA1}$ \;
-                \If{$sat$}{
-                    \Return $True$ \;
-                }
-            }
+% The function code itself.
+\For{$\LAFormula{q_1} \in \abstLA{q_1}$}{
+    \For{$\LAFormula{q_2} \in \abstLA{q_2}$}{
+        \uIf{$\LAFormula{q_1}.handle = \LAFormula{q_2}.handle$}{
+            $res \gets True$ \;
+        } \uElseIf{$\LAFormula{q_1}.handle > \LAFormula{q_2}.handle$}{
+            $res \gets \FSolveForOneHandleLonger{$\LAFormula{q_1}$, $\LAFormula{q_2}$}$ \;
+        } \uElse{
+            $res \gets \FSolveForOneHandleLonger{$\LAFormula{q_2}$, $\LAFormula{q_1}$}$ \;
         }
     }
-
-    \Return $False$ \;
 }
+
+$res \gets False$ \;
 \end{algorithm}
 
 \begin{algorithm}
+\newcommand{\LAFormulaLonger}{\varphi_{l}}
+\newcommand{\LAFormulaShorter}{\varphi_{s}}
+\newcommand{\CurrentIteration}{it}
+
 \caption{Solve satisfiability of length abstraction formulae for one handle longer.}\label{checkLengthAbstractionSatisfiabilitySMTFreeAlgorithm}
 \SetKw{Return}{return}
 \SetKwFunction{FIsLengthAbstractionSatisfiable}{isLengthAbstractionSatisfiable}
@@ -469,40 +470,40 @@ When we have a series of such states, though, we can highly optimize generating 
 \SetKwProg{Fn}{Function}{:}{}
 
 \DontPrintSemicolon
-\Fn{\FSolveForOneHandleLonger{formulaForFA1, formulaForFA2}}{
+\Fn{\FSolveForOneHandleLonger{$\LAFormulaLonger$, $\LAFormulaShorter$}}{
     \KwData{
     Input length formulae of potential product state we are solving the satisfiability for (for concrete accept states combination).\\
-    formulaForFA1: Formula for the first finite automaton, \\
-    formulaForFA2: Formula for the second finite automaton.
+    $\LAFormulaLonger$: Formula for the finite automaton with the longer handle, \\
+    $\LAFormulaShorter$: Formula for the finite automaton with the shorter handle.
     }
     \KwResult{bool: \emph{True} if satisfiable, \emph{False} otherwise.}
 
     % The function code itself.
-    $formulaForFA1.handle \gets formulaForFA1.handle - formulaForFA2.handle$ \;
-    $formulaForFA2.handle \gets 0$ \;
+    $\LAFormulaLonger.handle \gets \LAFormulaLonger.handle - \LAFormulaShorter.handle$ \;
+    $\LAFormulaShorter.handle \gets 0$ \;
 
-    \uIf{$formulaForFA1.lasso = 0 \textbf{ and } formulaForFA2.lasso = 0$}{
+    \uIf{$\LAFormulaLonger.lasso = 0 \textbf{ and } \LAFormulaShorter.lasso = 0$}{
         \Return $False$ \;
-    } \uElseIf{$formulaForFA2.handle = 0$}{
+    } \uElseIf{$\LAFormulaShorter.lasso = 0$}{
         \Return $False$ \;
-    } \uElseIf{$formulaForFA1.lasso = 0$}{
-        $currentIteration \gets 0$ \;
-        \While{$currentIteration \leq formulaForFA1.handle$}{
-            \eIf{$currentIteration = formulaForFA1.handle$}{
+    } \uElseIf{$\LAFormulaLonger.lasso = 0$}{
+        $\CurrentIteration \gets 0$ \tcp*[h]{Current length resembling the iteration of the shorter lasso loop.} \;
+        \While{$\CurrentIteration \leq \LAFormulaLonger.handle$}{
+            \eIf{$\CurrentIteration = \LAFormulaLonger.handle$}{
                 \Return $True$ \;
             }{
-                $currentIteration \gets currentIteration + formulaForFA2.lasso$ \;
+                $\CurrentIteration \gets \CurrentIteration + \LAFormulaShorter.lasso$ \;
             }
-            \Return $False$ \;
         }
+        \Return $False$ \;
     } \uElse{
-        $gcd \gets \FGetGCD{formulaForFA1.lasso, formulaForFA2.lasso}$ \;
+        $gcd \gets \FGetGCD{$\LAFormulaLonger.lasso$, $\LAFormulaShorter.lasso$}$ \;
         \eIf{$gcd = 1$}{
             \Return $True$ \;
         }{
-            $y \gets - formulaForFA1.handle$ \;
+            $y \gets - \LAFormulaLonger.handle$ \;
             \While{$y < gcd$}{
-                $y \gets y + formulaForFA1.lasso$ \;
+                $y \gets y + \LAFormulaLonger.lasso$ \;
             }
             \eIf{$y \textbf{ mod } gcd = 0$}{
                 \Return $True$ \;
@@ -563,7 +564,7 @@ Given an NFA $A = (Q, \Sigma, \Delta, I, F)$ where $I$ is a singleton $I = \{ q_
 \end{enumerate}
 
 We gain an existentially quantified formula $\varphi$ in Presburger arithmetic describing language abstracting $\alpha^{PI}$ for $A$ with free variables $\#_a$:
-$$ \alpha^{PI} : \exists u_{q_1},\ldots,u_{q_n},z_{q_1},\ldots,z_{q_n},y_{t_1},\ldots,y_{t_m} : \varphi $$
+$$ \alpha^{PI} : \exists u_{q_1},\ldots,u_{q_n},z_{q_1},\ldots,z_{q_n},y_{t_1},\ldots,y_{t_m} ( \varphi ) $$
 where $n = \lvert Q \rvert$ is the number of states and $m = \lvert \Delta \rvert$ is the number of transitions in the finite automaton.
 
 For SMT solving, it is paramount that we have formulae without universal quantifiers, otherwise the SMT solver computation could \emph{explode} computation time-wise. SMT solver work best with quantifier-free or existential formulae. Thanks to how Parikh image is constructed, our approach takes advantage of these SMT qualities and our Parikh image formulae can be inserted in SMT solver as quantifier-free.
@@ -795,7 +796,7 @@ First, we test whether $\alpha^{LA}$ alone can prune the generated product state
 
 In this section, we introduce a method of optimizing operations on finite automata using minterms of the given finite automata. Minterm computation abstracts state language of automata in a different approach than which we explored so far, allowing us to follow a diverse set of characteristics about the state language. We can afterwards make use of computed minterms for the automata with other optimization methods introduced in this paper, as well as another optimization approaches.
 
-Foremost, we give an algorithm for minterm computation to compute minterms for the non-empty multiset of input finite automata $A = {M_1, M_2, \dots, M_n}$, where $n$ equals the number of finite automata, which we desire to execute the required automata operation on. Gained minterms abstract automata state language in such a way we do not lose any information about the former automata, but might create a more concise finite automata which will be easier to work with our other optimization methods and may significantly decrease the computation time required for optimizations such as Parikh image computation.
+Foremost, we give an algorithm for minterm computation to compute minterms for the non-empty multiset of input finite automata $A = {A_1, A_2, \dots, A_n}$ where $n$ equals the number of finite automata, which we desire to execute the required automata operation on. Gained minterms abstract automata state language in such a way we do not lose any information about the former automata, but might create a more concise finite automata which will be easier to work with our other optimization methods and may significantly decrease the computation time required for optimizations such as Parikh image computation.
 
 The general idea is to get sets of transition symbols between two states for all our considered finite automata. Compute minterms from these sets and substitute transition symbols between two states in our automata with corresponding minterms created from these transition symbols. Before all else, let us explain what minterms are and how you can generate them.
 
@@ -804,8 +805,8 @@ Given an NFA $M = (Q, \Sigma, \delta, I, F)$, let $\Phi = \{ \varphi_1 \varphi_2
 \end{definition}
 
 We call $\varphi_i$ a \emph{transition  set} for the given pair of automaton states $q, q'$. We denote $\Psi$ or Minterms($\Phi$) as a set of all minterms $\psi$ for the given NFA $M$ such that
-$$ Minterms(\Phi) = \biggr\{ \psi = \bigcap_{1 \leq i \leq n} \psi_i \biggr|
-\forall i \in \{1, \dots, n\} . (\psi_i \in \{ \varphi, Q \setminus \varphi \}) \land \psi \neq \emptyset \biggr\} \text{.} $$
+$$ Minterms(\Phi) = \biggr\{ \psi = \bigcap_{1 \leq i \leq n} \psi_i \,\biggr|\,
+\forall i \in \{1, \dots, n\} \bigr( (\psi_i \in \{ \varphi, Q \setminus \varphi \}) \land \psi \neq \emptyset \bigr) \biggr\} \text{.} $$
 
 Minterms are computed once, at the beginning of the optimization process for all considered finite automata
 We generate so called \emph{minterm tree} with nodes as intersection between sets of transition symbols in case the intersection is non-empty. Each node can have up to two children, representing intersection with the next transition set and its complement, respectively.
@@ -814,25 +815,25 @@ When such minterms for the given automaton are computed, we can abstract the sta
 
 Notice that we can compute minterms over multiple NFA, which allows us to use minterms state language abstraction for optimization of operation on those automata.
 
-Let us consider finite automata $M_1 = (\{s_0, s_1, s_2, s_3\}, \Sigma, \delta_1, \{s_0\}, \{s_3\})$ and $M_2 = (\{q_0, q_1, q_2\}, \Sigma, \delta_2, \{q_1\}, \{q_0\})$ over alphabet $\Sigma = \{a, b, c, d\}$ with $\delta_1$ and $\delta_2$ according to Figure~\ref{fig:diagram:mintermization_automaton_m1} and Figure~\ref{fig:diagram:mintermization_automaton_m2}, respectively.
+Let us consider finite automata $A_1 = (\{s_0, s_1, s_2, s_3\}, \Sigma, \delta_1, \{s_0\}, \{s_3\})$ and $A_2 = (\{q_0, q_1, q_2\}, \Sigma, \delta_2, \{q_1\}, \{q_0\})$ over alphabet $\Sigma = \{a, b, c, d\}$ with $\delta_1$ and $\delta_2$ according to Figure~\ref{fig:diagram:mintermization_automaton_m1} and Figure~\ref{fig:diagram:mintermization_automaton_m2}, respectively.
 
 \begin{figure*}[ht]
     \centering
     \begin{minipage}{0.49\linewidth}
         \centering
         \includegraphics[height=100pt]{mintermization_automaton_m1.pdf}
-        \caption{Finite automaton $M_1$ with transitions $\delta_1$.}
+        \caption{Finite automaton $A_1$ with transitions $\delta_1$.}
         \label{fig:diagram:mintermization_automaton_m1}
     \end{minipage}
     \hfill
     \begin{minipage}{0.49\linewidth}
         \centering
         \includegraphics[height=100pt]{mintermization_automaton_m2.pdf}
-        \caption{Finite automaton $M_2$ with transitions $\delta_2$.}
+        \caption{Finite automaton $A_2$ with transitions $\delta_2$.}
         \label{fig:diagram:mintermization_automaton_m2}
     \end{minipage}
     \vspace{0.5cm}
-    \caption{Finite automata $M_1$ and $M_2$ used as example automata for mintermization.}
+    \caption{Finite automata $A_1$ and $A_2$ used as example automata for mintermization.}
     \label{fig:diagram:mintermization_automata}
 \end{figure*}
 
@@ -843,18 +844,18 @@ The Figure~\ref{fig:diagram:mintermization_automata_transition_sets} depicts how
     \begin{minipage}{0.49\linewidth}
         \centering
         \includegraphics[height=100pt]{mintermization_automaton_m1_with_transition_sets.pdf}
-        \caption{Finite automaton $M_1$ with transition sets $\varphi_i$.}
+        \caption{Finite automaton $A_1$ with transition sets $\varphi_i$.}
         \label{fig:diagram:mintermization_automaton_m1_with_transition_sets}
     \end{minipage}
     \hfill
     \begin{minipage}{0.49\linewidth}
         \centering
         \includegraphics[height=100pt]{mintermization_automaton_m2_with_transition_sets.pdf}
-        \caption{Finite automaton $M_2$ with transition sets $\varphi_i$.}
+        \caption{Finite automaton $A_2$ with transition sets $\varphi_i$.}
         \label{fig:diagram:mintermization_automaton_m2_with_transition_sets}
     \end{minipage}
     \vspace{0.5cm}
-    \caption{Finite automata $M_1$ and $M_2$ with marked transition sets used in mintermization.}
+    \caption{Finite automata $A_1$ and $A_2$ with marked transition sets used in mintermization.}
     \label{fig:diagram:mintermization_automata_transition_sets}
 \end{figure*}
 
@@ -871,7 +872,7 @@ The Figure~\ref{fig:diagram:mintermization_example} illustrates our mintermizati
 \begin{figure}[ht]
 	\centering
 	\includegraphics[]{mintermization_example.pdf}
-	\caption{Mintermization process executed on example finite automata $M_1$ and $M_2$. We start with the whole alphabet and make our way down through all mintermization sets $\varphi_i$, where $1 \leq i \leq n$. For each mintermization set, we compute the intersection of the preceding set with the current mintermization set $\varphi_i$. The results are shown in the diagram as the nodes of the tree. When operations on all mintermization sets were executed, the leaves of the tree (indicated by the green square) represent the final minterms for the given mintermization sets $\Phi$ over the given alphabet $\Sigma$. We denote each minterm $\psi_i$, where $1 \leq i \leq |\Psi|$ where $|\Psi|$ represents the total number of generated minterms.}
+	\caption{Mintermization process executed on example finite automata $A_1$ and $A_2$. We start with the whole alphabet and make our way down through all mintermization sets $\varphi_i$, where $1 \leq i \leq n$. For each mintermization set, we compute the intersection of the preceding set with the current mintermization set $\varphi_i$. The results are shown in the diagram as the nodes of the tree. When operations on all mintermization sets were executed, the leaves of the tree (indicated by the green square) represent the final minterms for the given mintermization sets $\Phi$ over the given alphabet $\Sigma$. We denote each minterm $\psi_i$, where $1 \leq i \leq |\Psi|$ where $|\Psi|$ represents the total number of generated minterms.}
 	\label{fig:diagram:mintermization_example}
 \end{figure}
 
@@ -885,22 +886,22 @@ We can now substitute the former transition sets $\varphi_i$ for finite automata
     \begin{minipage}{0.49\linewidth}
         \centering
         \includegraphics[height=100pt]{mintermization_automaton_m1_with_minterms.pdf}
-        \caption{Finite automaton $M_1$ with transitions substituted by corresponding minterms $psi_i \in \Psi$ created from these transition sets.}
+        \caption{Finite automaton $A_1$ with transitions substituted by corresponding minterms $\psi_i \in \Psi$ created from these transition sets.}
         \label{fig:diagram:mintermization_automaton_m1_with_minterms}
     \end{minipage}
     \hfill
     \begin{minipage}{0.49\linewidth}
         \centering
         \includegraphics[height=100pt]{mintermization_automaton_m2_with_minterms.pdf}
-        \caption{Finite automaton $M_2$ with transitions substituted by corresponding minterms $psi_i \in \Psi$ created from these transition sets.}
+        \caption{Finite automaton $A_2$ with transitions substituted by corresponding minterms $\psi_i \in \Psi$ created from these transition sets.}
         \label{fig:diagram:mintermization_automaton_m2_with_minterms}
     \end{minipage}
     \vspace{0.5cm}
-    \caption{Finite automata $M_1$ and $M_2$ with substituted transitions with minterms in the process of mintermization.}
+    \caption{Finite automata $A_1$ and $A_2$ with substituted transitions with minterms in the process of mintermization.}
     \label{fig:diagram:mintermization_automata_with_minterms}
 \end{figure*}
 
-Consequently, assuming the previously said, considering we have minterms over alphabet of $A$, we know that the intersection of two minterms has to be an empty set and that $\forall \psi \in \Psi: \psi \subseteq \varphi, \varphi \in \Phi$ if $\psi$ is created from $\varphi$. We make use of this knowledge further.
+Consequently, assuming the previously said, considering we have minterms over alphabet of $A$, we know that the intersection of two minterms has to be an empty set and that $\forall \psi \in \Psi ( \psi \subseteq \varphi, \varphi \in \Phi )$ if $\psi$ is created from $\varphi$. We make use of this knowledge further.
 
 In the following section, we propose a method of using minterm computation with Parikh image computation optimization. We choose this approach in order to mitigate the disadvantages of Parikh image computation for finite automata, especially those with multitude of transitions between two states varying only in transition symbols, which require considerate time to compute and evaluate. This method proceeds to represent such sets of transitions between two states with a single minterm representing these transitions. We can therefore apply any previously mentioned optimization methods (or any other known optimization method) on such modified automata with minterms as their transition symbols to construct their product without the need to compute, for example, Parikh image for every single transition symbol between two states. We can now compute possibly fewer transitions with the resulting minterms instead.
 
@@ -920,8 +921,8 @@ Test benchmarks used in our experiments were obtained from regular model checkin
 
 We have tested two main aspects:
 \begin{itemize}
-    \item First, we have tested the generated state space for emptiness test. That is, whenever we find a solution---accepting state in the intersection, the test ends, and we count the number of generated product states to this moment. If no intersection is found, we end the test when it is certain there is no accepting state and the intersection is indeed empty.
-    \item Second, for the same pair of automata, we have tested the full product construction. Adding new accepting states along the way and comparing generated state spaces in the end for the full product accepting the whole intersection of original automata.
+    \item First, we have tested the generated state space for emptiness test. That is, whenever we find a solution---final state in the intersection, the test ends, and we count the number of generated product states to this moment. If no intersection is found, we end the test when it is certain there is no final state and the intersection is indeed empty.
+    \item Second, for the same pair of automata, we have tested the full product construction. Adding new final states along the way and comparing generated state spaces in the end for the full product accepting the whole intersection of original automata.
 \end{itemize}
 
 \section{Length Abstraction}
@@ -952,7 +953,7 @@ Where the length abstraction cannot optimize the product construction, both prod
 
 For another automata, the product generated by our algorithm is much smaller. We can see from the graphs that the larger the basic product state space size gets, the higher impact our optimization has on the product state space size. The same holds for the full product construction results. For cases where the intersection is truly empty and accepted lengths differ in both automata, our algorithm stops the process of product construction on the very first tested product state. The basic algorithm continues to create a full product.
 
-We get the best results for automata with practically the same transitions which differ only slightly in final states or a few transitions which affects the accepting runs in the original automata. These changes cause the basic algorithm to generate the product states without realizing most (if not all) product states do not lead to an accepting state. These slight differences in automata (especially in final states) usually also change the length of accepted words. Therefore, our optimization is able to notice these differences and trim most of the product state space, if not the whole product, when no final state can be accessed and the intersection is empty.
+We get the best results for automata with practically the same transitions which differ only slightly in final states or a few transitions which affects the accepting runs in the original automata. These changes cause the basic algorithm to generate the product states without realizing most (if not all) product states do not lead to an final state. These slight differences in automata (especially in final states) usually also change the length of accepted words. Therefore, our optimization is able to notice these differences and trim most of the product state space, if not the whole product, when no final state can be accessed and the intersection is empty.
 
 In both graphs, we can see the aforementioned quadratic state space explosion for product is nearly not affecting our algorithm in comparison to the basic product construction algorithm. Optimized products are easier to work with and operations on such products require less computational time and memory consumption.
 
@@ -1030,7 +1031,7 @@ The following graphs show the results for both the emptiness test and full produ
 
 We conclude from the experiments that Parikh image optimizes the generated product state space in nearly every case. The strength of Parikh image is its higher pruning capacity due to wider range of information gathered from the automata. In multiple cases, Parikh image optimization is able to prune vast \emph{branches} of potential generated product by correctly determining incompatible transition symbols even if possible lengths of accepted words are mutually compatible.
 
-Incremental SMT solving proves to be a great improvement to the Parikh image computation optimization. The amount of clauses depends on the number of states in finite automata, the number of transitions and the number of initial or accepting states. See Table~\ref{table:incremental_smt_clauses} for a depiction of comparison of the number of all clauses in Parikh image, clauses common to all product states (persistent clauses) and state specific clauses.
+Incremental SMT solving proves to be a great improvement to the Parikh image computation optimization. The amount of clauses depends on the number of states in finite automata, the number of transitions and the number of initial or final states. See Table~\ref{table:incremental_smt_clauses} for a depiction of comparison of the number of all clauses in Parikh image, clauses common to all product states (persistent clauses) and state specific clauses.
 
 \begin{table*}[ht]
 	\centering
@@ -1090,7 +1091,7 @@ The following graphs in Figure~\ref{fig:graph:pi_product_state_space_sizes} show
 
 We conclude from the experiments that Parikh image optimizes the generated product state space in nearly every case and produces equal or better results than length abstraction every time. The strength of Parikh image is its higher pruning capacity due to wider range of information gathered from the automata. In multiple cases, Parikh image optimization is able to prune vast \emph{branches} of potential generated product by correctly determining incompatible transition symbols even if possible lengths of accepted words are mutually compatible, sometimes even entirely stopping product construction immediately when basic and length abstraction constructions continue to generate state space further.
 
-Incremental SMT solving proves to be a great improvement to the Parikh image computation optimization. The amount of clauses depends on the number of states in finite automata, the number of transitions and the number of initial or accepting states. The following experiment provides an example comparison of the number of all clauses in Parikh image, clauses common to all product states (persistent clauses) and state specific clauses. For a product of $434$ states, each product state Parikh image contains $2652$ clauses. From those, $1782$ clauses are persistent clauses and the remaining $870$ are state specific clauses. A proportional ratio o persistent clauses in whole Parikh image is around $67.2 \%$. The number of persistent clauses (experimentally determined to be usually around $70 \%$) for our benchmark automata means around $70\%$ of each computed Parikh image clauses can be precomputed once. Only $30\%$ of clauses must be computed repeatedly for each potential product state.
+Incremental SMT solving proves to be a great improvement to the Parikh image computation optimization. The amount of clauses depends on the number of states in finite automata, the number of transitions and the number of initial or final states. The following experiment provides an example comparison of the number of all clauses in Parikh image, clauses common to all product states (persistent clauses) and state specific clauses. For a product of $434$ states, each product state Parikh image contains $2652$ clauses. From those, $1782$ clauses are persistent clauses and the remaining $870$ are state specific clauses. A proportional ratio o persistent clauses in whole Parikh image is around $67.2 \%$. The number of persistent clauses (experimentally determined to be usually around $70 \%$) for our benchmark automata means around $70\%$ of each computed Parikh image clauses can be precomputed once. Only $30\%$ of clauses must be computed repeatedly for each potential product state.
 
 %--------------------------------------------------------
 %--------------------------------------------------------
@@ -1098,7 +1099,7 @@ Incremental SMT solving proves to be a great improvement to the Parikh image com
 %--------------------------------------------------------
 \chapter{Conclusion}
 
-The most demanding parts of the intersection computation is the generation of product states and transitions of the product automaton. We tried to reduce the size of the generated state space by omitting the states which cannot lead to any accepting state---that is, omitting the \textit{branches} which do not lead to any accepting state---by performing the emptiness test of such states using various state languages abstractions over the original automata such as length abstraction using lasso automata or Parikh image computation based on Parikh's theorem. Each approach has been experimentally tested and further optimizations to the proposed algorithms were introduced.
+The most demanding parts of the intersection computation is the generation of product states and transitions of the product automaton. We tried to reduce the size of the generated state space by omitting the states which cannot lead to any final state---that is, omitting the \textit{branches} which do not lead to any final state---by performing the emptiness test of such states using various state languages abstractions over the original automata such as length abstraction using lasso automata or Parikh image computation based on Parikh's theorem. Each approach has been experimentally tested and further optimizations to the proposed algorithms were introduced.
 
 According to our experiments, product state space is minimized especially for intersections with huge non-terminating branches or for intersections of automata accepting different lengths of words recognized by the automata languages. Further, for automata with long lines and similar automata varying only slightly from each other. Experiments show our algorithm generates smaller product state spaces for both emptiness test and full product construction, which are two usually used operations on automata intersection. All our abstractions consider over-approximation of possible products. Therefore, our optimizations are safe to use for any uses resolving operations on finite automata.
 
