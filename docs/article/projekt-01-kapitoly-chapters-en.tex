@@ -426,9 +426,9 @@ When we have a series of such states, though, we can highly optimize generating 
 
 \subsection{Resolving Length Abstraction Satisfiability without SMT Solver}
 
-The nature of length abstraction formulae allows us to compute their satisfiability without the need to use SMT solvers. $\compatLA{p}$ forms a linear congruence equations, which can be resolved just by utilizing basic math operations and linear congruence qualities.
+The structure of length abstraction formulae allows us to compute their satisfiability without the need to use SMT solvers\footnote{Note that as with SMT solvers, we do not need to find specific values for which the formulae are satisfiable. We are only interested in deciding whether such values exist.}. $\compatLA{p}$ forms a set of linear congruence equations, which can be resolved just by utilizing basic math operations and linear congruence qualities.
 
-The Algorithm~\ref{checkLengthAbstractionSatisfiabilitySMTFreeAlgorithm} shows how to determine $\sat{\compatLA{p}}$ without SMT solver.
+The Algorithm~\ref{checkLengthAbstractionSatisfiabilitySMTFreeAlgorithm} shows how to determine $\sat{\compatLA{p}}$ without an SMT solver.
 
 % TODO: Comment on SMT solver removal for length abstraction.
 
@@ -459,13 +459,19 @@ The Algorithm~\ref{checkLengthAbstractionSatisfiabilitySMTFreeAlgorithm} shows h
 $res \gets False$ \;
 \end{algorithm}
 
-If $\varphi_{q_1}$ and $\varphi_{q_2}$ handle lengths are equal, there are words of the same length accepted by both $\abstLA{q_1}$ and $\abstLA{q_2}$ (they are mutually compatible) without stepping into the loops of \LSAa{$q_1$} and \LSAa{$q_2$}. Otherwise, handle lengths differ and we must consider lengths of loops in our determination of compatibility of $\abstLA{q_1}$ and $\abstLA{q_2}$.
+We execute the following steps for each equation
+\[
+    \varphi_{q_1}.handle + \varphi_{q_1}.lasso \cdot k = \varphi_{q_2}.handle + \varphi_{q_2}.lasso \cdot m \text{.}
+\]
 
-We now have to determine $\sat{\varphi_{q_1} \land \varphi_{q_2}}$ for abstractions with one handle longer. This is solved by the function \texttt{solveForOneHandleLonger} in Algorithm~\ref{checkLengthAbstractionSatisfiabilitySMTFreeAlgorithmFunctionImplementation}. It solves an equation $\varphi_{q_1}.handle + \varphi_{q_1}.lasso \cdot k = \varphi_{q_2}.handle + \varphi_{q_2}.lasso \cdot m$
+If the handle lengths of $\varphi_{q_1}$ and $\varphi_{q_2}$ are equal, there are words of the same length accepted by both $\abstLA{q_1}$ and $\abstLA{q_2}$ (they are mutually compatible) without stepping into the loops of \LSAa{$q_1$} and \LSAa{$q_2$}. Otherwise, handle lengths differ and we must consider lengths of loops in our determination of compatibility of $\abstLA{q_1}$ and $\abstLA{q_2}$.
+
+We now have to determine $\sat{\varphi_{q_1} \land \varphi_{q_2}}$ for abstractions with one handle longer. This is solved by the function \texttt{solveForOneHandleLonger} in Algorithm~\ref{checkLengthAbstractionSatisfiabilitySMTFreeAlgorithmFunctionImplementation}.
 
 \begin{algorithm}[ht]
 \newcommand{\LAFormulaLonger}{\varphi_{l}}
 \newcommand{\LAFormulaShorter}{\varphi_{s}}
+\newcommand{\HandleDifference}{\LAFormulaLonger.handle}
 \newcommand{\CurrentIteration}{it}
 
 \caption{Solve satisfiability of length abstraction formulae for one handle longer.}\label{checkLengthAbstractionSatisfiabilitySMTFreeAlgorithmFunctionImplementation}
@@ -485,7 +491,7 @@ We now have to determine $\sat{\varphi_{q_1} \land \varphi_{q_2}}$ for abstracti
     \KwResult{bool: \emph{True} if satisfiable, \emph{False} otherwise.}
 
     % The function code itself.
-    $\LAFormulaLonger.handle \gets \LAFormulaLonger.handle - \LAFormulaShorter.handle$ \label{simplifyEquation} \;
+    $\HandleDifference \gets \LAFormulaLonger.handle - \LAFormulaShorter.handle$ \label{simplifyEquation} \;
     $\LAFormulaShorter.handle \gets 0$ \;
 
     \uIf{$\LAFormulaLonger.lasso = 0 \textbf{ and } \LAFormulaShorter.lasso = 0$}{\label{both_no_loops}
@@ -494,8 +500,8 @@ We now have to determine $\sat{\varphi_{q_1} \land \varphi_{q_2}}$ for abstracti
         \Return $False$ \;
     } \uElseIf{$\LAFormulaLonger.lasso = 0$}{\label{longer_no_loop}
         $\CurrentIteration \gets 0$ \tcp*[h]{Current length resembling the iteration of the shorter lasso loop.} \;
-        \While{$\CurrentIteration \leq \LAFormulaLonger.handle$}{
-            \eIf{$\CurrentIteration = \LAFormulaLonger.handle$}{
+        \While{$\CurrentIteration \leq \HandleDifference$}{
+            \eIf{$\CurrentIteration = \HandleDifference$}{
                 \Return $True$ \;
             }{
                 $\CurrentIteration \gets \CurrentIteration + \LAFormulaShorter.lasso$ \;
@@ -507,9 +513,9 @@ We now have to determine $\sat{\varphi_{q_1} \land \varphi_{q_2}}$ for abstracti
         \eIf{$gcd = 1$}{
             \Return $True$ \;
         }{
-            $y \gets - \LAFormulaLonger.handle$ \;
+            $y \gets - \HandleDifference$ \;
             \While{$y < gcd$}{
-                $y \gets y + \LAFormulaLonger.lasso$ \;
+                $y \gets y + \LAFormulaShorter.lasso$ \;
             }
             \eIf{$(y \mod gcd) = 0$}{
                 \Return $True$ \;
@@ -525,27 +531,25 @@ First, to simplify the equation (line~\ref{simplifyEquation}), we move handle le
 \begin{equation}\label{simplified_equation}
     \varphi_{l}.handle + \varphi_{l}.lasso \cdot k = \varphi_{s}.lasso \cdot m
 \end{equation}
-which represents the number of loops a word must make in $\varphi_{s}$ to be accepted by $\varphi_l$.
+which represents the number of loops a word must make in $\varphi_{s}$ to be accepted by $\varphi_l$ (as if with shorter $\varphi_l.handle$).
 
 If both $\varphi_l$ and $\varphi_s$ have no loops (line~\ref{both_no_loops}), $\varphi_{q_1} \land \varphi_{q_2}$ is unsatisfiable because the handles differ. Else if only $\varphi_s$ has no handle (line~\ref{shorter_no_loop}), every word accepted by $\varphi_s$ is shorter than words accepted by $\varphi_l$ and the formulae cannot be satisfiable.
 
 Else if only $\varphi_l$ has no loop (line~\ref{longer_no_loop}), we can try to manually iterate over loops in $\varphi_s$ to see whether the word length difference between handles can be equalized by looping in $\varphi_s.lasso$.
 
-Otherwise, both $\varphi_l$ and $\varphi_s$ have loops (line~\ref{both_loops}). We can apply linear congruence qualities to the equation~\ref{simplified_equation} to determine whether the formulae are satisfiable. The equation~\ref{simplified_equation} says that if formulae are satisfiable, the left side of the equation is divisible by some multiple of $\varphi_s.lasso$. We can rewrite that in a linear congruence equation as follows:
+Otherwise, both $\varphi_l$ and $\varphi_s$ have loops (line~\ref{both_loops}). We can apply linear congruence qualities to the equation~\ref{simplified_equation} to determine whether the formulae are satisfiable. The equation~\ref{simplified_equation} says that if formulae are satisfiable, the left side of the equation is divisible by some multiple of $\varphi_s.lasso$. We can rewrite that in a linear congruence as follows:
 \begin{align}
     \varphi_{l}.handle + \varphi_{l}.lasso \cdot k &\equiv 0 \pmod{\varphi_s.lasso} \\
     \varphi_{l}.lasso \cdot k &\equiv - \varphi_{l}.handle  \pmod{\varphi_s.lasso} \label{linear_congruence_equation}
 \end{align}
+which is the same as solving a linear Diophantine equation
+\begin{equation}
+    \varphi_{l}.lasso \cdot k - \varphi_s.lasso \cdot m = - \varphi_{l}.handle \text{.} \label{linear_diophantine_equation}
+\end{equation}
 
-If and only if the greatest common (\GCD) diviser of $\varphi_l.lasso$ and $\varphi_s.lasso$ is equal to $1$, there exists a mutliplicative inverse for $\varphi_l.lasso$ in modulo $\varphi_s.lasso$, which tells that linear congruence~\ref{linear_congruence_equation} is always solvable for some $\varphi_l.lasso$ in modulo $\varphi_s.lasso$. Therefore, the formulae are satisfiable.
+Qualities of multiplicative inverse~\cite{DivisibilityAndGreatestCommonDiviser, LinearCongruences}, based on Bezout's identity~\cite{DivisibilityAndGreatestCommonDiviser}, say that iff $\varphi_l.lasso$ and $\varphi_s.lasso$ are relatively prime (coprime)---the greatest common diviser (GCD) of $\varphi_l.lasso$ and $\varphi_s.lasso$ is equal to $1$---there exists a multiplicative inverse for $\varphi_l.lasso$ in modulo $\varphi_s.lasso$ which ensures that linear congruence~\ref{linear_congruence_equation} is always solvable for some $\varphi_l.lasso$ in modulo $\varphi_s.lasso$\footnote{We can get the precise solution by multiplying both sides of the equation with the multiplicative inverse.}. Therefore, the formulae are satisfiable.
 
-Otherwise, \GCD is different from $1$ and we have to apply extended Euclidean algorithm to find whether \GCD preciselly divides $y$ without a remainder where $y$ is the right side of the linear congruence~\ref{linear_congruence_equation} or its any increment by $\varphi_l.lasso$.
-
-By Bezout's lemma%TODO cit  ~\cite{}
-, we can say that
-
-
-
+Otherwise, $\varphi_l.lasso$ and $\varphi_s.lasso$ are not coprime (GCD is different from $1$) abd by qualities of linear Diophantine equations~\cite{LinearCongruences}, iff GCD preciselly divides $y$ without a remainder where $y$ is the right side of the linear congruence~\ref{linear_congruence_equation} or its any congruent equivalent, there exist solutions to the linear congruence\footnote{We can apply an extended Euclidean algorithm to find the precise values for the Diophantine equation~\ref{linear_diophantine_equation}.}. Otherwise, there are no solutions for the linear congruence~\ref{linear_congruence_equation}.
 
 %--------------------------------------------------------
 %--------------------------------------------------------
