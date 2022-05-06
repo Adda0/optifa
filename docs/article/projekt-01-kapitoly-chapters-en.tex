@@ -247,7 +247,7 @@ If $q \notin Q_{LSA}$, we add $q$ to $Q_{LSA}$ and continue with the following s
 
 %--------------------------------------------------------
 %--------------------------------------------------------
-\section{Product Construction with Length Abstraction Optimization}
+\subsection{Product Construction with Length Abstraction Optimization}
 
 To better demonstrate our solution, the second automaton we will be working with is a NFA $A_2$ from Figure~\ref{fig:NFA_A2_orig}.
 
@@ -555,7 +555,7 @@ Otherwise, $\varphi_l.lasso$ and $\varphi_s.lasso$ are not coprime (GCD is diffe
 %--------------------------------------------------------
 %--------------------------------------------------------
 %--------------------------------------------------------
-\section{Parikh Image State Language Abstraction}
+\section{Parikh Image Abstraction of State Languages}
 
 $\abstLA{q}$ is a simple and fast optimization, but can be too general to detect non-terminating states in some cases. In this section, we present a product construction optimization using Parikh image state language abstraction, which aims to make the abstraction more accurate to prune larger quantities of unnecessary generated product state space.
 
@@ -604,7 +604,7 @@ where $n = \lvert Q \rvert$ is the number of states and $m = \lvert \Delta \rver
 
 For SMT solving, it is paramount that we have formulae without universal quantifiers, otherwise the SMT solver computation could \emph{explode} computation time-wise. SMT solver work best with quantifier-free or existential formulae. Thanks to how Parikh image is constructed, our approach takes advantage of these SMT qualities and our Parikh image formulae can be inserted in SMT solver as quantifier-free.
 
-\subsubsection{Reduced Parikh Image}\label{sec:reducedParikhImage}
+\subsection{Reduced Parikh Image}\label{sec:reducedParikhImage}
 
 The presented Parikh image works as intended. Nevertheless, the described Parikh image computation requires extensive resources and computation time. However, we use Parikh image only for determining the emptiness of the product. Given that most of the computation time is taken by the evaluation of these conjuncts, we try to minimize the number of Parikh image formula conjuncts SMT solver needs to evaluate for each $\varphi$.
 
@@ -657,7 +657,7 @@ However, to maintain the languages of specific automata distinguishable, we labe
 
 $\sat{\compatPI{p}}$ means there are words accepted by all $\varphi_i$ simultaneously and therefore by both $A_i$. Consequently, the automata product would be non-empty.
 
-\subsection{Optimization Algorithm Using Parikh Images}
+\subsection{Product Construction with Parikh Image Abstraction Optimization}
 
 We introduce the basic algorithm using Parikh image computation to construct the product of the intersection of finite automata. The algorithm resembles the length optimization algorithm from Algorithm~\ref{productConstructionLengthAbstrAlg}. However, we compute Parikh image formulae and determine their satisfiability instead of generating lasso automata and determining satisfiability of length abstraction formulae now to optimize product construction.
 
@@ -827,7 +827,7 @@ First, we test whether $\alpha^{LA}$ alone can prune the generated product state
 %--------------------------------------------------------
 %--------------------------------------------------------
 
-\section{Abstraction of State Language with Mintermization}
+\section{Abstraction of State Languages with Mintermization}
 
 In this section, we introduce a method of optimizing operations on finite automata using minterms of the given finite automata. Minterm computation abstracts state language of automata in a different approach than which we explored so far, allowing us to follow a diverse set of characteristics about the state language. We can afterwards make use of computed minterms for the automata with other optimization methods introduced in this paper, as well as another optimization approaches.
 
@@ -1081,7 +1081,7 @@ Incremental SMT solving proves to be a great improvement to the Parikh image com
 
 We can notice that the number of persistent clauses covers substantial part of all Parikh image clauses (experimentally determined to be usually around $70 \%$ for our benchmark automata). Therefore, around $70\%$ of each computed Parikh image clauses can be precomputed once. Only $30\%$ of clauses must be computed repeatedly for each potential product state.
 
-\section{Experiments with Combination of State Language Abstractions}
+\section{Combination of State Language Abstractions}
 
 We show results of several experiments with Parikh image computation optimization. At first, we are interested in pruning capabilities of Parikh image abstraction without further optimizations. Later, we provide results for introduced optimizations of Parikh image computation algorithm.
 
