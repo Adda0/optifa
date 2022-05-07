@@ -784,10 +784,10 @@ There is a problem with choosing the right time limit for timeout for SMT solver
 
 One of the strengths of our optimization algorithms is their high customizability. The different approaches can be combined, easily parallelized and applied to various finite automata operations. We present an approach which takes advantage of specific strengths of our proposed optimization methods while trying to mitigate their weaknesses and utilizes them in a single algorithm.
 
-We introduce a variation of satisfiability testing of state abstractions. We use both length abstraction and Parikh image computation to determine satisfiability of state abstraction to optimize Parikh image computation algorithm. The Algorithm~\ref{checkSatisfiabilityCombinedAlgorithm} shows how we apply our optimizations on a single potential product state.
+We introduce a variation of satisfiability testing of state abstractions. We use both length abstraction and Parikh image computation to determine satisfiability of state abstraction to optimize product construction algorithm. The Algorithm~\ref{checkSatisfiabilityCombinedAlgorithm} shows how we apply our optimizations on a single potential product state.
 
 \begin{algorithm}[ht]
-\caption{Implementation of function checking satisfiability of state abstraction using both length abstraction and Parikh image computation optimizations.}\label{checkSatisfiabilityCombinedAlgorithm}
+\caption{Implementation of checking compatibility of state abstractions using both length abstraction and Parikh image computation optimizations.}\label{checkSatisfiabilityCombinedAlgorithm}
 \SetKw{Return}{return}
 
 \SetKwFunction{FStateAbstractionLA}{$ \alpha^{LA} $}
@@ -810,7 +810,7 @@ We introduce a variation of satisfiability testing of state abstractions. We use
     % Resolve Parikh image formulae.
 \end{algorithm}
 
-First, we test whether $\alpha^{LA}$ alone can prune the generated product state space by omitting the current potential product state $[q_1, q_2]$ if $\neg \sat{\compatLA{[q_1, q_2]}}$. If length abstraction succeeds in omitting $[q_1, q_2]$ from the product, we do not need to compute Parikh images for $[q_1, q_2]$ and can continue with the Parikh image algorithm as if $\neg \compatPI{[q_1, q_2]}$. Otherwise, we continue with Parikh image computation for $[q_1, q_2]$ (resolving satisfiability of its formulae as in the basic Parikh image algorithm from~\ref{productConstructionParikhImageAlgorithm}).
+First, we test whether $\alpha^{LA}$ alone can prune the generated product state space by omitting the current potential product state $[q_1, q_2]$ if $\neg \sat{\compatLA{[q_1, q_2]}}$. If length abstraction succeeds in omitting $[q_1, q_2]$ from the product, we do not need to compute Parikh images for $[q_1, q_2]$ and can continue with the product construction algorithm as if $\neg \compatPI{[q_1, q_2]}$. Otherwise, we continue with Parikh image computation for $[q_1, q_2]$ (resolving satisfiability of its formulae as in the basic Parikh image algorithm from Algorithm~\ref{productConstructionParikhImageAlgorithm}).
 
 %--------------------------------------------------------
 %--------------------------------------------------------
@@ -819,39 +819,43 @@ First, we test whether $\alpha^{LA}$ alone can prune the generated product state
 
 \section{Abstraction of State Languages with Mintermization}
 
-In this section, we introduce a method of optimizing operations on finite automata using minterms of the given finite automata. Minterm computation abstracts state language of automata in a different approach than which we explored so far, allowing us to follow a diverse set of characteristics about the state language. We can afterwards make use of computed minterms for the automata with other optimization methods introduced in this paper, as well as another optimization approaches.
+In this section, we introduce a method of optimizing operations on finite automata using minterms~\cite{minterms-10.1007/978-3-642-18275-4_18} for the finite automata. Minterm computation abstracts state language of automata in a different way than we have explored so far, allowing us to follow a diverse set of characteristics about the state language. We can afterwards make use of computed minterms for the automata with other optimization methods introduced in this paper, as well as another optimization approaches.
 
-Foremost, we give an algorithm for minterm computation to compute minterms for the non-empty multiset of input finite automata $A = {A_1, A_2, \dots, A_n}$ where $n$ equals the number of finite automata, which we desire to execute the required automata operation on. Gained minterms abstract automata state language in such a way we do not lose any information about the former automata, but might create a more concise finite automata which will be easier to work with our other optimization methods and may significantly decrease the computation time required for optimizations such as Parikh image computation.
+Foremost, we give an algorithm for minterm computation adapted from~\cite{minterm_computation-Dantoni2014MinimizationOS}, further defined and expanded in~\cite{minterms_forms-FITPUB11801} for simulation algorithms for symbolic automata and now optimized for product construction to compute minterms for the non-empty multiset of input finite automata $A = {A_1, A_2, \dots, A_n}$ where $n$ equals the number of finite automata, which we desire to execute the required automata operation on. Gained minterms abstract automata state language in such a way we do not lose any information about the former automata (minterms are not an over-approximation of the original automata), but might create a more concise finite automata which will be easier to work with in our other optimization methods and may significantly decrease the computation time required for optimizations such as Parikh image computation.
 
-The general idea is to get sets of transition symbols between two states for all our considered finite automata. Compute minterms from these sets and substitute transition symbols between two states in our automata with corresponding minterms created from these transition symbols. Before all else, let us explain what minterms are and how you can generate them.
+The general idea is to get sets of transition symbols between two states for all our considered finite automata. Compute minterms from these sets and substitute transition symbols between two states in our automata with corresponding minterms created from these transition symbols.
 
-\begin{definition}[\textbf{Minterms}]
-Given an NFA $M = (Q, \Sigma, \delta, I, F)$, let $\Phi = \{ \varphi_1 \varphi_2, \ldots, \varphi_n \}$ be a finite set of non-empty finite sets of transition symbols $\varphi_i = \{ a | a \in \Sigma \land q \xrightarrow{a} q' \}$, $ 1 \leq i \leq n$, $q, q' \in Q$ where $n$ equals the number of state pairs $(q, q')$ such that $q \xrightarrow{a} q'$ where $q' \in \delta(q, a)$.
+For now, let us explain what minterms are and how you can generate them.
+
+\begin{definition}[\textbf{Minterms}] \hfill \newline
+Given an NFA $A = (Q, \Sigma, \delta, I, F)$, let $\Phi = \{ \varphi_1, \varphi_2, \ldots, \varphi_n \}$ be a finite set of non-empty finite sets of transition symbols $\varphi_i = \{ a \,\vert\, a \in \Sigma \land q \xrightarrow{a} q' \}$ for $ 1 \leq i \leq n$ where $q, q' \in Q$, $n$ equals the number of state pairs $(q, q')$ such that $q \xrightarrow{a} q'$ where $q' \in \delta(q, a)$.
 \end{definition}
 
-We call $\varphi_i$ a \emph{transition  set} for the given pair of automaton states $q, q'$. We denote $\Psi$ or Minterms($\Phi$) as a set of all minterms $\psi$ for the given NFA $M$ such that
-$$ Minterms(\Phi) = \biggr\{ \psi = \bigcap_{1 \leq i \leq n} \psi_i \,\biggr|\,
-\forall i \in \{1, \dots, n\} \bigr( (\psi_i \in \{ \varphi, Q \setminus \varphi \}) \land \psi \neq \emptyset \bigr) \biggr\} \text{.} $$
+We call $\varphi_i$ a \emph{transition  set} for the given pair of automaton states $q, q'$. We denote $\Psi$ or Minterms($\Phi$) as a set of all minterms $\psi$ for $A$ such that
+\[
+    \Psi = Minterms(\Phi) = \biggl\{ \psi = \bigcap_{1 \leq i \leq n} \psi_i \,\biggm|\,
+    \forall i \in \{1, \dots, n\} \bigl( (\psi_i \in \{ \varphi, Q \setminus \varphi \}) \land \psi \neq \emptyset \bigr) \biggr\} \text{.}
+\]
 
 Minterms are computed once, at the beginning of the optimization process for all considered finite automata
 We generate so called \emph{minterm tree} with nodes as intersection between sets of transition symbols in case the intersection is non-empty. Each node can have up to two children, representing intersection with the next transition set and its complement, respectively.
 
 When such minterms for the given automaton are computed, we can abstract the state language of the automaton by replacing transitions from the state by their corresponding minterms. We say minterm $\psi$ is created from the set of transition symbols $\varphi \in \Phi$ if $\varphi$ is used in the intersection defining $\psi$ in its direct form, not as a complement $Q \setminus \varphi$.
 
-Notice that we can compute minterms over multiple NFA, which allows us to use minterms state language abstraction for optimization of operation on those automata.
+Notice that we can compute minterms over multiple NFAs, which allows us to use minterms state language abstraction for optimization of operations on those automata.
 
-Let us consider finite automata $A_1 = (\{s_0, s_1, s_2, s_3\}, \Sigma, \delta_1, \{s_0\}, \{s_3\})$ and $A_2 = (\{q_0, q_1, q_2\}, \Sigma, \delta_2, \{q_1\}, \{q_0\})$ over alphabet $\Sigma = \{a, b, c, d\}$ with $\delta_1$ and $\delta_2$ according to Figure~\ref{fig:diagram:mintermization_automaton_m1} and Figure~\ref{fig:diagram:mintermization_automaton_m2}, respectively.
+Given finite automata $A_1 = (\{s_0, s_1, s_2, s_3\}, \Sigma, \delta_1, \{s_0\}, \{s_3\})$ and\\$A_2 = (\{q_0, q_1, q_2\}, \Sigma, \delta_2, \{q_1\}, \{q_0\})$ over alphabet $\Sigma = \{a, b, c, d\}$ with $\delta_1$ and $\delta_2$ according to Figure~\ref{fig:diagram:mintermization_automaton_m1} and Figure~\ref{fig:diagram:mintermization_automaton_m2}, respectively, the Figure~\ref{fig:diagram:mintermization_automata_transition_sets} depicts how we could mark each transition set in our automata to be used in mintermization process. For example, a transition set $\varphi_1$ could be a set of transition symbols from state $s_0$ to $s_1$: $\varphi_i = \{a, b, d\}$. Similarly, we mark the remaining transition sets. Now, we can proceed to execute mintermization operations.
 
 \begin{figure*}[ht]
     \centering
-    \begin{minipage}{0.49\linewidth}
+    \begin{minipage}{0.47\linewidth}
         \centering
         \includegraphics[height=100pt]{mintermization_automaton_m1.pdf}
         \caption{Finite automaton $A_1$ with transitions $\delta_1$.}
         \label{fig:diagram:mintermization_automaton_m1}
     \end{minipage}
     \hfill
-    \begin{minipage}{0.49\linewidth}
+    \begin{minipage}{0.47\linewidth}
         \centering
         \includegraphics[height=100pt]{mintermization_automaton_m2.pdf}
         \caption{Finite automaton $A_2$ with transitions $\delta_2$.}
@@ -862,18 +866,16 @@ Let us consider finite automata $A_1 = (\{s_0, s_1, s_2, s_3\}, \Sigma, \delta_1
     \label{fig:diagram:mintermization_automata}
 \end{figure*}
 
-The Figure~\ref{fig:diagram:mintermization_automata_transition_sets} depicts how we could mark each transition set in our automata to be used in mintermization process. For example, a transition set $\varphi_1$ could be a set of transition symbols from state $s_0$ to $s_1$: $\varphi_i = {a, b, d}$. Similarly, we mark the remaining transition sets. Now, we can proceed to execute mintermization operations.
-
 \begin{figure*}[ht]
     \centering
-    \begin{minipage}{0.49\linewidth}
+    \begin{minipage}{0.47\linewidth}
         \centering
         \includegraphics[height=100pt]{mintermization_automaton_m1_with_transition_sets.pdf}
         \caption{Finite automaton $A_1$ with transition sets $\varphi_i$.}
         \label{fig:diagram:mintermization_automaton_m1_with_transition_sets}
     \end{minipage}
     \hfill
-    \begin{minipage}{0.49\linewidth}
+    \begin{minipage}{0.47\linewidth}
         \centering
         \includegraphics[height=100pt]{mintermization_automaton_m2_with_transition_sets.pdf}
         \caption{Finite automaton $A_2$ with transition sets $\varphi_i$.}
@@ -884,15 +886,7 @@ The Figure~\ref{fig:diagram:mintermization_automata_transition_sets} depicts how
     \label{fig:diagram:mintermization_automata_transition_sets}
 \end{figure*}
 
-If we were to compute minterms for these automata, we would proceed as follows: Starting with the whole alphabet of both automata\footnote{If the automata had non-equal alphabets, we would start with their intersection: $\Sigma = \Sigma_1 \cap \Sigma_2$} at the top of the minterm tree to be generated. Afterwards, we iterate over transition sets. For each transition set $\varphi_i$, we compute the intersection of the current minterm tree leaves with:
-\begin{itemize}
-    \item the current transition set $\varphi_i$ and store the result as a left node of this particular tree node,
-    \item the complement of the current transition set $Q \setminus \varphi_i$ and store the result as a right tree node of this particular tree node.
-\end{itemize}
-
-If the intersection is empty, we omit creating the corresponding child node entirely. In the end, we are left with a complete minterm tree for the given set of transition sets $\Phi$ representing the specified finite automata.
-
-The Figure~\ref{fig:diagram:mintermization_example} illustrates our mintermization process in a~diagram.
+Computation of minterms for $A_1$ and $A_2$ is illustrated in Figure~\ref{fig:diagram:mintermization_example} in a diagram.
 
 \begin{figure}[ht]
 	\centering
@@ -901,21 +895,30 @@ The Figure~\ref{fig:diagram:mintermization_example} illustrates our mintermizati
 	\label{fig:diagram:mintermization_example}
 \end{figure}
 
-The acquired minterms are:
-$$ \Psi = Minterms(\Phi) = \{ \{d\}, \{a, b\}, \{c\} \} = \{ \psi_1, \psi_2, \psi_3 \} \text{.}$$
+We start with the whole alphabet of both automata\footnote{If the automata had non-equal alphabets, we would start with their intersection: $\Sigma = \Sigma_1 \cap \Sigma_2$. This is an optimization specific to product construction: If some transition symbols are not used by every finite automaton, we can safely omit such symbols as they are definitely not present in the intersetction of these automata.} at the top of the minterm tree to be generated. Afterwards, we iterate over transition sets. For each transition set $\varphi_i$, we compute the intersection of the current minterm tree leaves with:
+\begin{itemize}
+    \item the current transition set $\varphi_i$ and store the result as a left node of this particular tree node,
+    \item the complement of the current transition set $Q \setminus \varphi_i$ and store the result as a right tree node of this particular tree node.
+\end{itemize}
 
-We can now substitute the former transition sets $\varphi_i$ for finite automata with the appropriate minterms $\psi_j, 1 \leq j \leq |\Psi|$ which were created from the specific transition sets $\varphi_i \in \Phi$ such that $\varphi_i$ is used in its direct form (not as a complement) in the process of computing $\psi_j$. The resulting automata can be seen in Figure~\ref{fig:diagram:mintermization_automata_with_minterms}.
+If the intersection is empty, we omit creating the corresponding child node entirely. In the end, we are left with a complete minterm tree for the given set of transition sets $\Phi$ representing the specified finite automata.
+
+
+The acquired minterms are:
+$$ \Psi = Minterms(\Phi) = \bigl\{ \{d\}, \{a, b\}, \{c\} \bigr\} = \{ \psi_1, \psi_2, \psi_3 \} \text{.}$$
+
+We can now substitute the former transition sets $\varphi_i$ for finite automata with the appropriate minterms $\psi_j, 1 \leq j \leq |\Psi|$ which were created from the specific transition sets $\varphi_i \in \Phi$ such that $\varphi_i$ is used in its direct form (not as a complement) in the process of computing $\psi_j$ (optimized for product construction). The resulting automata can be seen in Figure~\ref{fig:diagram:mintermization_automata_with_minterms}.
 
 \begin{figure*}[ht]
     \centering
-    \begin{minipage}{0.49\linewidth}
+    \begin{minipage}{0.47\linewidth}
         \centering
         \includegraphics[height=100pt]{mintermization_automaton_m1_with_minterms.pdf}
         \caption{Finite automaton $A_1$ with transitions substituted by corresponding minterms $\psi_i \in \Psi$ created from these transition sets.}
         \label{fig:diagram:mintermization_automaton_m1_with_minterms}
     \end{minipage}
     \hfill
-    \begin{minipage}{0.49\linewidth}
+    \begin{minipage}{0.47\linewidth}
         \centering
         \includegraphics[height=100pt]{mintermization_automaton_m2_with_minterms.pdf}
         \caption{Finite automaton $A_2$ with transitions substituted by corresponding minterms $\psi_i \in \Psi$ created from these transition sets.}
@@ -926,9 +929,13 @@ We can now substitute the former transition sets $\varphi_i$ for finite automata
     \label{fig:diagram:mintermization_automata_with_minterms}
 \end{figure*}
 
-Consequently, assuming the previously said, considering we have minterms over alphabet of $A$, we know that the intersection of two minterms has to be an empty set and that $\forall \psi \in \Psi ( \psi \subseteq \varphi, \varphi \in \Phi )$ if $\psi$ is created from $\varphi$. We make use of this knowledge further.
+As we can see, we are able to get rid of some transition symbols and reduce the alphabet as well as the number of transitions in finite automata. Considering we have minterms over alphabet of $A$, we know that the intersection of two minterms has to be an empty set and that $\forall \psi \in \Psi ( \psi \subseteq \varphi, \varphi \in \Phi )$ if $\psi$ is created from $\varphi$. Important improvement of using minterms in product construction is the fact that $|\Psi| \leq |\Sigma|$ instead of at most $2^{|\Sigma|}$ as is the case for minterms over general predicates for general operation (e.g.,~\cite{minterms_forms-FITPUB11801}). We make use of these points further.
 
-In the following section, we propose a method of using minterm computation with Parikh image computation optimization. We choose this approach in order to mitigate the disadvantages of Parikh image computation for finite automata, especially those with multitude of transitions between two states varying only in transition symbols, which require considerate time to compute and evaluate. This method proceeds to represent such sets of transitions between two states with a single minterm representing these transitions. We can therefore apply any previously mentioned optimization methods (or any other known optimization method) on such modified automata with minterms as their transition symbols to construct their product without the need to compute, for example, Parikh image for every single transition symbol between two states. We can now compute possibly fewer transitions with the resulting minterms instead.
+We can use the method of minterm computation with length or Parikh image computation state language abstraction optimizations. We choose this approach in order to mitigate the disadvantages of lower pruning capabilities of length abstraction for some finite automata or demanding Parikh image computation, especially for automata with multitude of transitions between two states varying only in transition symbols, which require considerate time to compute and evaluate.
+
+This method proceeds to represent such sets of transitions between two states with (ideally) only a single minterm representing these transitions. We can therefore apply any previously mentioned optimization methods (or any other known optimization method) on such modified automata with minterms as their transition symbols to construct their product without the need to compute, for example, Parikh image with every single transition symbol between two states. We can now compute possibly fewer transitions with the resulting minterms instead. Worst case is that the minterms do not reduce any transition symbols and we continue with the same, unchanged original automata. Minterm computation is quick and practically free optimization which can be used every time an intersection of finite automata is computed.
+
+We apply the minterm computation before we start executing any optimized algorithms introduced here or any others. Instead of putting original automata as the input to optimized algorithms, we compute minterms for such automata and substitute all transitions with the generated minterms. The new input to optimized algorithms are automata with minterms which can be easier to work with and their intersection can be computed quickly and more preciselly. If we need to use the intersection automaton further, not just to determine its emptiness test, we simply substitude the minterms in the product with the corresponding original transition symbols back.
 
 % TODO: Algorithm using minterms for computation methods.
 
