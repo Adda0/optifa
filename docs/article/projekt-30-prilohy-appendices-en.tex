@@ -35,12 +35,12 @@
 \BlankLine
 $Q, \delta, F \gets \emptyset$ \;
 $I \gets I_1 \times I_2$ \;
-$W \gets I$ \;\label{work_set}
-$res \gets False$ \;\label{sat}
-$solved \gets \emptyset$ \;\label{PIAlgorithm:solved}
+$W \gets I$ \;
+$res \gets False$ \;
+$solved \gets \emptyset$ \;
 $ \FAddPersistentClauses{} $\;
-\While{$W \neq \emptyset$}{\label{PIAlgorithm:IterateOverProductStates}
-    \textbf{picklast} $[q_1, q_2]$ \textbf{from} $W$\label{picklast} \;
+\While{$W \neq \emptyset$}{
+    \textbf{picklast} $[q_1, q_2]$ \textbf{from} $W$ \;
     \textbf{add} $[q_1, q_2]$ \textbf{to} $solved$ \;
 
     \eIf{$\textbf{not } \FIsSkippable{$[q_1, q_2]$}$} {
@@ -52,22 +52,22 @@ $ \FAddPersistentClauses{} $\;
 
         \FSMTSolverPush{} \;
         $ \FAddStateSpecificClauses{$[q_1, q_2]$} $\;
-        $res \gets \FStateAbstractionPI{$q_{1}$} \land \FStateAbstractionPI{$q_{2}$} \textbf{ is } \emph{sat} $ \;\label{IncrementalAlgorithm:isSat}
+        $res \gets \FStateAbstractionPI{$q_{1}$} \land \FStateAbstractionPI{$q_{2}$} \textbf{ is } \emph{sat} $ \;
         \FSMTSolverPop{} \;
         \If{$res = Unknown$}{
             $res \gets True$ \;
         }
     }
-    } {\label{AlgIsSkippable} % else
+    } {
         $res \gets True$ \;
     }
 
 
-    \If{$res = True$}{\label{AlgSolveForSat}\label{satTrue}
+    \If{$res = True$}{
         \textbf{add} $[q_1, q_2]$ \textbf{to} $Q$ \;
         \If{$q_1 \in F_1$ \textbf{and} $q_2 \in F_2$} {
         \textbf{add} $[q_1, q_2]$ \textbf{to} $F$ \;
-        }\label{AlgAddToFinalState}
+        }
         \ForAll{$a \in \Sigma$}{
             \ForAll{$q'_1 \in \delta_1(q_1, a), q'_2 \in \delta_2(q_2, a)$}{
                 \If{$[q'_1, q'_2] \notin solved$ \textbf{and} $[q'_1, q'_2] \notin W$}{
