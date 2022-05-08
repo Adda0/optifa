@@ -14,7 +14,7 @@ import itertools
 
 from lfa import LFA
 from optifa.basic import *
-from optifa.program_config import ProgramConfig, ProgramArgumentsParser
+from optifa.program_config import ProductConstructionConfig, ProductConstructionArgumentsParser
 
 
 # Main script function.
@@ -133,9 +133,12 @@ def main():
     #print(intersect_ab.final)
 
 
-class ArgumentsParser(ProgramArgumentsParser):
+class ArgumentsParser(ProductConstructionArgumentsParser):
     def __init__(self):
         super().__init__()
+
+        self.arg_parser.description = 'Construct product (intersection) of two finite automata using length ' \
+                                      'abstraction optimization.'
 
         # Define script-specific arguments.
         self.arg_parser.add_argument('--smt', '-s', action='store_true',
@@ -144,7 +147,7 @@ class ArgumentsParser(ProgramArgumentsParser):
                                      help='Set timeout after TIMEOUT_MS ms for Z3 SMT solver.')
 
 
-class Config(ProgramConfig):
+class Config(ProductConstructionConfig):
     """Class for storing program configurations passed as command line arguments."""
 
     def __init__(self, args):

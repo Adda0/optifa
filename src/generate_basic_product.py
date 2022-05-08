@@ -23,12 +23,12 @@ import pickle
 import symboliclib
 from lfa import LFA
 from optifa.basic import *
-from optifa.program_config import ProgramConfig, ProgramArgumentsParser
+from optifa.program_config import ProductConstructionConfig, ProductConstructionArgumentsParser
 
 
 # Main script function
 def main():
-    config = ProgramArgumentsParser.get_config(ProgramConfig)  # Parse program arguments.
+    config = ArgumentsParser.get_config(ProductConstructionConfig)  # Parse program arguments.
 
     # Run for emptiness test with break_when_final == True or
     # for full product construction with break_when_final == False.
@@ -39,6 +39,14 @@ def main():
     # Store product.
     if config.store_product:
         intersection.print_automaton(config.store_product)
+
+
+class ArgumentsParser(ProductConstructionArgumentsParser):
+    def __init__(self):
+        super().__init__()
+
+        self.arg_parser.description = 'Construct product (intersection) of two finite automata using basic naive ' \
+                                      'product construction algorithm. '
 
 
 if __name__ == "__main__":

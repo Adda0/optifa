@@ -15,7 +15,7 @@ import z3
 
 from lfa import LFA
 from optifa.basic import *
-from optifa.program_config import ProgramConfig, ProgramArgumentsParser
+from optifa.program_config import ProductConstructionConfig, ProductConstructionArgumentsParser
 
 
 # Main script function.
@@ -234,19 +234,22 @@ def check_satisfiability(fa_a, fa_b, fa_a_formulae_dict, fa_b_formulae_dict, sat
     return False
 
 
-class ArgumentsParser(ProgramArgumentsParser):
+class ArgumentsParser(ProductConstructionArgumentsParser):
     def __init__(self):
         super().__init__()
 
+        self.arg_parser.description = 'Construct product (intersection) of two finite automata using both length and ' \
+                                      'Parikh image abstraction optimizations. '
+
         # Set additional arguments.
-        self.arg_parser.add_argument('--smt', '-s', action = 'store_true',
-                        help = 'Use SMT solver Z3 to check for satisfiability of formulae.')
-        self.arg_parser.add_argument('--forward-lengths', '-f', action = 'store_true',
-                        help = "Compute forward lengths 'z' for Parikh image.")
-        self.arg_parser.add_argument('--no-z-constraints', '-z', action = 'store_true',
-                        help = 'Compute formulae without constraints for connectivity of automaton.')
-        self.arg_parser.add_argument('--timeout', '-t', metavar = 'TIMEOUT_MS', type = int,
-                        help = 'Set timeout after TIMEOUT_MS ms for Z3 SMT solver.')
+        self.arg_parser.add_argument('--smt', '-s', action='store_true',
+                                     help='Use SMT solver Z3 to check for satisfiability of formulae.')
+        self.arg_parser.add_argument('--forward-lengths', '-f', action='store_true',
+                                     help="Compute forward lengths 'z' for Parikh image.")
+        self.arg_parser.add_argument('--no-z-constraints', '-z', action='store_true',
+                                     help='Compute formulae without constraints for connectivity of automaton.')
+        self.arg_parser.add_argument('--timeout', '-t', metavar='TIMEOUT_MS', type=int,
+                                     help='Set timeout after TIMEOUT_MS ms for Z3 SMT solver.')
 
 
 @dataclass
@@ -259,7 +262,7 @@ class SatCounters:
     parikh_image_unsat_states: int = 0  # Length abstraction satisfiable, Parikh image unsatisfiable.
 
 
-class Config(ProgramConfig):
+class Config(ProductConstructionConfig):
     """Class for storing program configurations passed as command line arguments."""
 
     def __init__(self, args):

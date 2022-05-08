@@ -15,7 +15,7 @@ import z3
 
 from lfa import LFA
 from optifa.basic import *
-from optifa.program_config import ProgramConfig, ProgramArgumentsParser
+from optifa.program_config import ProductConstructionConfig, ProductConstructionArgumentsParser
 
 
 # Main script function.
@@ -178,9 +178,12 @@ def check_satisfiability(fa_a, fa_b, smt, config):
     return False
 
 
-class ArgumentsParser(ProgramArgumentsParser):
+class ArgumentsParser(ProductConstructionArgumentsParser):
     def __init__(self):
         super().__init__()
+
+        self.arg_parser.description = 'Construct product (intersection) of two finite automata using Parikh image ' \
+                                      'abstraction optimization.'
 
         # Define script-specific arguments.
         self.arg_parser.add_argument('--forward-lengths', '-f', action='store_true',
@@ -191,7 +194,7 @@ class ArgumentsParser(ProgramArgumentsParser):
                 help='Set timeout after TIMEOUT_MS ms for Z3 SMT solver.')
 
 
-class Config(ProgramConfig):
+class Config(ProductConstructionConfig):
     """Class for storing program configurations passed as command line arguments."""
 
     def __init__(self, args):

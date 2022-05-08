@@ -23,8 +23,6 @@ class ProgramConfig:
         else:
             raise ValueError("missing automata arguments or their wrong combination")
 
-        self.break_when_final = args.break_when_final
-        self.store_result = args.store_result
 
 
 class ProgramArgumentsParser:
@@ -52,11 +50,6 @@ class ProgramArgumentsParser:
         automata_path_group.add_argument('--fa-b', '-b', metavar='AUTOMATON_B', type=str, required=True,
                                          help='Automaton B to generate product from.')
 
-        self.arg_parser.add_argument('--break-when-final', '-r', action='store_true',
-                                     help='Break when final state is encountered to execute emptiness test.')
-        self.arg_parser.add_argument('--store-result', '-o', metavar='RESULT_FILE', type=str,
-                                     help='Store result into a file.')
-
     def parse_args(self):
         """Parse program command line arguments."""
         args = self.arg_parser.parse_args()
@@ -68,3 +61,26 @@ class ProgramArgumentsParser:
 
         # Create Config from the command line arguments.
         return config_class(arg_parser.parse_args())
+
+
+class ProductConstructionArgumentsParser(ProgramArgumentsParser):
+    def __init__(self):
+        super().__init__()
+
+        self.arg_parser.description = 'Construct product (intersection) of two finite automata.'
+
+        # Set additional arguments.
+        self.arg_parser.add_argument('--break-when-final', '-r', action='store_true',
+                                     help='Break when final state is encountered to execute emptiness test.')
+        self.arg_parser.add_argument('--store-result', '-o', metavar='RESULT_FILE', type=str,
+                                     help='Store result into a file.')
+
+
+class ProductConstructionConfig(ProgramConfig):
+    """Class for storing program configurations passed as command line arguments for product construction algorithms."""
+
+    def __init__(self, args):
+        super().__init__(args)
+
+        self.break_when_final = args.break_when_final
+        self.store_result = args.store_result
