@@ -5,12 +5,27 @@
 
 \chapter{Reference Implementation Manual}
 
-To run reference implementation, one requires the following programs: \href{https://www.gnu.org/software/bash/}{Bash}\footnote{\url{https://www.gnu.org/software/bash/}} or any Bash-compatible shell, \href{https://www.python.org/}{Python 3.10}\footnote{\url{https://www.python.org/}} or higher, Python library \href{https://codeberg.org/Adda/symboliclib/}{Symboliclib with our modifications and additions}\footnote{\url{https://codeberg.org/Adda/symboliclib/}; Remember to add Symboliclib to Python path.}. Further, to run comparison tests of our optimizations, a command-line benchmarking tool \href{https://github.com/sharkdp/hyperfine}{hyperfine}\footnote{\url{https://github.com/sharkdp/hyperfine}}. The accepted finite automata file format is \href{https://gitlab.inria.fr/regular-pv/timbuk/timbuk/-/wikis/Specification-File-Format}{Timbuk}\footnote{\url{https://gitlab.inria.fr/regular-pv/timbuk/timbuk/-/wikis/Specification-File-Format}}.
+In order for reference implementation to work, one requires the following programs: \href{https://www.gnu.org/software/bash/}{Bash}\footnote{\url{https://www.gnu.org/software/bash/}} or any Bash-compatible shell, \href{https://www.python.org/}{Python 3.10}\footnote{\url{https://www.python.org/}} or higher, Python library \href{https://codeberg.org/Adda/symboliclib/}{Symboliclib with our modifications and additions}\footnote{\url{https://codeberg.org/Adda/symboliclib/}; Remember to add Symboliclib to Python path.} and Z3 solver API for Python: Z3Py from \href{https://github.com/Z3Prover/z3}{Z3 solver repository}\footnote{\url{https://github.com/Z3Prover/z3}; Remember to add Z3Py API to Python path.}. Further, to run comparison tests of our optimizations, a command-line benchmarking tool \href{https://github.com/sharkdp/hyperfine}{hyperfine}\footnote{\url{https://github.com/sharkdp/hyperfine}}. The accepted finite automata file format is \href{https://gitlab.inria.fr/regular-pv/timbuk/timbuk/-/wikis/Specification-File-Format}{Timbuk}\footnote{\url{https://gitlab.inria.fr/regular-pv/timbuk/timbuk/-/wikis/Specification-File-Format}}.
+
+Each program can be run with \texttt{-\--help} to show quick help message explaining how to run said program.
 
 You can run tests for all our state language abstractions with \texttt{run\_tests.sh} as follows:
 {
-    \centering \footnotesize \texttt{./run\_tests.sh -a <finite\_automaton\_A\_file> -b <finite\_automaton\_B\_file> -o <output\_file>}.
+    \centering \footnotesize \texttt{./run\_tests.sh -a <finite\_automaton\_A\_file> -b <finite\_automaton\_B\_file> -o <output\_file>}
 }
+
+Separate optimizations can be run with their respective scripts:
+\begin{itemize}
+    \item length abstraction with \texttt{resolve\_satisfiability\_length\_abstraction.py}, and
+    \item Parikh image abstraction with \texttt{resolve\_satisfiability\_parikh\_image.py}.
+\end{itemize}
+Combined optimization algorithm using both length and Parikh image abstractions can be run with \texttt{resolve\_satisfiability\_combined.py}.
+
+Each program offers various flags and required or optional argumements to run adjust the run according to our requirements: Whether to construct full product or just test emptiness of the intersection, which abstraction-specific optimizations to enable, where to store results and the generated product, etc.
+
+Automata with replaced transition by minterms cen be generated with \texttt{get\_minterms.py}.
+
+
 
 
 
