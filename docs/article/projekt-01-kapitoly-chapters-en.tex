@@ -1088,7 +1088,17 @@ For a product of $434$ states, each product state Parikh image contains $2652$ c
 For our benchmark automata, we have experimentally concluded the ideal timeout for SMT solver to solve Parikh image abstractions compatibility is around $600 ms$. This gives SMT solver enough time to compute most incompatible cases while it does not wait too long for the confirmation of satisfiability of Parikh image formulae for compatible cases. Our benchmark automata have however large numbers of transitions from each state, and therefore our timeout might not work best for other types of automata and their complexity. We suggest trying running our optimizations first without any timeout and then, according to the results, adjust the timeout according to the needs of given operations and the complexity of used automata.
 
 \section{Combination of State Language Abstractions}
-\section{Mintermization}
+
+When we combine length and Parikh image abstraction optimizations in one algorithm, we want to reduce the number of product states Parikh image must be computed for. In Figure~\ref{fig:diagram:combined_sat_unsat_comparison}, we can see how many product state are evaluated first by length abstraction, eventually later (if length abstraction resolves length abstraction formule as satisfiable) by Parikh image abstraction to know how many product states can be quickly resolved by length abstraction alone. Picking some examples from the previous results for Parikh image, we provide comparison of pruning capabilities of both abstractions on same automata.
+
+\begin{figure}[ht]
+	\centering
+	\includegraphics[scale=0.4]{combined_sat_unsat_comparison.pdf}
+	\caption{Comparison of pruning capabilities of length and Parikh image state language abstractions in optimization algorithm combining both abstractions: x-axis shows the number of processed product states in product construction, y-axis the number of satisfiable and unsatisfiable formulae for these product states. Left stacked column for each example product construction represents length abstraction, right column Parikh image abstraction. Red block represents product states pruned by length abstraction alone, without the need to compute Parikh images and evaluate their compatibility. Blue block represents product states with compatible length abstractions which have to be further examined with Parikh image abstractions. Orange block shows such product states from the blue block which have incompatible Parikh images are pruned by Parikh image, even though length abstraction cannot prune them. Only the product state in the green block are added to the generated product as both length abstraction and Parikh image computation resolved their abstractions as compatible.}
+	\label{fig:diagram:combined_sat_unsat_comparison}
+\end{figure}
+
+%\section{Mintermization}
 
 %--------------------------------------------------------
 %--------------------------------------------------------
