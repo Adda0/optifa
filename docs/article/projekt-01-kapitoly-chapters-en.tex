@@ -943,9 +943,9 @@ We apply the minterm computation before we start executing any optimized algorit
 %--------------------------------------------------------
 \chapter{Experiments and Results}\label{experimentsAndResultsChapter}
 
-The reference implementation\footnote{In the \href{https://codeberg.org/Adda/optifa}{reference implementation}, we use \href{https://github.com/Z3Prover/z3}{Z3} as an SMT solver and automata operations are handled by \href{https://codeberg.org/Adda/symboliclib}{for our purposes modified library Symboliclib}.} of the proposed optimizations, written in Python 3, as well as a complete table of all of our experiments and their results and graphs is publicly accessible on a \href{https://codeberg.org/Adda/optifa}{Codeberg repository}\footnote{\url{https://codeberg.org/Adda/optifa}}. There is further explanation of the following graphs as well as additional graphs with description and in-depth analysis of performed experiments.
+The reference implementation\footnote{In the \href{https://codeberg.org/Adda/optifa}{reference implementation}, we use \href{https://github.com/Z3Prover/z3}{Z3} as an SMT solver and automata operations are handled by for our purposes modified \href{https://codeberg.org/Adda/symboliclib}{library Symboliclib}.} of the proposed optimizations, written in Python 3, as well as a complete table of all of our experiments and their results and graphs is publicly accessible on a \href{https://codeberg.org/Adda/optifa}{Codeberg repository}\footnote{\url{https://codeberg.org/Adda/optifa}}. There is further explanation of the following graphs as well as additional graphs with description and in-depth analysis of performed experiments.
 
-Test benchmark automata used in our experiments were obtained from regular model checking available on a \href{https://github.com/ondrik/automata-benchmarks/tree/master/nfa/non-vtf}{GitHub repository}\footnote{\url{https://github.com/ondrik/automata-benchmarks}}. We have tested various different finite automata and their combinations. We have often used the same automata with their slightly changed variations to simulate real world examples of usually used automata to see how the optimized algorithm reduces the generated state space for certain types of automata with their typical qualities.
+Test benchmark automata available on a \href{https://github.com/ondrik/automata-benchmarks/tree/master/nfa/non-vtf}{GitHub repository}\footnote{\url{https://github.com/ondrik/automata-benchmarks}} used in our experiments were obtained from regular model checking. We have tested various different finite automata and their combinations. We have often used the same automata with their slightly changed variations to simulate real world examples of usually used automata to see how the optimized algorithm reduces the generated state space for certain types of automata with their typical qualities.
 
 We have tested two main aspects:
 \begin{itemize}
@@ -962,14 +962,14 @@ The following graphs show the results for both the emptiness test and full produ
     \begin{minipage}{0.49\linewidth}
         \centering
         \includegraphics[width=\linewidth]{graph_scatter_et.pdf}
-        \caption{Emptiness test}
+        \caption{Emptiness test.}
         \label{fig:graph:et_state_space_sizes_comp}
     \end{minipage}
     \hfill
     \begin{minipage}{0.49\linewidth}
         \centering
         \includegraphics[width=\linewidth]{graph_scatter_fp.pdf}
-        \caption{Full product construction}
+        \caption{Full product construction.}
         \label{fig:graph:fp_state_space_sizes_comp}
     \end{minipage}
     \vspace{0.5cm}
@@ -977,51 +977,53 @@ The following graphs show the results for both the emptiness test and full produ
     \label{fig:graph:product_state_space_sizes}
 \end{figure*}
 
-Where the length abstraction cannot optimize the product construction, both products have about the same state space size. These results are caused mostly by constructing products of two almost identical automata with only a few states/transitions missing/added which do not affect the accepting runs for recognized languages. There are therefore no branches which can be trimmed---most of the processed states are evaluated as \emph{satisfiable} in length abstraction satisfiability check. In full product construction results, if there are nearly no product states to trim, the generated product state space size \emph{explodes} similarly to the basic product construction algorithm---typical for automata with large numbers of transitions from every state causing large numbers of possible accepted lengths, where our algorithm can trim only a few states.
+Where the length abstraction cannot optimize the product construction, both products have about the same state space size (length abstraction generates automata just a little smaller). These results are caused mostly by constructing products of two almost identical automata with only a few states or transitions missing or added which do not affect the accepting runs for recognized languages. There are therefore just a few branches which can be trimmed---most of the processed states abstractions are evaluated as compatible. In full product construction results, if there are nearly no product states to trim, the generated product state space size \emph{explodes} similarly to the basic product construction algorithm---typical for automata with large numbers of transitions from every state causing large numbers of possible accepted lengths, where length abstraction optimization can trim only a few states.
 
-For another automata, the product generated by our algorithm is much smaller. We can see from the graphs that the larger the basic product state space size gets, the higher impact our optimization has on the product state space size. The same holds for the full product construction results. For cases where the intersection is truly empty and accepted lengths differ in both automata, our algorithm stops the process of product construction on the very first tested product state. The basic algorithm continues to create a full product.
+For another automata, the product generated by length abstraction optimization is much smaller. We can see from the graphs that the larger the basic product state space size gets, the higher impact length abstraction has on the product state space size. The same holds for the full product construction results. For cases where the intersection is truly empty and accepted lengths differ in both automata, length abstraction stops the process of product construction on the first few tested product states or just on the initial one. The basic algorithm continues to create a full product.
 
-We get the best results for automata with practically the same transitions which differ only slightly in final states or a few transitions which affects the accepting runs in the original automata. These changes cause the basic algorithm to generate the product states without realizing most (if not all) product states do not lead to a final state. These slight differences in automata (especially in final states) usually also change the length of accepted words. Therefore, our optimization is able to notice these differences and trim most of the product state space, if not the whole product, when no final state can be accessed and the intersection is empty.
+We get the best results for automata with practically the same transitions which differ only slightly in final states or a few transitions which affects the accepting runs in the original automata. These changes cause the basic algorithm to generate the product states without realizing most (if not all) product states do not lead to a final state. These slight differences in automata (especially in final states or slight changes in transitions---their removal or addition) usually also change the length of accepted words. Therefore, length abstraction is able to notice these differences and trim most of the product state space, if not the whole product, when no final state can be accessed and the intersection is empty.
 
 In both graphs, we can see the aforementioned quadratic state space explosion for product is nearly not affecting our algorithm in comparison to the basic product construction algorithm. Optimized products are easier to work with and operations on such products require less computational time and memory consumption.
 
-It is worth mentioning that we have neglected the number of generated state space for our lasso automata this whole time. We can use deterministic minimization on original automata to further optimize the generated state space for lasso automata and products. However, we do not need these lasso automata after product construction is complete. Therefore, the lasso automata do not affect how efficiently we work with the generated product. Nevertheless, the number of generated lasso states in the process of deciding the intersection emptiness test matters. For different automata, the generated state space varies. For state space sizes of lasso automata in our experiments, see \href{https://codeberg.org/Adda/optifa/src/branch/master/results}{Codeberg repository}\footnote{\url{https://codeberg.org/Adda/optifa/src/branch/master/results}}.
+For the matter of time consumption for length abstraction, it is worth mentioning that we have neglected the number of generated states for our lasso automata. We can use deterministic minimization on original automata to further optimize the generated state space for lasso automata and products. However, we do not need these lasso automata after product construction is complete. Therefore, the lasso automata do not affect how efficiently we work with the generated product. Nevertheless, the number of generated lasso states in the process of deciding the intersection emptiness test matters. For different automata, the generated state space varies. For state space sizes of lasso automata in our experiments, inspect specific results on \href{https://codeberg.org/Adda/optifa/src/branch/master/results}{Codeberg repository}\footnote{\url{https://codeberg.org/Adda/optifa/src/branch/master/results}}.
+
+As we can see in Figure~\ref{fig:graph:product_state_space_sizes_with_lasso}, even when counting with lasso automata states, the total number of generated states in the whole process of the product construction is usually lower than the basic product state space size. The larger the automata are, the better results we get. It is understandable that for smaller original automata the expense of generating lasso automata is significant in comparison with the small generated product state space sizes. However, the larger the original automata get, the lesser the expense of the number of lasso automata states is in comparison with the basic product state space.
 
 \begin{figure*}[ht]
     \centering
     \begin{minipage}{0.49\linewidth}
         \centering
         \includegraphics[width=\linewidth]{graph_scatter_combined_et.pdf}
-        \caption{Emptiness test}
+        \caption{Emptiness test.}
         \label{fig:graph:et_state_space_sizes_comp_with_lasso}
     \end{minipage}
     \hfill
     \begin{minipage}{0.49\linewidth}
         \centering
         \includegraphics[width=\linewidth]{graph_scatter_combined_fp.pdf}
-        \caption{Full product construction}
+        \caption{Full product construction.}
         \label{fig:graph:fp_state_space_sizes_comp_with_lasso}
     \end{minipage}
     \vspace{0.5cm}
-    \caption{Comparison of state space sizes generated by basic and optimized product construction algorithms with sum of states generated for both the final optimized product and lasso automata states generated in the process of the product construction. Both axes are in logarithmic scale, x-axis showing state space sizes of basic product, y-axis state space sizes of optimized product (and optimized product with lasso automata states). The blue dots represent only the optimized product state space sizes (as in Figure~\ref{fig:graph:product_state_space_sizes}), the orange dots the sum of optimized product state space sizes and the generated lasso states.}
+    \caption{Comparison of state space sizes generated by basic and optimized product construction algorithms with sum of states generated for both the final optimized product and lasso automata states generated in the process of the product construction. Both axes are in logarithmic scale, x-axis showing state space sizes of basic product, y-axis state space sizes of optimized product (and optimized product with lasso automata states). The blue dots represent only the optimized product state space sizes (as in Figure~\ref{fig:graph:product_state_space_sizes}), the orange dots the sum of optimized product state space sizes and the generated lasso automata states.}
     \label{fig:graph:product_state_space_sizes_with_lasso}
 \end{figure*}
 
-As we can see in Figure~\ref{fig:graph:product_state_space_sizes_with_lasso}, even when counting with lasso automata product state space sizes, the total number of generated states in the whole process of the product construction is usually lower than the basic product state space size. The larger the automata are, the better results we get. It is understandable, that for smaller original automata, whose intersection is computed, the expense of generating lasso automata is significant in comparison with the generated product state space sizes. The larger the original automata get, the lesser the expense of the number of lasso automata states is in comparison with the basic product state space.
+Figure~\ref{fig:graph:stacked_product_state_space_sizes_with_lasso} shows the same data of the number of generated states, only now in stacked diagrams to better illustrate how even the sum of the lasso automata states and optimized state space sizes still surpasses naive product construction.
 
 \begin{figure*}[ht]
     \centering
     \begin{minipage}{0.49\linewidth}
         \centering
-        \includegraphics[width=\linewidth]{graph_stacked_et.pdf}
-        \caption{Emptiness test}
+        \includegraphics[width=\linewidth]{graph_stacked_et_reduced.pdf}
+        \caption{Emptiness test.}
         \label{fig:graph:stacked_et_state_space_sizes_comp_with_lasso}
     \end{minipage}
     \hfill
     \begin{minipage}{0.49\linewidth}
         \centering
-        \includegraphics[width=\linewidth]{graph_stacked_fp.pdf}
-        \caption{Full product construction}
+        \includegraphics[width=\linewidth]{graph_stacked_fp_reduced.pdf}
+        \caption{Full product construction.}
         \label{fig:graph:stacked_fp_state_space_sizes_comp_with_lasso}
     \end{minipage}
     \vspace{0.5cm}
