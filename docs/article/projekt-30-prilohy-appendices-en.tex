@@ -43,23 +43,23 @@ $ \FAddPersistentClauses{} $\;
     \textbf{picklast} $[q_1, q_2]$ \textbf{from} $W$ \;
     \textbf{add} $[q_1, q_2]$ \textbf{to} $solved$ \;
 
-    \eIf{$\textbf{not } \FIsSkippable{$[q_1, q_2]$}$} {
+    \eIf{$\FIsSkippable{$[q_1, q_2]$}$} {
 
-    % Check length satisfiability.
-    \eIf{$\FStateAbstractionLA{$q_{1}$} \land \FStateAbstractionLA{$q_{2}$} \textbf{ is } \emph{unsat}$}{
-         $res \gets False$ \;
-    }{ % Else branch.
-
-        \FSMTSolverPush{} \;
-        $ \FAddStateSpecificClauses{$[q_1, q_2]$} $\;
-        $res \gets \FStateAbstractionPI{$q_{1}$} \land \FStateAbstractionPI{$q_{2}$} \textbf{ is } \emph{sat} $ \;
-        \FSMTSolverPop{} \;
-        \If{$res = Unknown$}{
-            $res \gets True$ \;
-        }
-    }
-    } {
         $res \gets True$ \;
+    } {
+        % Check length satisfiability.
+        \eIf{$\FStateAbstractionLA{$q_{1}$} \land \FStateAbstractionLA{$q_{2}$} \textbf{ is } \emph{unsat}$}{
+            $res \gets False$ \;
+        }{ % Else branch.
+
+            \FSMTSolverPush{} \;
+            $ \FAddStateSpecificClauses{$[q_1, q_2]$} $\;
+            $res \gets \FStateAbstractionPI{$q_{1}$} \land \FStateAbstractionPI{$q_{2}$} \textbf{ is } \emph{sat} $ \;
+            \FSMTSolverPop{} \;
+            \If{$res = Unknown$}{
+                $res \gets True$ \;
+            }
+        }
     }
 
 
