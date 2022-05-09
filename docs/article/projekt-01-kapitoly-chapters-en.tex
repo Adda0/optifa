@@ -981,13 +981,13 @@ The reference implementation\footnote{In the \href{https://codeberg.org/Adda/opt
 
 Benchmark with sets of different finite automata used on our benchmark problems are available on a \href{https://github.com/ondrik/automata-benchmarks/tree/master/nfa/non-vtf}{GitHub repository}\footnote{\url{https://github.com/ondrik/automata-benchmarks}}. These finite automata are obtained from runs of regular model checking tool on verification of pointer program and parametric protocols created in~\cite{model_checking_tool_10.1007/978-3-540-70844-5_7} based on method of abstract regular model checking from~\cite{method_model_checking_tool}. Such verification runs often execute operations similar to emptiness problem or product construction.
 
-Our experiments cover the benchmark automata from 41 various categories of verification runs. Each category contains similar finite automata. Thus, the results of experiments on our benchmark problems for different combinations of finite automata from each category are nearly the same, it would not make sense to test all combinations of finite automata in each category. We choose representative finite automata from each category randomly. To further extend the set of benchmark automata, we add to each category modifications of chosen representative finite automata which we combine with original representatives in experiments. The modifications imitate generation of variants of the same finite automata with changed final states (as in a method of string solving from~\cite{10.1007/978-3-319-08867-9_10}) or little modifications of transitions.
+Our experiments cover the benchmark automata from 40 various categories of verification runs. Each category contains similar finite automata. The results of experiments on our benchmark problems for different combinations of finite automata from the same category are nearly the identical. Thus, we choose representative finite automata from each category randomly. To further extend the set of benchmark automata, we add to each category modifications of chosen representative finite automata which we combine with original representatives in experiments. These modifications imitate generation of variations of the same finite automata with different final states (as in a method of string solving from~\cite{10.1007/978-3-319-08867-9_10}) or little modifications of transitions (removed transitions or changed transition symbol).
 
-We test various combinations of finite automata to determine the product construction and decide emptiness of finite automata intersection. In our experiments, our main objective is to find out how much our optimizations reduce product state space in both our benchmark problems and compare pruning capabilities of our optimizations. We want to know what are the pruning capabilities of both our optimizations. Whtehter they are efficient. Further, we want to compare pruning capabilities of length abstraction and Parikh image abstraction to see whether Parikh image pruning capabilities are higher and by how much.
+We test combinations of finite automata from each category to determine the product construction and decide the emptiness of the finite automata intersection. In our experiments, our main objective is to find out how much our optimizations reduce product state space in both our benchmark problems and compare pruning capabilities of our optimizations. We want to know what are the pruning capabilities of both our optimizations. Whtehter they are efficient. Further, we want to compare pruning capabilities of length abstraction and Parikh image abstraction to see whether Parikh image pruning capabilities are higher and by how much.
 
 Our abstractions implemented by the reference implementation are not mature enough to properly measure the time cost of computation yet. Future work includes efficient implementation and further optimizations of our abstractions. Nevertheless, our experiments show our optimizations can sometimes quicken the execution of both benchmark problems.
 
-In this chapter, we present a few experiments which show and compare the pruning capabilities of our optimizations on our benchmark problems. Second, we show time impact of optimizations on our abstractions.
+In this chapter, we present a few experiments which show and compare the pruning capabilities of our optimizations on our benchmark problems. Second, we show what impact have optimizations on our abstractions on computaiton time benchmark problems.
 
 \section{Length Abstraction}
 
@@ -1069,6 +1069,23 @@ Figure~\ref{fig:graph:stacked_product_state_space_sizes_with_lasso} shows the sa
 
 Out of all experiments with length abstraction optimization, one weakness of length abstraction is clear. The more final states the original automata have, the more difficult it is to optimize the full product construction using length abstraction. This is caused by the fact that every final state increases the number of accepted different lengths per automaton. Therefore, with automata where out of hundreds or thousands of states nearly every state is a final state too, length abstraction has to consider multiple possible lengths and cannot easily determine which branches will not be accepted by the product automaton. Similar problem occurs for automata accepting words of multitude of different lengths.
 
+\subsection{Length Abstraction Optimization without SMT solver}
+
+We optimize evaluation of compatibility of length abstractions by substituting SMT solver with solving linear congruence equations. To show how linear congruences quicken the computation, we present the following experiment.
+
+The Figure~\ref{fig:diagram:la_smt_difference} shows the computation time from our experiments with and without SMT solver.
+
+\begin{figure*}[h]
+	\centering
+	\includegraphics[scale=0.4]{graph_la_smt_difference.pdf}
+	\caption{Comparison of time consumption of length abstraction evaluated by SMT solver and length abstraction evaluated without SMT solver combining both benchmark problems. Both axis are in symmetrical logaritmic scale\protect\footnotemark. They show time consumption in seconds: x-axis length abstraction evaluated by SMT solver, y-axis length abstraction evaluated without SMT solver.}
+	\label{fig:diagram:la_smt_difference}
+\end{figure*}
+
+\footnotetext{Plot is linear around $0$ instead of logarithmic.}
+
+We can see that computation of both benchmark problems is faster for length abstractions solved by linear congruences. This optimization improves significantly computation time.
+
 \section{Parikh Image Computation}
 
 Parikh image is designed to mitigate the problems length abstraction optimization has with our benchmark automata. In this section, we show results of several experiments with Parikh image computation optimization. At first, we are interested in pruning capabilities of Parikh image abstraction without further optimizations. Later, we provide results for introduced optimizations of Parikh image computation algorithm.
@@ -1091,11 +1108,9 @@ The following graphs in Figure~\ref{fig:graph:pi_product_state_space_sizes} show
         \label{fig:graph:pi_fp_state_space_sizes_comp}
     \end{minipage}
     \vspace{0.5cm}
-    \caption{Comparison of state space sizes generated by basic and optimized product construction with length abstraction (blue dots) and Parikh image computation (orange dots). Both axes are in symmetrical logarithmic scale\protect\footnotemark, showing state space sizes: x-axis of basic product, y-axis of optimized product.}
+    \caption{Comparison of state space sizes generated by basic and optimized product construction with length abstraction (blue dots) and Parikh image computation (orange dots). Both axes are in symmetrical logarithmic scale, showing state space sizes: x-axis of basic product, y-axis of optimized product.}
     \label{fig:graph:pi_product_state_space_sizes}
 \end{figure*}
-
-\footnotetext{Plot is linear around $0$ instead of logarithmic.}
 
 We conclude from the experiments that Parikh image optimizes the generated product state space in nearly every case and produces products smaller than length abstraction (at worst products equal to length abstraction). The strength of Parikh image is its higher pruning capacity due to wider range of information gathered from the automata. In multiple cases, Parikh image optimization is able to prune vast \emph{branches} of potential generated product by correctly determining incompatible transition symbols even if possible lengths of accepted words are mutually compatible.
 
@@ -1134,6 +1149,10 @@ When we combine length and Parikh image abstraction optimizations in one algorit
 	\label{fig:diagram:combined_sat_unsat_comparison}
 \end{figure}
 
+\section{Experiment Results}
+
+The experiments shows that our abstractions often prune large parts of the product state space. Further optimalizations of the abstractions have impact on performance of our abstractions.
+
 %\section{Mintermization}
 
 %--------------------------------------------------------
@@ -1144,6 +1163,8 @@ When we combine length and Parikh image abstraction optimizations in one algorit
 
 The most demanding parts of the intersection computation is the generation of product states and transitions of the product automaton. We tried to reduce the size of the generated state space by omitting the states which cannot lead to any final state---that is, omitting the \textit{branches} which do not lead to any final state---by deciding the emptiness of such state languages using various state language abstractions over the finite automata states, such as length abstraction using lasso automata or Parikh image computation based on Parikh's theorem. Each approach has been experimentally tested and further optimizations to the proposed algorithms were introduced.
 
-According to our experiments, product state space is minimized especially for intersections with huge non-terminating branches or for intersections of automata accepting different lengths of words recognized by the automata languages. Further, for automata with long lines and similar automata varying only slightly from each other. Experiments show our algorithm generates smaller state spaces for both resolution of emptiness problem and product construction, which are two usually used operations on automata intersection. All our abstractions consider over-approximation of possible products. Therefore, our optimizations are safe to use for any uses resolving operations on finite automata.
+According to our experiments, product state space can be reduced substantially. Pruning capabilities of our abstractions are satisfactory and their optimizations have high impact on computation time. We get great results especially for intersections with long lines or for intersections of automata which differ in accepted lengths. Experiments show our algorithm generates smaller state spaces for both resolution of emptiness problem and product construction, which are two usually used operations on automata intersection. All our abstractions consider over-approximation of possible products. Therefore, our optimizations are safe to use for any uses resolving operations on finite automata.
+
+Due to our discoveries, as a future work, we aim to continue with the proposed state language abstractions, optimize their performance with efficient implementation and explore possibilities of additional improvements of these abstractions. We also want to parallelize evaluation of the compatibility of the abstractions.
 
 We have not encountered similar approaches to product construction optimization using length abstraction or Parikh image computation to compare our results with. It might be worth investing into combining our orthogonal approach with other existing algorithms to see how the generated product state space is affected. We are talking about abstraction techniques such as CEGAR~\cite{DBLP:conf/cav/ClarkeGJLV00} and predicate abstraction~\cite{DBLP:conf/cav/ColonU98, DBLP:conf/cav/GrafS97}, IMPACT~\cite{DBLP:conf/cav/McMillan06}, possibly IC3/PDR~\cite{DBLP:conf/sat/HoderB12, DBLP:conf/fmcad/BradleyM07}. All the above techniques have proven efficient in hardware or software verification, and they can be applied in automata too. First attempts to use these techniques in finite automata problem-solving are based on IC3~\cite{DBLP:journals/pacmpl/HolikJLRV18, DBLP:conf/cav/WangTLYJ16, DBLP:journals/corr/abs-1708-09073} and on the interpolation-based approach of McMillan~\cite{DBLP:conf/tacas/AmlaM07, DBLP:conf/tacas/GangeNSSS13}.
