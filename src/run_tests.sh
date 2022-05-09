@@ -118,7 +118,7 @@ while getopts :a:b:o:c:t:u:k:h o; do
         fi
         ;;
     h) # help #TODO
-        printf "Usage: ./run.sh [-a finite_automaton_A_file] [-b finite_automaton_B_file] [-o output]\n\n"
+        printf "Usage: ./run_tests.sh [-a finite_automaton_A_file] [-b finite_automaton_B_file] [-o output]\n\n"
         echo "   [-a finite_automaton_A_file] –– set finite_automaton_A file to be Timbuk description of finite automaton A"
         echo "   [-b finite_automaton_B_file] –– set finite_automaton_B file to be Timbuk description of finite automaton B"
         echo "   [-o output_file] –– set output file containing the result"

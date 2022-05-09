@@ -29,10 +29,7 @@ class ProgramArgumentsParser:
     """Class parsing program arguments using argparse."""
 
     def __init__(self):
-        self.arg_parser = argparse.ArgumentParser(
-            description='Construct product (intersection) of two finite automata using abstraction optimization '
-                        'techniques. '
-        )
+        self.arg_parser = argparse.ArgumentParser(description='Prepare two finite automata.')
 
         automata_format_group = self.arg_parser.add_mutually_exclusive_group(required=True)
         automata_format_group.add_argument('--loaded', '-l', action='store_true',
