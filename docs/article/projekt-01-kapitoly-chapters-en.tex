@@ -983,13 +983,11 @@ Benchmark with sets of different finite automata used on our benchmark problems 
 
 Our experiments cover the benchmark automata from 41 various categories of verification runs. Each category contains similar finite automata. Thus, the results of experiments on our benchmark problems for different combinations of finite automata from each category are nearly the same, it would not make sense to test all combinations of finite automata in each category. We choose representative finite automata from each category randomly. To further extend the set of benchmark automata, we add to each category modifications of chosen representative finite automata which we combine with original representatives in experiments. The modifications imitate generation of variants of the same finite automata with changed final states (as in a method of string solving from~\cite{10.1007/978-3-319-08867-9_10}) or little modifications of transitions.
 
-We test various combinations of finite automata to determine the product construction and decide emptiness of finite automata intersection. Our main objective is to find out how much our optimizations reduce product state space in both our benchmark problems.
+We test various combinations of finite automata to determine the product construction and decide emptiness of finite automata intersection. In our experiments, our main objective is to find out how much our optimizations reduce product state space in both our benchmark problems and compare pruning capabilities of our optimizations. We want to know what are the pruning capabilities of both our optimizations. Whtehter they are efficient. Further, we want to compare pruning capabilities of length abstraction and Parikh image abstraction to see whether Parikh image pruning capabilities are higher and by how much.
 
-We have tested two main aspects:
-\begin{itemize}
-    \item First, we have tested the generated state space for resolving the emptiness problem. That is, whenever we find a solution---final state in the intersection, the test ends, and we count the number of generated product states to this moment. If the intersection is empty, we end the test when it is certain there is no final state in the intersection.
-    \item Second, for the same pair of automata, we have tested the product construction. We compared the generated state spaces for the full product of finite automata intersection.
-\end{itemize}
+Our abstractions implemented by the reference implementation are not mature enough to properly measure the time cost of computation yet. Future work includes efficient implementation and further optimizations of our abstractions. Nevertheless, our experiments show our optimizations can sometimes quicken the execution of both benchmark problems.
+
+In this chapter, we present a few experiments which show and compare the pruning capabilities of our optimizations on our benchmark problems. Second, we show time impact of optimizations on our abstractions.
 
 \section{Length Abstraction}
 
