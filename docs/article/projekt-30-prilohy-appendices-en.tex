@@ -3,6 +3,22 @@
 % Placing of table of contents of the memory media here should be consulted with a supervisor
 \chapter{Contents of the Included Storage Media}
 
+The following list shows the contents of the included storage media. Listed are only the folders on the highest levels in the folder hierarchy.
+
+\begin{itemize}
+    \item \texttt{optifa/}: The main folder with optimizations of state language abstractions and all related files.
+    \begin{itemize}
+        \item \texttt{docs/}: The LaTeX source files for this paper.
+        \item \texttt{results/}: The results gained by our experiments.
+        \item \texttt{src/}: The implementation of our optimizations and scripts to run them.
+        \item \texttt{basicDFAs/}: Example finite automata in Timbuk format used in this paper.
+    \end{itemize}
+
+    \item \texttt{Symboliclib}: Implementation of the extern library Symboliclib with our modifications included.
+
+\end{itemize}
+
+
 \chapter{Reference Implementation Manual}
 
 In order for reference implementation to work, one requires the following programs: \href{https://www.gnu.org/software/bash/}{Bash}\footnote{\url{https://www.gnu.org/software/bash/}} or any Bash-compatible shell, \href{https://www.python.org/}{Python 3.10}\footnote{\url{https://www.python.org/}} or higher, Python library \href{https://codeberg.org/Adda/symboliclib/}{Symboliclib with our modifications and additions}\footnote{\url{https://codeberg.org/Adda/symboliclib/}; Remember to add Symboliclib to Python path.} and Z3 solver API for Python: Z3Py from \href{https://github.com/Z3Prover/z3}{Z3 solver repository}\footnote{\url{https://github.com/Z3Prover/z3}; Remember to add Z3Py API to Python path.}. Further, to run comparison tests of our optimizations, a command-line benchmarking tool \href{https://github.com/sharkdp/hyperfine}{hyperfine}\footnote{\url{https://github.com/sharkdp/hyperfine}}. The accepted finite automata file format is \href{https://gitlab.inria.fr/regular-pv/timbuk/timbuk/-/wikis/Specification-File-Format}{Timbuk}\footnote{\url{https://gitlab.inria.fr/regular-pv/timbuk/timbuk/-/wikis/Specification-File-Format}}.
