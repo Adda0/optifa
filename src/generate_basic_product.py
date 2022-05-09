@@ -37,8 +37,8 @@ def main():
     print_csv(len(intersection.final))
 
     # Store product.
-    if config.store_product:
-        intersection.print_automaton(config.store_product)
+    if config.store_result:
+        intersection.print_automaton(config.store_result)
 
 
 class ArgumentsParser(ProductConstructionArgumentsParser):

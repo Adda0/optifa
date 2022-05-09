@@ -128,8 +128,8 @@ def main():
     #print(intersect_ab.final)
 
     # Store product.
-    if config.store_product:
-        intersect_ab.print_automaton(config.store_product)
+    if config.store_result:
+        intersect_ab.print_automaton(config.store_result)
 
 
 def check_satisfiability(fa_a, fa_b, smt, config):
