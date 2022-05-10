@@ -52,8 +52,8 @@ def get_dataframe(filename: str = "../../combined_results_appended.csv", verbose
 
     return df
 
-
-def plot_graph_scatter_comparison(df: pd.DataFrame, fig_location: str = None, show_figure: bool = False):
+def plot_graph_scatter_comparison(df: pd.DataFrame, fig_location: str = None, show_figure: bool = False,
+                                  test_type: TEST_TYPE = TEST_TYPE.default()):
     """
     Plot graph depicting scatter comparison of basic and length abstraction / Parikh image construction algorithms.
     Args:
@@ -62,23 +62,17 @@ def plot_graph_scatter_comparison(df: pd.DataFrame, fig_location: str = None, sh
         show_figure (bool): Whether to show the generated figure.
     """
 
-    df_et = df.filter(["ET.L.smt_free.mean", "ET.L.smt.mean"], axis=1)
-    df_et.rename(columns={'ET.L.smt_free.mean': 'FP.L.smt_free.mean', 'ET.L.smt.mean': 'FP.L.smt.mean'}, inplace=True)
-    df_fp = df.filter(["FP.L.smt_free.mean", "FP.L.smt.mean"], axis=1)
-    df_fp = pd.concat([df_fp, df_et])
-    df_fp.reset_index(inplace=True, drop=True)
-
     #df_fp = df_fp[df_fp["FP.L.smt_free.mean"] <= df_fp[f"FP.L.smt.mean"]]
 
     sns.set_theme(style="whitegrid")
-    sbg = sns.relplot(x=f"FP.L.smt.mean", y=f"FP.L.smt_free.mean", data=df_fp, legend=False)
+    sbg = sns.relplot(x=f"{test_type.value}.B.states", y=f"{test_type.value}.L.smt_free.states", data=df, legend=False)
     # sbg = sns.displot(x=f"{test_type.value}.B.states", y="count", hue="type", data=df, hue_order=hue_order, legend=True)
     # sbg.map_dataframe(sns.lineplot, f"{test_type.value}.B.states", f"{test_type.value}.B.states", color="grey", alpha=0.4)
     sbg.ax.axline(xy1=(0, 0), slope=1, color="grey", alpha=.4, dashes=(5, 2))
     # plt.yticks(df.loc[:, "count"].unique())
     # plt.xticks([i for i in range(0, df.loc[:, "count"].max())])
     # sbg.set_axis_labels("Čas od začátku směny (min)", "Počet rozvážejících řidičů")
-    max_val_axis = max(df[f"FP.L.smt_free.mean"].max(), df[f"FP.L.smt.mean"].max()) * 1.3
+    max_val_axis = max(df[f"{test_type.value}.B.states"].max(), df[f"{test_type.value}.L.smt_free.states"].max()) * 1.3
     sbg.set(
         xscale="symlog", yscale="symlog",
         xlabel=None, ylabel=None,
@@ -106,4 +100,7 @@ if __name__ == "__main__":
     # df = get_dataframe(f"{filename}.csv", False)
     df = get_dataframe(data_file, False)
     # plot_graph(df, fig_location=f"{data_file.stem}.png", show_figure=False)
-    plot_graph_scatter_comparison(df, fig_location=f"graph_la_smt_difference.pdf", show_figure=False)
+    plot_graph_scatter_comparison(df, fig_location=f"graph_la_et_scatter.pdf", show_figure=False,
+                                  test_type=TEST_TYPE.ET)
+    plot_graph_scatter_comparison(df, fig_location=f"graph_la_fp_scatter.pdf", show_figure=False,
+                                  test_type=TEST_TYPE.FP)
