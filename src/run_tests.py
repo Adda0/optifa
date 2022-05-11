@@ -180,7 +180,7 @@ def generate_basic_product(flags, csv_time_data_file, first_automaton, second_au
          ],
         stdout=subprocess.PIPE, stderr=subprocess.STDOUT
     )
-    process_experiment_result(csv_data_file, csv_time_data_file, out, timeout, tmp_product_data_file)
+    process_experiment_result("basic", csv_data_file, csv_time_data_file, out, timeout, tmp_product_data_file)
 
 
 def run_experiment(abstraction, flags, csv_time_data_file, first_automaton, second_automaton, tmp_product_data_file,
@@ -199,7 +199,7 @@ def run_experiment(abstraction, flags, csv_time_data_file, first_automaton, seco
          ],
         stdout=subprocess.PIPE, stderr=subprocess.STDOUT
     )
-    process_experiment_result(csv_data_file, csv_time_data_file, out, timeout, tmp_product_data_file)
+    process_experiment_result(abstraction, csv_data_file, csv_time_data_file, out, timeout, tmp_product_data_file)
 
 
 def start_experiment(csv_data_file):
@@ -207,13 +207,25 @@ def start_experiment(csv_data_file):
         data_file.write("\n")
 
 
-def process_experiment_result(csv_data_file, csv_time_data_file, out, timeout, tmp_product_data_file):
+def process_experiment_result(abstraction, csv_data_file, csv_time_data_file, out, timeout, tmp_product_data_file):
+    length_abstraction = "length_abstraction"
+    pi_abstraction = "parikh_image"
+    combined_abstraction = "combined"
+
     try:
         out.wait(timeout)
     except subprocess.TimeoutExpired:
+        out.kill()
         with open(csv_data_file, "a") as data_file:
-            out.kill()
-            data_file.write(",,,,,,,,,,,,,,")
+            if abstraction == "basic":
+                data_file.write(",,,,,,,,,")
+            elif abstraction == length_abstraction:
+                data_file.write(",,,,,,,,,,,,,,,,")
+            elif abstraction == pi_abstraction:
+                data_file.write(",,,,,,,,,,,,,,")
+            elif abstraction == combined_abstraction:
+                data_file.write(",,,,,,,,,,,,,,,,,,,,")
+
     else:
         # print(out.returncode)
         if not out.returncode:
