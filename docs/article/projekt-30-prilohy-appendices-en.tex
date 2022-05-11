@@ -6,7 +6,7 @@
 The following list shows the contents of the included storage media. Listed are only the folders on the highest levels in the folder hierarchy.
 
 \begin{itemize}
-    \item \texttt{optifa/}: The main folder with optimizations of state language abstractions and all related files.
+    \item \texttt{optifa/}: The main folder with reference implementation of state language abstractions and all related files.
     \begin{itemize}
         \item \texttt{docs/}: The LaTeX source files for this paper.
         \item \texttt{results/}: The results gained by our experiments.
@@ -14,7 +14,7 @@ The following list shows the contents of the included storage media. Listed are 
         \item \texttt{basicDFAs/}: Example finite automata in Timbuk format used in this paper.
     \end{itemize}
 
-    \item \texttt{Symboliclib}: Implementation of the extern library Symboliclib with our modifications included.
+    \item \texttt{Symboliclib}: Implementation of the external library Symboliclib with our modifications included.
 
 \end{itemize}
 
@@ -37,13 +37,9 @@ Separate optimizations can be run with their respective scripts:
 \end{itemize}
 Combined optimization algorithm using both length and Parikh image abstractions can be run with \texttt{resolve\_satisfiability\_combined.py}.
 
-Each program offers various flags and required or optional argumements to run adjust the run according to our requirements: Whether to construct full product or just test emptiness of the intersection, which abstraction-specific optimizations to enable, where to store results and the generated product, etc.
+Each program offers various flags and required or optional arguments to run adjust the run according to our requirements: Whether to construct a full product or just test emptiness of the intersection, which abstraction-specific optimizations to enable, where to store results and the generated product, etc.
 
-Automata with replaced transition by minterms cen be generated with \texttt{get\_minterms.py}.
-
-
-
-
+Automata with replaced transition by minterms can be generated with \texttt{get\_minterms.py}.
 
 %\chapter{Configuration file}
 
@@ -54,7 +50,7 @@ Automata with replaced transition by minterms cen be generated with \texttt{get\
 \chapter{Complete Optimization Algorithm}
 
 \begin{algorithm}
-\caption{Product construction algorithm using both length abstraction and Parikh image computation and all their optimizations.}
+\caption{Product construction using both length abstraction and Parikh image computation and all their optimizations.}
 \SetKwInOut{Input}{Input}
 \SetKwInOut{Output}{Output}
 \SetKwFunction{FStateAbstractionPI}{$ \alpha^{PI} $}
@@ -119,4 +115,5 @@ $ \FAddPersistentClauses{} $\;
     }
 }
 \end{algorithm}
+
 
