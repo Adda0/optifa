@@ -46,6 +46,7 @@ def main():
         print(dir)
         execute_tests(dir, config)
     else:
+        print(root_dir)
         execute_tests(root_dir, config)
 
 
@@ -88,7 +89,6 @@ def print_automata_sizes(first_automaton, second_automaton, csv_data_file):
 
 
 def execute_tests(directory, config):
-    # print("exe tests")
     timeout = 10 * 60
     # timeout = 0.0001
 
@@ -107,7 +107,7 @@ def execute_tests(directory, config):
         for _ in range(config.num_experiments):
             first_automaton = random.choice(files)
             second_automaton = random.choice(list(filter(lambda file: file != first_automaton, files)))
-            # print(f"{first_automaton}, {second_automaton}")
+            print(f"Experiment: {first_automaton}, {second_automaton}")
 
             start_experiment(csv_data_file)
 
