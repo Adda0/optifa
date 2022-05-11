@@ -1,15 +1,12 @@
 #!/usr/bin/env python3
 
-# ====================================================
 # file name: generate_basic_product.py
 #
 # Script to generate basic product of two automata.
-# ====================================================
-# project: Optimizing Automata Product Construction and Emptiness Test
-# "Optimalizace automatové konstrukce produktu a testu prázdnosti jazyka"
+#
+# project: Abstraction of State Languages in Automata Algorithms
 #
 # author: David Chocholatý (xchoch08), FIT BUT
-# ====================================================
 
 import os
 import sys

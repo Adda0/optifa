@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
 
+# file name: minterms.py
+#
+# Computing minterms base class.
+#
+# project: Abstraction of State Languages in Automata Algorithms
+#
+# author: David Chocholatý (xchoch08), FIT BUT
+
 class MintermTree:
     """
     Class representing minterm tree structure.

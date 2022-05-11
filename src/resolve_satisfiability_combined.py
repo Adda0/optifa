@@ -1,8 +1,8 @@
 #!/usr/bin/env -S python3 -u
 
-# file name: resolve_satisfiability.py
+# file name: resolve_satisfiability_combined.py
 #
-# Script to resolve satisfiability of given formulae using Z3 SMT solver.
+# Script to run product construction with combined algorithm of length and Parikh image abstractions.
 #
 # project: Abstraction of State Languages in Automata Algorithms
 #

@@ -1,15 +1,12 @@
 #!/usr/bin/python3
 
-# ====================================================
 # file name: remove_comments_from_fa.py
 #
 # Script to remove all comments from FA for processing given FA with symboliclip for optimizing
-# ====================================================
-# project: IP1 | Optimizing Automata Product Construction and Emptiness Test
-# "Optimalizace automatové konstrukce produktu a testu prázdnosti jazyka"
+#
+# project: Abstraction of State Languages in Automata Algorithms
 #
 # author: David Chocholatý (xchoch08), FIT BUT
-# ====================================================
 
 import sys
 

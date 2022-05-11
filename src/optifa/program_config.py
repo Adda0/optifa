@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
 
+# file name: program_config.py
+#
+# Basic program config.
+#
+# project: Abstraction of State Languages in Automata Algorithms
+#
+# author: David Chocholatý (xchoch08), FIT BUT
 
 import argparse
 

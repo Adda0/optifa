@@ -1,15 +1,12 @@
 #!/usr/bin/env -S python3 -u
 
-# ====================================================
-# file name: resolve_satisfiability.py
+# file name: run_tests.py
 #
-# Script to run tests for state language abstractions
-# ====================================================
-# project: Optimizing Automata Product Construction and Emptiness Test
-# "Optimalizace automatové konstrukce produktu a testu prázdnosti jazyka"
+# Script to run tests.
+#
+# project: Abstraction of State Languages in Automata Algorithms
 #
 # author: David Chocholatý (xchoch08), FIT BUT
-# ====================================================
 
 import sys
 from copy import deepcopy

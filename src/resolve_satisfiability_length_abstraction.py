@@ -1,8 +1,8 @@
 #!/usr/bin/env -S python3 -u
 
-# file name: resolve_satisfiability.py
+# file name: resolve_satisfiability_length_abstraction.py
 #
-# Script to resolve satisfiable of given formulae using Z3 SMT solver.
+# Script to run product construction with length abstraction.
 #
 # project: Abstraction of State Languages in Automata Algorithms
 #

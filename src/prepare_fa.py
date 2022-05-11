@@ -1,15 +1,12 @@
 #!/usr/bin/python3
 
-# ====================================================
-# file name: prepar_fa.py
+# file name: prepare_fa.py
 #
-# Script to prepare given finite automata for optimizing
-# ====================================================
-# project: IP1 | Optimizing Automata Product Construction and Emptiness Test
-# "Optimalizace automatové konstrukce produktu a testu prázdnosti jazyka"
+# Script to prepare given finite automata for optimizing.
+#
+# project: Abstraction of State Languages in Automata Algorithms
 #
 # author: David Chocholatý (xchoch08), FIT BUT
-# ====================================================
 
 import sys
 import symboliclib

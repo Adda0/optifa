@@ -1,15 +1,12 @@
 #!/usr/bin/python3
 
-# ====================================================
 # file name: change_transitions.py
 #
-# Script to substitute every transition to '*' transitons for creating handle and loop construction for optimizing
-# ====================================================
-# project: IP1 | Optimizing Automata Product Construction and Emptiness Test
-# "Optimalizace automatové konstrukce produktu a testu prázdnosti jazyka"
+# Script to change transitions of finite automata for lasso automata generation.
+#
+# project: Abstraction of State Languages in Automata Algorithms
 #
 # author: David Chocholatý (xchoch08), FIT BUT
-# ====================================================
 
 from pathlib import Path
 import sys

@@ -1,14 +1,12 @@
 #!/usr/bin/env sh
 
-# ====================================================
 # file name: show_finite_automaton.sh
 #
 # Base script for visualizing FA in Timbuk format in dot format.
-# ====================================================
+#
 # project: Abstraction of State Languages in Automata Algorithms
 #
 # author: David Chocholatý (xchoch08), FIT BUT
-# ====================================================
 
 export POSIXLY_CORRECT=yes
 

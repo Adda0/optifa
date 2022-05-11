@@ -1,18 +1,13 @@
 #!/usr/bin/python3
 
-# ====================================================
 # file name: determinize_fa.py
 #
 # Script to determinize given finite automaton, storing its determinized result to
 # for optimizing
-# ====================================================
-# project: IP1 | Optimizing Automata Product
-#                Construction and Emptiness Test
-# "Optimalizace automatové konstrukce produktu a testu
-#  prázdnosti jazyka"
+#
+# project: Abstraction of State Languages in Automata Algorithms
 #
 # author: David Chocholatý (xchoch08), FIT BUT
-# ====================================================
 
 import sys
 sys.path.append('/mnt/DATA/Data/David/School/projPrax/symboliclib/symboliclib/') #DEBUG

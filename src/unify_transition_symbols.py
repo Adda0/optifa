@@ -1,15 +1,12 @@
 #!/usr/bin/env python3
 
-# ====================================================
 # file name: unify_transition_symbols_except.py
 #
 # Script to test result of unifying transition symbols of FA except for specific symbols.
-# ====================================================
-# project: Optimizing Automata Product Construction and Emptiness Test
-# "Optimalizace automatové konstrukce produktu a testu prázdnosti jazyka"
+#
+# project: Abstraction of State Languages in Automata Algorithms
 #
 # author: David Chocholatý (xchoch08), FIT BUT
-# ====================================================
 
 import os
 import sys

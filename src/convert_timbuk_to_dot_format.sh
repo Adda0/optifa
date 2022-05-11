@@ -1,14 +1,12 @@
 #!/usr/bin/env sh
 
-# ====================================================
 # file name: convert_timbuk_to_dot.sh
 #
 # Base script for converting FA in Timbuk format to dot format.
-# ====================================================
+#
 # project: Abstraction of State Languages in Automata Algorithms
 #
 # author: David Chocholatý (xchoch08), FIT BUT
-# ====================================================
 
 export POSIXLY_CORRECT=yes
 

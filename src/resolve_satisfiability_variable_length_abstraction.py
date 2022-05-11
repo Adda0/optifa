@@ -1,15 +1,12 @@
 #!/usr/bin/env -S python3 -u
 
-# ====================================================
-# file name: resolve_satisfiability.py
+# file name: resolve_satisfiability_variable_length_abstraction.py
 #
-# Script to resolve satisfiable of given formulae using Z3 SMT solver.
-# ====================================================
-# project: Optimizing Automata Product Construction and Emptiness Test
-# "Optimalizace automatové konstrukce produktu a testu prázdnosti jazyka"
+# Script to run product construction with variable length abstraction.
+#
+# project: Abstraction of State Languages in Automata Algorithms
 #
 # author: David Chocholatý (xchoch08), FIT BUT
-# ====================================================
 
 import sys
 from copy import deepcopy

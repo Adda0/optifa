@@ -1,15 +1,13 @@
 #!/usr/bin/env -S python3 -u
 
-# ====================================================
 # file name: load_automata.py
 #
 # Script to store parsed objects of given automata into separate files.
-# ====================================================
-# project: Optimizing Automata Product Construction and Emptiness Test
-# "Optimalizace automatové konstrukce produktu a testu prázdnosti jazyka"
+# file name: generate_basic_product.py
+#
+# project: Abstraction of State Languages in Automata Algorithms
 #
 # author: David Chocholatý (xchoch08), FIT BUT
-# ====================================================
 
 import sys
 import symboliclib

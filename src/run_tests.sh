@@ -1,15 +1,12 @@
 #!/usr/bin/env sh
 
-# ====================================================
 # file name: run_tests.sh
 #
-# Base script for running optimizing automata product construction and its emptiness test
-# ====================================================
-# project: Optimizing Automata Product Construction and Emptiness Test
-# "Optimalizace automatové konstrukce produktu a testu prázdnosti jazyka"
+# Script to run a single test.
+#
+# project: Abstraction of State Languages in Automata Algorithms
 #
 # author: David Chocholatý (xchoch08), FIT BUT
-# ====================================================
 
 export POSIXLY_CORRECT=yes
 

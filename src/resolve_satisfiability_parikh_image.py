@@ -1,8 +1,8 @@
 #!/usr/bin/env -S python3 -u
 
-# file name: resolve_satisfiability.py
+# file name: resolve_satisfiability_parikh_image.py
 #
-# Script to resolve satisfiable of given formulae using Z3 SMT solver.
+# Script to run product construction with Parikh image abstraction.
 #
 # project: Abstraction of State Languages in Automata Algorithms
 #
