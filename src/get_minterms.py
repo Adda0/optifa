@@ -76,7 +76,7 @@ def main():
         pass
         config.fa_a_orig.print_automaton(config.result_fa_a)
     if config.result_fa_b:
-        config.fa_b_orig.print_automaton(config.result_fa_a)
+        config.fa_b_orig.print_automaton(config.result_fa_b)
 
     print(f"{used_alphabet_len},{final_minterms_len}")
 
