@@ -25,9 +25,18 @@ In order for reference implementation to work, one requires the following progra
 
 Each program can be run with \texttt{-\--help} to show quick help message explaining how to run said program.
 
-You can run tests for all our state language abstractions with \texttt{run\_tests.sh} as follows:
+
+
+To run tests for all our state langugage abstractions for a specific category (direcotyr with finite automata) or all categories in a directory (for all subdirecotries) with \texttt{run\_tests.py} as follows:
+
 {
-    \centering \footnotesize \texttt{./run\_tests.sh -a <finite\_automaton\_A\_file> -b <finite\_automaton\_B\_file> -o <output\_file>}
+    \centering \footnotesize \texttt{./run\_tests.py -r <root\_directory> -n <experiments\_number\_per\_category> -o <output\_file>}
+}
+
+You can run tests for all our state language abstractions for a specific combination of finite automata with \texttt{run\_tests.py} as follows:
+
+{
+    \centering \footnotesize \texttt{./run\_tests.py -\--single -a <finite\_automaton\_A> -b <finite\_automaton\_B> -o <output\_file>}
 }
 
 Separate optimizations can be run with their respective scripts:
