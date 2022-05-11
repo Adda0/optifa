@@ -181,7 +181,7 @@ F_FA_B_LOADED="tmp_automaton_b_"$OUT_FILENAME""
 
 # Load automata to a Python object with optional unifying of transition symbols.
 #if ! [ $UNIFY ]; then
-    load_automata.py -a "$F_FA_A_ORIG" -b "$F_FA_B_ORIG" --out_a "$F_FA_A_LOADED" --out_b "$F_FA_B_LOADED";
+    python3 load_automata.py -a "$F_FA_A_ORIG" -b "$F_FA_B_ORIG" --out_a "$F_FA_A_LOADED" --out_b "$F_FA_B_LOADED";
 #elif [ ${#KEEP_SYMBOLS[@]} -ne 0 ]; then
 #    load_automata.py -a "$F_FA_A_ORIG" -b "$F_FA_B_ORIG" --out_a "$F_FA_A_LOADED" --out_b "$F_FA_B_LOADED" -k "$KEEP_SYMBOLS";
 #elif [ ${#UNIFY_SYMBOLS[@]} -ne 0 ]; then
@@ -223,12 +223,12 @@ hyperfine "python3 resolve_satisfiability_combined.py --no-z-constraints --break
 append_output;
 
 # - Variable length abstraction computation:
-if [ -n "$SYMBOLS_MODE" ]; then
-    hyperfine "python3 resolve_satisfiability_variable_length_abstraction.py --no-z-constraints --break-when-final --timeout 600 --loaded --fa-a "$F_FA_A_LOADED" --fa-b "$F_FA_B_LOADED" "$SYMBOLS_MODE" ""$SYMBOLS_S"" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
-    append_output;
-else
-    echo -n ",,,,,,,,,,,,,," >> "$F_OUTPUT";
-fi
+#if [ -n "$SYMBOLS_MODE" ]; then
+#    hyperfine "python3 resolve_satisfiability_variable_length_abstraction.py --no-z-constraints --break-when-final --timeout 600 --loaded --fa-a "$F_FA_A_LOADED" --fa-b "$F_FA_B_LOADED" "$SYMBOLS_MODE" ""$SYMBOLS_S"" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
+#    append_output;
+#else
+#    echo -n ",,,,,,,,,,,,,," >> "$F_OUTPUT";
+#fi
 
 ## Full product generation:
 ### Basic algorithm:
@@ -265,12 +265,12 @@ append_output;
 
 ### Combined algorithms:
 # - Variable length abstraction computation:
-if [ -n "$SYMBOLS_MODE" ]; then
-    hyperfine "python3 resolve_satisfiability_variable_length_abstraction.py --no-z-constraints --timeout 600 --loaded --fa-a "$F_FA_A_LOADED" --fa-b "$F_FA_B_LOADED" "$SYMBOLS_MODE" ""$SYMBOLS_S"" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
-    append_output;
-else
-    echo -n ",,,,,,,,,,,,,," >> "$F_OUTPUT";
-fi
+#if [ -n "$SYMBOLS_MODE" ]; then
+#    hyperfine "python3 resolve_satisfiability_variable_length_abstraction.py --no-z-constraints --timeout 600 --loaded --fa-a "$F_FA_A_LOADED" --fa-b "$F_FA_B_LOADED" "$SYMBOLS_MODE" ""$SYMBOLS_S"" > "$F_DATA_OUT"" --export-csv "$F_TIME_CSV" -u second -r 2;
+#    append_output;
+#else
+#    echo -n ",,,,,,,,,,,,,," >> "$F_OUTPUT";
+#fi
 
 
 # End of file.

@@ -68,8 +68,8 @@ def main():
     for transition_set in transitions_set:
         transitions_list.append(list(transition_set))
 
-    config.fa_a_orig.replace_transition_symbols_with_minterms(minterm_tree.leaves, transitions_list)
-    config.fa_b_orig.replace_transition_symbols_with_minterms(minterm_tree.leaves, transitions_list)
+    config.fa_a_orig.replace_transitions_with_minterms(minterm_tree.leaves, transitions_list)
+    config.fa_b_orig.replace_transitions_with_minterms(minterm_tree.leaves, transitions_list)
 
     # Store minterms.
     if config.result_fa_a:

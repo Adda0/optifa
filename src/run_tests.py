@@ -273,7 +273,7 @@ class ArgumentParser:
         automata_path_group.add_argument('--fa-b', '-b', metavar='AUTOMATON_B', type=str,
                                          help='Automaton B to generate product from.')
 
-        self.arg_parser.add_argument('--num-experiments', '-n', type=int,
+        self.arg_parser.add_argument('--num-experiments', '-n', type=int, default=1,
                                      help='Number of experiments to run for each category.')
         self.arg_parser.add_argument('--store-result', '-o', metavar='RESULT_FILE', type=str, required=True,
                                      help='Append results to file RESULT_FILE.')
