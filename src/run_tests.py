@@ -44,9 +44,9 @@ def main():
     # for file in root_dir.glob('*.tmb'):
     for dir in [x for x in root_dir.iterdir() if x.is_dir()]:
         print(dir)
-        execute_tests(dir)
+        execute_tests(dir, config)
     else:
-        execute_tests(root_dir)
+        execute_tests(root_dir, config)
 
 
 def load_automata(first_automaton, second_automaton, first_loaded, second_loaded):
@@ -77,9 +77,9 @@ def print_automata_sizes(first_automaton, second_automaton, csv_data_file):
          "print_automata_sizes.py",
          f"{first_automaton}",
          f"{second_automaton}",
-         ],
-         stdout=subprocess.PIPE,
-         stderr=subprocess.STDOUT
+        ],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT
     )
     out.wait()
 
@@ -87,12 +87,12 @@ def print_automata_sizes(first_automaton, second_automaton, csv_data_file):
         data_file.write(out.communicate()[0].decode("utf-8"))
 
 
-def execute_tests(directory):
-    #print("exe tests")
-    timeout = 10*60
-    #timeout = 0.0001
+def execute_tests(directory, config):
+    # print("exe tests")
+    timeout = 10 * 60
+    # timeout = 0.0001
 
-    csv_data_file = "tmp_csv_data_file"
+    csv_data_file = config.store_result
     tmp_product_data_file = "tmp_product_data_file"
     csv_time_data_file = "time_csv"
     first_loaded = "fa_a_loaded"
@@ -104,50 +104,52 @@ def execute_tests(directory):
 
     files = [x for x in directory.iterdir() if x.is_file()]
     if files:
-        first_automaton = random.choice(files)
-        second_automaton = random.choice(list(filter(lambda file: file != first_automaton, files)))
-        #print(f"{first_automaton}, {second_automaton}")
+        for _ in range(config.num_experiments):
+            first_automaton = random.choice(files)
+            second_automaton = random.choice(list(filter(lambda file: file != first_automaton, files)))
+            # print(f"{first_automaton}, {second_automaton}")
 
+            start_experiment(csv_data_file)
 
-        start_experiment(csv_data_file)
+            load_automata(first_automaton, second_automaton, first_loaded, second_loaded)
 
-        load_automata(first_automaton, second_automaton, first_loaded, second_loaded)
+            with open(csv_data_file, "a") as data_file:
+                data_file.write(f"{first_automaton},{second_automaton},")
 
-        with open(csv_data_file, "a") as data_file:
-            data_file.write(f"{first_automaton},{second_automaton},")
+            print_automata_sizes(first_automaton, second_automaton, csv_data_file)
 
-        print_automata_sizes(first_automaton, second_automaton, csv_data_file)
+            generate_basic_product(["--break-when-final"], csv_time_data_file, first_loaded, second_loaded,
+                                   tmp_product_data_file, csv_data_file, timeout)
+            run_experiment(length_abstraction, ["--smt", "--break-when-final"], csv_time_data_file, first_loaded,
+                           second_loaded,
+                           tmp_product_data_file, csv_data_file, timeout)
+            run_experiment(length_abstraction, ["--break-when-final"], csv_time_data_file, first_loaded, second_loaded,
+                           tmp_product_data_file, csv_data_file, timeout)
+            skip_pi(csv_data_file)
+            skip_pi(csv_data_file)
+            run_experiment(pi_abstraction, ["--no-z-constraints", "--break-when-final"], csv_time_data_file, first_loaded,
+                           second_loaded,
+                           tmp_product_data_file, csv_data_file, timeout)
+            run_experiment(combined_abstraction, ["--no-z-constraints", "--break-when-final"], csv_time_data_file,
+                           first_loaded, second_loaded,
+                           tmp_product_data_file, csv_data_file, timeout)
 
-
-        generate_basic_product(["--break-when-final"], csv_time_data_file, first_loaded, second_loaded,
-                       tmp_product_data_file, csv_data_file, timeout)
-        run_experiment(length_abstraction, ["--smt", "--break-when-final"], csv_time_data_file, first_loaded, second_loaded,
-                       tmp_product_data_file, csv_data_file, timeout)
-        run_experiment(length_abstraction, ["--break-when-final"], csv_time_data_file, first_loaded, second_loaded,
-                       tmp_product_data_file, csv_data_file, timeout)
-        skip_pi(csv_data_file)
-        skip_pi(csv_data_file)
-        run_experiment(pi_abstraction, ["--no-z-constraints", "--break-when-final"], csv_time_data_file, first_loaded, second_loaded,
-                       tmp_product_data_file, csv_data_file, timeout)
-        run_experiment(combined_abstraction, ["--no-z-constraints", "--break-when-final"], csv_time_data_file, first_loaded, second_loaded,
-                       tmp_product_data_file, csv_data_file, timeout)
-
-        generate_basic_product([], csv_time_data_file, first_loaded, second_loaded,
-                               tmp_product_data_file, csv_data_file, timeout)
-        run_experiment(length_abstraction, ["--smt"], csv_time_data_file, first_loaded, second_loaded,
-                       tmp_product_data_file, csv_data_file, timeout)
-        run_experiment(length_abstraction, [], csv_time_data_file, first_loaded, second_loaded,
-                       tmp_product_data_file, csv_data_file, timeout)
-        skip_pi(csv_data_file)
-        skip_pi(csv_data_file)
-        run_experiment(pi_abstraction, ["--no-z-constraints"], csv_time_data_file, first_loaded, second_loaded,
-                       tmp_product_data_file, csv_data_file, timeout)
-        run_experiment(combined_abstraction, ["--no-z-constraints"], csv_time_data_file, first_loaded, second_loaded,
-                       tmp_product_data_file, csv_data_file, timeout)
+            generate_basic_product([], csv_time_data_file, first_loaded, second_loaded,
+                                   tmp_product_data_file, csv_data_file, timeout)
+            run_experiment(length_abstraction, ["--smt"], csv_time_data_file, first_loaded, second_loaded,
+                           tmp_product_data_file, csv_data_file, timeout)
+            run_experiment(length_abstraction, [], csv_time_data_file, first_loaded, second_loaded,
+                           tmp_product_data_file, csv_data_file, timeout)
+            skip_pi(csv_data_file)
+            skip_pi(csv_data_file)
+            run_experiment(pi_abstraction, ["--no-z-constraints"], csv_time_data_file, first_loaded, second_loaded,
+                           tmp_product_data_file, csv_data_file, timeout)
+            run_experiment(combined_abstraction, ["--no-z-constraints"], csv_time_data_file, first_loaded, second_loaded,
+                           tmp_product_data_file, csv_data_file, timeout)
 
 
 def generate_basic_product(flags, csv_time_data_file, first_automaton, second_automaton, tmp_product_data_file,
-                   csv_data_file, timeout):
+                           csv_data_file, timeout):
     flags = ' '.join(flags)
     out = subprocess.Popen(
         ["hyperfine",
@@ -163,6 +165,7 @@ def generate_basic_product(flags, csv_time_data_file, first_automaton, second_au
         stdout=subprocess.PIPE, stderr=subprocess.STDOUT
     )
     process_experiment_result(csv_data_file, csv_time_data_file, out, timeout, tmp_product_data_file)
+
 
 def run_experiment(abstraction, flags, csv_time_data_file, first_automaton, second_automaton, tmp_product_data_file,
                    csv_data_file, timeout):
@@ -195,16 +198,16 @@ def process_experiment_result(csv_data_file, csv_time_data_file, out, timeout, t
         with open(csv_data_file, "a") as data_file:
             data_file.write(",,,,,,,,,,,,,,")
     else:
-        #print(out.returncode)
+        # print(out.returncode)
         if not out.returncode:
             with open(csv_data_file, "a") as data_file:
                 with open(tmp_product_data_file, "r") as product_data_file:
                     data_file.write(product_data_file.readline().strip("\n"))
 
                 with open(csv_time_data_file, "r") as time_data_file:
-                    #print(time_data_file.readlines())
+                    # print(time_data_file.readlines())
                     time_data = time_data_file.readlines()[1].strip("\n")
-                    print(time_data)
+                    # print(time_data)
                     time_data = time_data[time_data.find(','):][1:]
                     data_file.write(f"{time_data},")
         else:
@@ -222,6 +225,7 @@ class Config:
             raise ValueError("missing root directory argument")
 
         self.store_result = args.store_result
+        self.num_experiments = args.num_experiments
 
 
 class ArgumentParser:
