@@ -72,9 +72,9 @@ def plot_graph_scatter_comparison(df: pd.DataFrame, fig_location: str = None, sh
     # sbg.set_axis_labels("Čas od začátku směny (min)", "Počet rozvážejících řidičů")
     max_val_axis = max(df[f"Product Basic"].max(), df[f"Generated states of LAs + OA"].max()) * 1.3
     sbg.set(
-        xscale="log", yscale="log",
+        xscale="symlog", yscale="symlog",
         xlabel=None, ylabel=None,
-        xlim=(1, max_val_axis), ylim=(1, max_val_axis),
+        xlim=(-.1, max_val_axis), ylim=(-.1, max_val_axis),
     )
     sbg.despine()
     # sbg._legend.set_title("Druh vozidla")
