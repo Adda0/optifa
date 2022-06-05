@@ -1,0 +1,405 @@
+%%%%%%%%                       01 - Motivation                      %%%%%%%%
+%---------------------------------------------------------------------------
+% When presenting, the beginning is what matters most. 
+% To attract attention at the beginning of a public speech, it is advisable to: tell a statistic; ask a question (more like a rhetorical question for the state final exam).
+
+% HEROUT, Adam. Prezentování. Herout.net: Poznámky učitele, kouče, čtenáře. [online]. [cit. 2021-9-15]. Available at: https://www.herout.net/blog/category/prezentovani/
+%---------------------------------------------------------------------------
+
+% - Introduce the audience to the topic of your thesis.
+% - Tell a little about the situation before you started your work and what were the reasons for developing it.
+% - It is best to explain the motivation using a scheme. If you must use bullet points, make them super-short so you don't read them, but they only form the skeleton of the message.
+
+% From this part of the presentation, the audience must get brief and concise answers to the questions:
+%  A) Why your work should matter? What is it good for?
+%  B) What is the aim of the work? What should be the result?
+
+% Resist the temptation to say banalities and common knowledge.
+% "We live in an age of mobile computing where everyone has a mobile phone in their pocket" - is an empty and stupid statement, don't say anything like that, nobody cares.
+
+\begin{frame}{Motivation}
+    \begin{itemize}
+        \item Finite automata
+        \item Useful operations with automata,\\but expensive
+        \begin{itemize}
+            \item Union $\cup$
+            \item Intersection $\cap$
+            \begin{itemize}
+                \item Emptiness test
+            \end{itemize}
+            \item Complement $\overline{M}$
+            \item \ldots
+        \end{itemize}
+        \item Regular model-checking, string solving, Presburger arithmetic, WS1S, \ldots
+    \end{itemize}
+\end{frame}
+
+%%%%%%%%                       02 - Objectives                      %%%%%%%%
+%---------------------------------------------------------------------------
+% Briefly state the objectives of your thesis.
+% Up to 3 bullets/sentences with main objectives are suitable.
+
+% Sometimes, the motivation is identical to the formulation of goals. Don't force yourself into two slides when the idea is best conveyed in one...
+
+% Formulate what the goal is:
+%  - How do you know a successful outcome?
+%  - What are the results?
+%  - What are the characteristics of a successful result?
+%  - Where can it be used?
+
+% Better without using bullets:
+%  - have a good enough picture to comment on in your own words 
+%  - a figure is the best visual message and you deliver the verbal message with your mouth
+
+% It is useless to make generic and general statements "The solution should be fast, reliable and robust" - these are general requirements for anything, and the informational value of the message is ZERO - it is just a waste of time and intellect.
+% Be specific: What specific features should your solution have, what "robust" means specifically, what "reliable" means precisely?
+
+\begin{frame}{Problem}
+    \begin{itemize}
+        \item NFA $M_1$ (and $M_2$, \ldots)
+        \item Computation of the result of automata operations
+        \begin{align*}
+        & M = f(M_1) \\
+        & L(M) = f(L(M_1)) \\ \\
+        %\end{align*}
+        %\begin{align*}
+        & M = f(M_1, M_2, \ldots) \\
+        & L(M) = f(L(M_1), L(M_2), \ldots)
+        \end{align*}
+        \normalsize
+        \item Large amount of states and transitions
+        \item Nonterminating states
+    \end{itemize}
+
+    \Large \center \emph{$\implies$ Expensive generation of the result}
+\end{frame}
+
+
+%%%%%%%%                      03 - Information                      %%%%%%%%
+%---------------------------------------------------------------------------
+% The purpose of the defence is to report on the project's status, not to hold a lecture on the given topic. Talk about what you have done and what your results are. Keep formal terms on your slides, be precise, define and refer.
+
+% The presentation need not and, in fact, should not include:
+% -- Explanation of algorithms used, etc. That belongs in a lecture about the topic. In your project presentation, it is typically enough just to list the used algorithms by name. Unknown algorithms can be explained a bit to clarify what they are, but don't explain them in detail. The goal is not for your audience to completely understand the algorithm and to be able to program it but to give them an idea of what you are working on and how you are doing it.
+% -- Details of your system design. Again, your audience is not going to hack your system; they don't need detailed class structure, function names, file names, data formats, etc. Provide these things only to the extent that it helps the audience understand what you're are working on and how you are succeeding in it.
+
+% HEROUT, Adam. Prezentování. Herout.net: Poznámky učitele, kouče, čtenáře. [online]. [cit. 2021-9-15]. Available at: https://www.herout.net/blog/category/prezentovani/
+%---------------------------------------------------------------------------
+
+% - Indicate what interesting problems you have solved in your thesis.
+% - It should show that it is a thesis -- not just another project for a course -- so there is something non-trivial, interesting, and useful.
+% - Rather have two or three slides that you show/explain in 20 seconds than trying to cram everything onto one slide.
+% - It is good to put visual information on the slides: formulas, schemes, pictures, diagrams. Verbal information can be conveyed through your mouth. It is perfectly useless and annoying to have the same thing you are going to say in bullets on a slide.
+% - The title of the slide, "Essential Information About the Solution", is very generic. In your actual slides, it would be much better to use a specific title on each of the slides, for example, "Neural Network Scheme for Big Nose Detection", "Design of an Infinite Automata", "Collected Dataset", etc.
+
+\begin{frame}{Solution}
+    \begin{itemize}
+        \item Abstraction of state languages -- different approaches
+        \item Length abstraction
+        \begin{itemize}
+            \item Lasso automata
+            \item \emph{Linear length formulae} for potential product states
+            \item SMT solver -- satisfiability test of linear length formulae
+        \end{itemize}
+        \item Parikh's image -- Parikh's theorem
+        \begin{itemize}
+            \item Higher state pruning capabilities
+            \item \emph{Parikh's image semi-linear formulae} for potential product states
+            \item SMT solver -- satisfiability test of Parikh's image formulae
+        \end{itemize}
+        \item Combined approaches
+        \begin{itemize}
+            \item Minimization of necessary computations of Parikh's image formulae
+            \item Extensibility options for another abstractions
+        \end{itemize}
+        \item \emph{Mintermization} -- combination with optimization methods
+    \end{itemize}
+\end{frame}
+
+%%%%%%%%                        04 - Results                        %%%%%%%%
+%---------------------------------------------------------------------------
+% Summarise what results in you have achieved.
+% Indicate how the functionality and correctness of the solution have been evaluated.
+% Be specific: instead of "The application has been tested", say by whom and how it has been tested, and what the test results were.
+% Instead of "The detector success rate is very good", say "The detector success rate is 93% mAP", or even better, show a table with a comparison against alternative solutions.
+% If the evaluation consisted of two or three parts, splitting the content into two or three slides may be appropriate. When presenting, however, care should be taken to ensure that the time devoted to each slide is adequately short and that there is no time overrun.
+
+\begin{frame}{Product Generation}
+    %\onslide<1>{
+    %    \begin{itemize}
+    %        \item Quadratic state space grow %TODO
+    %        \item Exponential state space grow for three and more original automata
+    %    \end{itemize}
+    %}
+
+    %\only<1>{\vspace{1cm}\centering\includegraphics[scale=0.2]{img/explosion.png}}
+
+    %\pause
+    \centering\includegraphics[scale=0.9]{img/excelatfit_diagrams-Original A.pdf}
+    \centering\includegraphics[scale=0.9]{img/excelatfit_diagrams-Original B.pdf}
+    \vfill
+    \pause\centering\includegraphics[scale=0.9]{img/excelatfit_diagrams-Basic Product.pdf}
+\end{frame}
+
+\begin{frame}{Optimized Product}
+    \begin{figure}
+        \centering
+        \only<1>{\includegraphics[]{img/excelatfit_diagrams-skip WIP Product .pdf}}
+        \only<2>{\includegraphics[]{img/excelatfit_diagrams-Logo-white.pdf}}
+        \only<3>{\includegraphics[]{img/excelatfit_diagrams-Final-product-orig-shape.pdf}}
+    \end{figure}
+\end{frame}
+
+
+\begin{frame}{SMT Solver}
+    \begin{itemize}
+        \item Satisfiability of linear length and/or Parikh's image formulae
+        %\begin{align*}
+        %    \large &\phi: \exists k (|w| = 2 + 4 \cdot k \lor |w| = 3 + 4 \cdot k) \\
+        %    \large &\psi: \exists l (|w| = 1 + 2 \cdot l \lor |w| = 5 + 5 \cdot l \lor |w| = 8)
+        %\end{align*}
+        %\large $$\exists k \exists l (2 + 4 \cdot k \lor 3 + 4 \cdot k = 1 + 2 \cdot l \lor 5 + 5 \cdot l \lor 8)$$
+        %\normalsize
+        \item Return values: \emph{satisfiable}, \emph{unsatisfiable}
+        \item SMT solver limitation: computational time requirements, memory usage
+        \begin{itemize}
+            \item Number of clauses to be solved and their complexity
+            \item Length abstraction formulae -- small and cheap to compute
+            \item Parikh's image formulae -- extensive formulae and expensive to compute
+
+            %TODO example
+            % - memory usage
+            % - time to computet
+        \end{itemize}
+    \end{itemize}
+                \begin{center}
+            \begin{tabular}{ |c|c|c|c| } 
+                \hline
+                Common Constraints & Full Constraints & Product States & Time(s) \\ \hline 
+                1782 & 2652 & 434 & 2092 \\ \hline 
+            \end{tabular}
+            \end{center}
+\end{frame}
+
+
+    
+\begin{frame}{Future work and different approaches}
+    \begin{itemize}
+        \item Try different benchmarks
+        \item Try different abstraction techniques
+        \begin{itemize}
+            \item CEGAR, predicate abstraction, IMPACT, IC3/PDR
+            \item Attempts at applications on finite automata
+            \begin{itemize}
+                \item IC3
+                \item Interpolar approach McMillan
+            \end{itemize}
+        \end{itemize}
+        %\item CAV21 -- article about using length abstraction
+        \item Parallelization possibilities
+        \item States abstraction
+    \end{itemize}
+\end{frame}
+
+
+
+
+%%%%%%%%                        05 - Thanks                         %%%%%%%%
+%---------------------------------------------------------------------------
+% This slide should contain either one large or several smaller images arranged appropriately. % Choose the best thing you want to show off - the committee will look at this slide the longest of all the slides.
+% For this slide, thank the committee for attention (not necessarily by a huge text over the whole slide), and the committee will then have space to view the images as they listen to the reviews.
+%---------------------------------------------------------------------------
+
+% What is said at the end of the presentation is what the audience will consider when making subsequent decisions.
+
+% HEROUT, Adam. Prezentování. Herout.net: Poznámky učitele, kouče, čtenáře. [online]. [cit. 2021-9-15]. Available at: https://www.herout.net/blog/category/prezentovani/
+%---------------------------------------------------------------------------
+
+\begin{frame}
+  \frametitle{Thank You for Your Attention.}
+  \centering
+  \makebox[\textwidth]{
+    \begin{tikzpicture}
+      \node (screenshot) 
+         {\includegraphics[scale=0.5]{img/mintermization_example.pdf}};
+        \node (schema) at (screenshot.south east) [xshift=7em] [yshift=10ex]
+            {\includegraphics[scale=0.8]{img/excelatfit_diagrams-Logo-white.pdf}};
+      \node (goal) at (schema.north) [xshift=0em] [yshift=10ex]
+        {
+        \begin{minipage}{0.9\linewidth}
+            \begin{align}
+               \notag &\varphi: \exists k(|w| = 2 \lor |w| = 4 + 2 \cdot k) \\
+               \notag &\psi: \exists l(|w| = 2 + 1 \cdot l)
+            \end{align}
+            $$ \exists k \exists l (2 \lor 4 + 2 \cdot k = 2 + 1 \cdot l) $$
+        \end{minipage}
+            %\includegraphics[width=0.5\paperwidth]{img/template-Goal.pdf}
+        };
+    \end{tikzpicture}
+  }
+\end{frame}
+
+%\bluepage{Thank you for your attention.}
+
+
+
+%%%%%%%%                       06 - Questions                       %%%%%%%%
+%---------------------------------------------------------------------------
+% At the State final examination:
+%   1) The student presents his/her thesis, ends with "Thank you for your attention!"
+%   2) The commission chairman organises what happens next: an extract from the reviews is read.
+%   3) The student will answer the questions that the opponent has written in his/her review.
+%   4) The student answers questions that come up in the room: from the committee members, but also from the guests.
+
+% For point 3) above, it is helpful to have prepared slides:
+%   A) They show the verbatim text of the opponent's question. The student reads it so that everyone knows it, and then answers it.
+%   B) They will include visual aids to the answer.
+%       a) Some answers to questions do not need visual support: the student simply says the answer, and everything is clear.
+%       b) For other answers, it is wise to have a picture, a table, a graph, something that clearly shows the answer.
+
+% The opponent's questions are not meant to be "topics for a lecture". If it can be answered in one sentence, it's better than fumbling around.
+% Visual aids often help to answer succinctly, "The figure shows how I solve problem X." And that's it...
+
+% If no visual information is needed for the questions, it is helpful to have them as bullets on a single slide.
+% If there is more than one question and there are figures or graphs, it is advisable to have one slide for each question - the text of the question at the top, the visual material below.
+
+
+\appendix{}
+
+%\bluepage{Discussion}
+
+%\begin{frame}
+%  \frametitle{Opponent's Questions}
+%  \begin{itemize}
+%    \item If there are multiple questions, more slides can be made.
+%    \item This slide should be an attachment that does not count towards the total number of slides.
+%    \item It is a good idea to transcribe the question here \emph{verbatim}, so that there is no doubt that there is no inaccurate paraphrasing.
+%  \end{itemize}
+%  \bigskip
+%  \includegraphics[width=\textwidth]{img/template-ResultsPlot.pdf}
+%\end{frame}
+
+\begin{frame}
+    \only<1> {
+        \frametitle{Non-deterministic finite automaton}
+        \center\includegraphics[scale=1.2]{img/diagrams-Non-deterministic-Automaton.pdf}
+    }
+    \only<2> {
+        \frametitle{NFA with a unary alphabet}
+        \center\includegraphics[scale=1.2]{img/diagrams-NFA with Unary Alphabet.pdf}
+    }
+    \only<3> {
+        \frametitle{Lasso automaton}
+        \center\includegraphics[scale=1.2]{img/diagrams-Lasso Automaton.pdf}
+        
+        \large $$\varphi: \exists k (|w| = 2 + 4 \cdot k \lor |w| = 3 + 4 \cdot k)$$
+    }
+\end{frame}
+
+\begin{frame}{Lasso automata and length formulae}
+    \begin{figure}
+        \centerline{%
+            %\only<1>{\includegraphics[width=0.5\linewidth]{img/lasso-rope.png}}
+            \only<1>{
+                \includegraphics[width=0.5\linewidth]{img/excelatfit_diagrams-Lasso example-white.pdf}
+                \hspace{1cm}
+                \includegraphics[]{img/excelatfit_diagrams-Lasso example2-white.pdf}
+            }
+        }%
+    \end{figure}
+    
+    \only<1> {
+        \begin{itemize}
+            \item SMT solver -- satisfiability test of linear length abstraction formulae
+        \end{itemize}
+        $$\exists k \exists l (2 \lor 4 + 4 \cdot k = 2 + 1 \cdot l)$$
+    }
+\end{frame}
+
+\begin{frame}{SMT Solver}
+    \begin{itemize}
+        \item Satisfiability of linear length formulae
+        \begin{align*}
+            \large &\phi: \exists k (|w| = 2 + 4 \cdot k \lor |w| = 3 + 4 \cdot k) \\
+            \large &\psi: \exists l (|w| = 1 + 2 \cdot l \lor |w| = 5 + 5 \cdot l \lor |w| = 8)
+        \end{align*}
+        \large $$\exists k \exists l (2 + 4 \cdot k \lor 3 + 4 \cdot k = 1 + 2 \cdot l \lor 5 + 5 \cdot l \lor 8)$$
+        \normalsize
+        \item Return values: \emph{satisfiable}, \emph{unsatisfiable}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Mintermization}
+    \only<1> {
+    \centering\includegraphics[scale=1]{img/mintermization_automaton_m1.pdf}
+    \hfill
+    \centering\includegraphics[scale=1]{img/mintermization_automaton_m2.pdf}
+    }
+    \only<2> {
+    \centering\includegraphics[scale=1]{img/mintermization_automaton_m1_with_transition_sets.pdf}
+    \hfill
+    \centering\includegraphics[scale=1]{img/mintermization_automaton_m2_with_transition_sets.pdf}
+    }
+    \only<3> {
+    \centering\includegraphics[width=0.8\linewidth]{img/mintermization_example.pdf}
+    }
+    \only<4> {
+    \centering\includegraphics[scale=1]{img/mintermization_automaton_m1_with_minterms.pdf}
+    \hfill
+    \centering\includegraphics[scale=1]{img/mintermization_automaton_m2_with_minterms.pdf}
+    }
+\end{frame}
+
+
+
+\begin{frame}{Emptiness Test}
+    \center\includegraphics[scale=0.5]{img/graph_et_scatter.pdf}
+\end{frame}
+
+\begin{frame}{Optimized Product}
+    \center\includegraphics[scale=0.5]{img/graph_scatter_fp.pdf}
+\end{frame}
+
+\begin{frame}{Emptiness Test with Lasso Automata}
+    \center\includegraphics[scale=0.5]{img/graph_scatter_combined_et_titles.pdf}
+\end{frame}
+
+\begin{frame}{Optimized Product with Lasso Automata}
+    \center\includegraphics[scale=0.5]{img/graph_scatter_combined_fp_titles.pdf}
+\end{frame}
+
+\begin{frame}{Emptiness Test with Lasso Automata}
+    \center\includegraphics[scale=0.5]{img/graph_stacked_et_titles.pdf}
+\end{frame}
+
+\begin{frame}{Optimized Product with Lasso Automata}
+    \center\includegraphics[scale=0.5]{img/graph_stacked_fp_titles.pdf}
+\end{frame}
+
+\begin{frame}{Abstractions Comparison}
+    \center\includegraphics[scale=0.5]{img/la_pi_scatter_combined.pdf}
+\end{frame}
+
+\begin{frame}{Abstractions Comparison}
+    \center\includegraphics[scale=0.5]{img/la_pi_stacked_combined.pdf}
+\end{frame}
+
+\begin{frame}{Abstractions Comparison}
+    \center\includegraphics[scale=0.5]{img/la_pi_scatter_time.pdf}
+\end{frame}
+
+\begin{frame}{Abstractions Comparison}
+    \center\includegraphics[scale=0.5]{img/la_pi_stacked_time.pdf}
+\end{frame}
+
+\begin{frame}{Classic Product Construction Algorithm}
+    \center\includegraphics[scale=0.35]{img/algorithm_classic_product_construction.png}
+\end{frame}
+
+\begin{frame}{Optimized Product Construction Algorithm}
+    \center\includegraphics[scale=0.35]{img/algorithm_optimized_product_construction.png}
+\end{frame}
+
+\begin{frame}{Optimized Product Construction Algorithm}
+    \center\includegraphics[scale=0.36]{img/algorithm_optimized_product_construction_with_skipping_sat_states.png}
+\end{frame}
